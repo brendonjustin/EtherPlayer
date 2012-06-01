@@ -13,10 +13,24 @@
 		5C0A32E015786B2600D3A49F /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A32DE15786B2600D3A49F /* Credits.rtf */; };
 		5C0A32E315786B2600D3A49F /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32E215786B2600D3A49F /* AppDelegate.m */; };
 		5C0A32E615786B2700D3A49F /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A32E415786B2700D3A49F /* MainMenu.xib */; };
-		5C0A32EF15786BEE00D3A49F /* VLCKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5C0A32EE15786BEE00D3A49F /* VLCKit.framework */; };
 		5C0A32F215786C9400D3A49F /* BonjourSearcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32F115786C9400D3A49F /* BonjourSearcher.m */; };
 		5C0A32F515786D1000D3A49F /* AirplayHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32F415786D1000D3A49F /* AirplayHandler.m */; };
+		5C1F508E15792CE5006C8B5B /* VLCKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5C1F508D15792CE5006C8B5B /* VLCKit.framework */; };
+		5C1F508F15792CFD006C8B5B /* VLCKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5C1F508D15792CE5006C8B5B /* VLCKit.framework */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		5C1F508C15792C7E006C8B5B /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				5C1F508E15792CE5006C8B5B /* VLCKit.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		5C0A32CB15786B2600D3A49F /* EtherPlayer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EtherPlayer.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -32,11 +46,11 @@
 		5C0A32E115786B2600D3A49F /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		5C0A32E215786B2600D3A49F /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		5C0A32E515786B2700D3A49F /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
-		5C0A32EE15786BEE00D3A49F /* VLCKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = VLCKit.framework; sourceTree = "<group>"; };
 		5C0A32F015786C9400D3A49F /* BonjourSearcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BonjourSearcher.h; sourceTree = "<group>"; };
 		5C0A32F115786C9400D3A49F /* BonjourSearcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BonjourSearcher.m; sourceTree = "<group>"; };
 		5C0A32F315786D1000D3A49F /* AirplayHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AirplayHandler.h; sourceTree = "<group>"; };
 		5C0A32F415786D1000D3A49F /* AirplayHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AirplayHandler.m; sourceTree = "<group>"; };
+		5C1F508D15792CE5006C8B5B /* VLCKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = VLCKit.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -45,7 +59,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5C0A32D015786B2600D3A49F /* Cocoa.framework in Frameworks */,
-				5C0A32EF15786BEE00D3A49F /* VLCKit.framework in Frameworks */,
+				5C1F508F15792CFD006C8B5B /* VLCKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -72,7 +86,7 @@
 		5C0A32CE15786B2600D3A49F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				5C0A32EE15786BEE00D3A49F /* VLCKit.framework */,
+				5C1F508D15792CE5006C8B5B /* VLCKit.framework */,
 				5C0A32CF15786B2600D3A49F /* Cocoa.framework */,
 				5C0A32D115786B2600D3A49F /* Other Frameworks */,
 			);
@@ -126,6 +140,7 @@
 				5C0A32C715786B2600D3A49F /* Sources */,
 				5C0A32C815786B2600D3A49F /* Frameworks */,
 				5C0A32C915786B2600D3A49F /* Resources */,
+				5C1F508C15792C7E006C8B5B /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -272,6 +287,8 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../VLCKit\"",
 					"\"$(SRCROOT)\"",
+					"\"$(SRCROOT)/Frameworks\"",
+					"\"$(SRCROOT)/EtherPlayer/Frameworks\"",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "EtherPlayer/EtherPlayer-Prefix.pch";
@@ -288,6 +305,8 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../VLCKit\"",
 					"\"$(SRCROOT)\"",
+					"\"$(SRCROOT)/Frameworks\"",
+					"\"$(SRCROOT)/EtherPlayer/Frameworks\"",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "EtherPlayer/EtherPlayer-Prefix.pch";
@@ -316,6 +335,7 @@
 				5C0A32EB15786B2700D3A49F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
