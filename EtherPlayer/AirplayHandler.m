@@ -23,30 +23,40 @@
 
 //  public properties
 @synthesize inputPath = m_inputPath;
+@synthesize targetService = m_targetService;
 
 //  private properties
 @synthesize m_video;
 @synthesize m_streamOutput;
 @synthesize m_outputPath;
 
+//  TODO: intelligently choose bitrates and channels
 - (void)transcodeInput
 {
-    NSUInteger  videoBitrate;
-    NSUInteger  audioBitrate;
-    NSUInteger  audioChannels;
-    NSUInteger  width;
-    NSUInteger  height;
+    NSString *audioCodec;
+    NSString *videoBitrate;
+    NSString *audioBitrate;
+    NSString *audioChannels;
+    NSString *width;
+    NSString *height;
+    
+    audioCodec = @"mp4a";
+    videoBitrate = @"1024";
+    audioBitrate = @"128";
+    audioChannels = @"2";
+    width = @"640";
+    height = @"480";
     
     m_streamOutput = [VLCStreamOutput streamOutputWithOptionDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
                                                                   [NSDictionary dictionaryWithObjectsAndKeys:
                                                                    @"h264", @"videoCodec",
-                           [NSString stringWithFormat:@"%u", videoBitrate], @"videoBitrate",
-                                                                   @"mp4a", @"audioCodec",
-                           [NSString stringWithFormat:@"%u", audioBitrate], @"audioBitrate",
-                          [NSString stringWithFormat:@"%u", audioChannels], @"channels",
-                                  [NSString stringWithFormat:@"%u", width], @"width",
-                                 [NSString stringWithFormat:@"%u", height], @"canvasHeight",
-                                                                    @"Yes", @"audio-sync",
+                                                                   videoBitrate, @"videoBitrate",
+                                                                   audioCodec, @"audioCodec",
+                                                                   audioBitrate, @"audioBitrate",
+                                                                   audioChannels, @"channels",
+                                                                   width, @"width",
+                                                                   height, @"canvasHeight",
+                                                                   @"Yes", @"audio-sync",
                                                                    nil
                                                                    ], @"transcodingOptions",
                                                                   [NSDictionary dictionaryWithObjectsAndKeys:

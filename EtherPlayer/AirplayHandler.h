@@ -12,6 +12,7 @@
 
 - (void)transcodeInput;
 
-@property (strong, nonatomic) NSString *inputPath;
+@property (strong, nonatomic) NSString      *inputPath;
+@property (strong, nonatomic) NSNetService  *targetService;
 
 @end

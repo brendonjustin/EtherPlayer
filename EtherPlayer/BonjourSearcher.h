@@ -8,8 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
-@interface BonjourSearcher : NSObject
+@interface BonjourSearcher : NSObject <NSNetServiceBrowserDelegate>
 
-- (NSArray *)availableAirplayTargets;
+@property (strong, nonatomic) NSMutableArray *services;
 
 @end
