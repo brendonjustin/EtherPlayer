@@ -13,6 +13,7 @@
 		5C0A32E015786B2600D3A49F /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A32DE15786B2600D3A49F /* Credits.rtf */; };
 		5C0A32E315786B2600D3A49F /* EtherPlayerAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32E215786B2600D3A49F /* EtherPlayerAppDelegate.m */; };
 		5C0A32E615786B2700D3A49F /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A32E415786B2700D3A49F /* MainMenu.xib */; };
+		5C0A32EF15786BEE00D3A49F /* VLCKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5C0A32EE15786BEE00D3A49F /* VLCKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -21,14 +22,15 @@
 		5C0A32D215786B2600D3A49F /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		5C0A32D315786B2600D3A49F /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		5C0A32D415786B2600D3A49F /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		5C0A32D715786B2600D3A49F /* EtherPlayer-Info.plist */ = {isa = PBXFileReference; path = "EtherPlayer-Info.plist"; sourceTree = "<group>"; };
+		5C0A32D715786B2600D3A49F /* EtherPlayer-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "EtherPlayer-Info.plist"; sourceTree = "<group>"; };
 		5C0A32D915786B2600D3A49F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		5C0A32DB15786B2600D3A49F /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		5C0A32DD15786B2600D3A49F /* EtherPlayer-Prefix.pch */ = {isa = PBXFileReference; path = "EtherPlayer-Prefix.pch"; sourceTree = "<group>"; };
+		5C0A32DD15786B2600D3A49F /* EtherPlayer-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "EtherPlayer-Prefix.pch"; sourceTree = "<group>"; };
 		5C0A32DF15786B2600D3A49F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
-		5C0A32E115786B2600D3A49F /* EtherPlayerAppDelegate.h */ = {isa = PBXFileReference; path = EtherPlayerAppDelegate.h; sourceTree = "<group>"; };
+		5C0A32E115786B2600D3A49F /* EtherPlayerAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EtherPlayerAppDelegate.h; sourceTree = "<group>"; };
 		5C0A32E215786B2600D3A49F /* EtherPlayerAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EtherPlayerAppDelegate.m; sourceTree = "<group>"; };
 		5C0A32E515786B2700D3A49F /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		5C0A32EE15786BEE00D3A49F /* VLCKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = VLCKit.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,6 +39,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5C0A32D015786B2600D3A49F /* Cocoa.framework in Frameworks */,
+				5C0A32EF15786BEE00D3A49F /* VLCKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -63,6 +66,7 @@
 		5C0A32CE15786B2600D3A49F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				5C0A32EE15786BEE00D3A49F /* VLCKit.framework */,
 				5C0A32CF15786B2600D3A49F /* Cocoa.framework */,
 				5C0A32D115786B2600D3A49F /* Other Frameworks */,
 			);
@@ -252,6 +256,11 @@
 		5C0A32EA15786B2700D3A49F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../VLCKit\"",
+					"\"$(SRCROOT)\"",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "EtherPlayer/EtherPlayer-Prefix.pch";
 				INFOPLIST_FILE = "EtherPlayer/EtherPlayer-Info.plist";
@@ -263,6 +272,11 @@
 		5C0A32EB15786B2700D3A49F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../VLCKit\"",
+					"\"$(SRCROOT)\"",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "EtherPlayer/EtherPlayer-Prefix.pch";
 				INFOPLIST_FILE = "EtherPlayer/EtherPlayer-Info.plist";
