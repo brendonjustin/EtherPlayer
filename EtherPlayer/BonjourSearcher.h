@@ -10,6 +10,6 @@
 
 @interface BonjourSearcher : NSObject <NSNetServiceBrowserDelegate>
 
-@property (strong, nonatomic) NSMutableArray *services;
+- (void)beginSearching;
 
 @end
