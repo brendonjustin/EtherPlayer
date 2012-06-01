@@ -10,11 +10,13 @@
 
 #import <VLCKit/VLCMedia.h>
 #import <VLCKit/VLCStreamOutput.h>
+#import <VLCKit/VLCStreamSession.h>
 
 @interface AirplayHandler ()
 
 @property (strong, nonatomic) VLCMedia          *m_video;
-@property (strong, nonatomic) VLCStreamOutput   *m_streamOutput;
+@property (strong, nonatomic) VLCStreamOutput   *m_output;
+@property (strong, nonatomic) VLCStreamSession  *m_session;
 @property (strong, nonatomic) NSString          *m_outputPath;
 
 @end
@@ -27,29 +29,24 @@
 
 //  private properties
 @synthesize m_video;
-@synthesize m_streamOutput;
+@synthesize m_output;
+@synthesize m_session;
 @synthesize m_outputPath;
 
 //  TODO: intelligently choose bitrates and channels
 - (void)transcodeInput
 {
-    NSString *audioCodec;
-    NSString *videoBitrate;
-    NSString *audioBitrate;
-    NSString *audioChannels;
-    NSString *width;
-    NSString *height;
+    NSString *videoCodec = @"h264";
+    NSString *audioCodec = @"mp4a";
+    NSString *videoBitrate = @"1024";
+    NSString *audioBitrate = @"128";
+    NSString *audioChannels = @"2";
+    NSString *width = @"640";
+    NSString *height = @"480";
     
-    audioCodec = @"mp4a";
-    videoBitrate = @"1024";
-    audioBitrate = @"128";
-    audioChannels = @"2";
-    width = @"640";
-    height = @"480";
-    
-    m_streamOutput = [VLCStreamOutput streamOutputWithOptionDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
+    m_output = [VLCStreamOutput streamOutputWithOptionDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
                                                                   [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                   @"h264", @"videoCodec",
+                                                                   videoCodec, @"videoCodec",
                                                                    videoBitrate, @"videoBitrate",
                                                                    audioCodec, @"audioCodec",
                                                                    audioBitrate, @"audioBitrate",
@@ -67,6 +64,12 @@
                                                                    ], @"outputOptions",
                                                                   nil
                                                                   ]];
+    
+    m_session = [[VLCStreamSession alloc] init];
+    m_session.media = m_video;
+    m_session.streamOutput = m_output;
+    
+    [m_session startStreaming];
 }
 
 @end
