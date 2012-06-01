@@ -1,0 +1,297 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		5C0A32D015786B2600D3A49F /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5C0A32CF15786B2600D3A49F /* Cocoa.framework */; };
+		5C0A32DA15786B2600D3A49F /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A32D815786B2600D3A49F /* InfoPlist.strings */; };
+		5C0A32DC15786B2600D3A49F /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32DB15786B2600D3A49F /* main.m */; };
+		5C0A32E015786B2600D3A49F /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A32DE15786B2600D3A49F /* Credits.rtf */; };
+		5C0A32E315786B2600D3A49F /* EtherPlayerAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32E215786B2600D3A49F /* EtherPlayerAppDelegate.m */; };
+		5C0A32E615786B2700D3A49F /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A32E415786B2700D3A49F /* MainMenu.xib */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		5C0A32CB15786B2600D3A49F /* EtherPlayer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EtherPlayer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5C0A32CF15786B2600D3A49F /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		5C0A32D215786B2600D3A49F /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		5C0A32D315786B2600D3A49F /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		5C0A32D415786B2600D3A49F /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		5C0A32D715786B2600D3A49F /* EtherPlayer-Info.plist */ = {isa = PBXFileReference; path = "EtherPlayer-Info.plist"; sourceTree = "<group>"; };
+		5C0A32D915786B2600D3A49F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		5C0A32DB15786B2600D3A49F /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		5C0A32DD15786B2600D3A49F /* EtherPlayer-Prefix.pch */ = {isa = PBXFileReference; path = "EtherPlayer-Prefix.pch"; sourceTree = "<group>"; };
+		5C0A32DF15786B2600D3A49F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
+		5C0A32E115786B2600D3A49F /* EtherPlayerAppDelegate.h */ = {isa = PBXFileReference; path = EtherPlayerAppDelegate.h; sourceTree = "<group>"; };
+		5C0A32E215786B2600D3A49F /* EtherPlayerAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EtherPlayerAppDelegate.m; sourceTree = "<group>"; };
+		5C0A32E515786B2700D3A49F /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		5C0A32C815786B2600D3A49F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5C0A32D015786B2600D3A49F /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		5C0A32C015786B2600D3A49F = {
+			isa = PBXGroup;
+			children = (
+				5C0A32D515786B2600D3A49F /* EtherPlayer */,
+				5C0A32CE15786B2600D3A49F /* Frameworks */,
+				5C0A32CC15786B2600D3A49F /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		5C0A32CC15786B2600D3A49F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5C0A32CB15786B2600D3A49F /* EtherPlayer.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5C0A32CE15786B2600D3A49F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5C0A32CF15786B2600D3A49F /* Cocoa.framework */,
+				5C0A32D115786B2600D3A49F /* Other Frameworks */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		5C0A32D115786B2600D3A49F /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5C0A32D215786B2600D3A49F /* AppKit.framework */,
+				5C0A32D315786B2600D3A49F /* CoreData.framework */,
+				5C0A32D415786B2600D3A49F /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		5C0A32D515786B2600D3A49F /* EtherPlayer */ = {
+			isa = PBXGroup;
+			children = (
+				5C0A32E115786B2600D3A49F /* EtherPlayerAppDelegate.h */,
+				5C0A32E215786B2600D3A49F /* EtherPlayerAppDelegate.m */,
+				5C0A32E415786B2700D3A49F /* MainMenu.xib */,
+				5C0A32D615786B2600D3A49F /* Supporting Files */,
+			);
+			path = EtherPlayer;
+			sourceTree = "<group>";
+		};
+		5C0A32D615786B2600D3A49F /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				5C0A32D715786B2600D3A49F /* EtherPlayer-Info.plist */,
+				5C0A32D815786B2600D3A49F /* InfoPlist.strings */,
+				5C0A32DB15786B2600D3A49F /* main.m */,
+				5C0A32DD15786B2600D3A49F /* EtherPlayer-Prefix.pch */,
+				5C0A32DE15786B2600D3A49F /* Credits.rtf */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		5C0A32CA15786B2600D3A49F /* EtherPlayer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5C0A32E915786B2700D3A49F /* Build configuration list for PBXNativeTarget "EtherPlayer" */;
+			buildPhases = (
+				5C0A32C715786B2600D3A49F /* Sources */,
+				5C0A32C815786B2600D3A49F /* Frameworks */,
+				5C0A32C915786B2600D3A49F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = EtherPlayer;
+			productName = EtherPlayer;
+			productReference = 5C0A32CB15786B2600D3A49F /* EtherPlayer.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		5C0A32C215786B2600D3A49F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				CLASSPREFIX = EtherPlayer;
+				LastUpgradeCheck = 0430;
+				ORGANIZATIONNAME = "Naga Softworks, LLC";
+			};
+			buildConfigurationList = 5C0A32C515786B2600D3A49F /* Build configuration list for PBXProject "EtherPlayer" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 5C0A32C015786B2600D3A49F;
+			productRefGroup = 5C0A32CC15786B2600D3A49F /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				5C0A32CA15786B2600D3A49F /* EtherPlayer */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		5C0A32C915786B2600D3A49F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5C0A32DA15786B2600D3A49F /* InfoPlist.strings in Resources */,
+				5C0A32E015786B2600D3A49F /* Credits.rtf in Resources */,
+				5C0A32E615786B2700D3A49F /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5C0A32C715786B2600D3A49F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5C0A32DC15786B2600D3A49F /* main.m in Sources */,
+				5C0A32E315786B2600D3A49F /* EtherPlayerAppDelegate.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		5C0A32D815786B2600D3A49F /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				5C0A32D915786B2600D3A49F /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		5C0A32DE15786B2600D3A49F /* Credits.rtf */ = {
+			isa = PBXVariantGroup;
+			children = (
+				5C0A32DF15786B2600D3A49F /* en */,
+			);
+			name = Credits.rtf;
+			sourceTree = "<group>";
+		};
+		5C0A32E415786B2700D3A49F /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				5C0A32E515786B2700D3A49F /* en */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		5C0A32E715786B2700D3A49F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		5C0A32E815786B2700D3A49F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		5C0A32EA15786B2700D3A49F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "EtherPlayer/EtherPlayer-Prefix.pch";
+				INFOPLIST_FILE = "EtherPlayer/EtherPlayer-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		5C0A32EB15786B2700D3A49F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "EtherPlayer/EtherPlayer-Prefix.pch";
+				INFOPLIST_FILE = "EtherPlayer/EtherPlayer-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		5C0A32C515786B2600D3A49F /* Build configuration list for PBXProject "EtherPlayer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5C0A32E715786B2700D3A49F /* Debug */,
+				5C0A32E815786B2700D3A49F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5C0A32E915786B2700D3A49F /* Build configuration list for PBXNativeTarget "EtherPlayer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5C0A32EA15786B2700D3A49F /* Debug */,
+				5C0A32EB15786B2700D3A49F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 5C0A32C215786B2600D3A49F /* Project object */;
+}
