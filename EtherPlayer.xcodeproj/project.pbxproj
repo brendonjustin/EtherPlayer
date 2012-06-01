@@ -11,9 +11,11 @@
 		5C0A32DA15786B2600D3A49F /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A32D815786B2600D3A49F /* InfoPlist.strings */; };
 		5C0A32DC15786B2600D3A49F /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32DB15786B2600D3A49F /* main.m */; };
 		5C0A32E015786B2600D3A49F /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A32DE15786B2600D3A49F /* Credits.rtf */; };
-		5C0A32E315786B2600D3A49F /* EtherPlayerAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32E215786B2600D3A49F /* EtherPlayerAppDelegate.m */; };
+		5C0A32E315786B2600D3A49F /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32E215786B2600D3A49F /* AppDelegate.m */; };
 		5C0A32E615786B2700D3A49F /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A32E415786B2700D3A49F /* MainMenu.xib */; };
 		5C0A32EF15786BEE00D3A49F /* VLCKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5C0A32EE15786BEE00D3A49F /* VLCKit.framework */; };
+		5C0A32F215786C9400D3A49F /* BonjourSearcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32F115786C9400D3A49F /* BonjourSearcher.m */; };
+		5C0A32F515786D1000D3A49F /* AirplayHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32F415786D1000D3A49F /* AirplayHandler.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,10 +29,14 @@
 		5C0A32DB15786B2600D3A49F /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		5C0A32DD15786B2600D3A49F /* EtherPlayer-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "EtherPlayer-Prefix.pch"; sourceTree = "<group>"; };
 		5C0A32DF15786B2600D3A49F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
-		5C0A32E115786B2600D3A49F /* EtherPlayerAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EtherPlayerAppDelegate.h; sourceTree = "<group>"; };
-		5C0A32E215786B2600D3A49F /* EtherPlayerAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EtherPlayerAppDelegate.m; sourceTree = "<group>"; };
+		5C0A32E115786B2600D3A49F /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		5C0A32E215786B2600D3A49F /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		5C0A32E515786B2700D3A49F /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		5C0A32EE15786BEE00D3A49F /* VLCKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = VLCKit.framework; sourceTree = "<group>"; };
+		5C0A32F015786C9400D3A49F /* BonjourSearcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BonjourSearcher.h; sourceTree = "<group>"; };
+		5C0A32F115786C9400D3A49F /* BonjourSearcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BonjourSearcher.m; sourceTree = "<group>"; };
+		5C0A32F315786D1000D3A49F /* AirplayHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AirplayHandler.h; sourceTree = "<group>"; };
+		5C0A32F415786D1000D3A49F /* AirplayHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AirplayHandler.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,8 +92,12 @@
 		5C0A32D515786B2600D3A49F /* EtherPlayer */ = {
 			isa = PBXGroup;
 			children = (
-				5C0A32E115786B2600D3A49F /* EtherPlayerAppDelegate.h */,
-				5C0A32E215786B2600D3A49F /* EtherPlayerAppDelegate.m */,
+				5C0A32E115786B2600D3A49F /* AppDelegate.h */,
+				5C0A32E215786B2600D3A49F /* AppDelegate.m */,
+				5C0A32F315786D1000D3A49F /* AirplayHandler.h */,
+				5C0A32F415786D1000D3A49F /* AirplayHandler.m */,
+				5C0A32F015786C9400D3A49F /* BonjourSearcher.h */,
+				5C0A32F115786C9400D3A49F /* BonjourSearcher.m */,
 				5C0A32E415786B2700D3A49F /* MainMenu.xib */,
 				5C0A32D615786B2600D3A49F /* Supporting Files */,
 			);
@@ -132,9 +142,9 @@
 		5C0A32C215786B2600D3A49F /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				CLASSPREFIX = EtherPlayer;
+				CLASSPREFIX = "";
 				LastUpgradeCheck = 0430;
-				ORGANIZATIONNAME = "Naga Softworks, LLC";
+				ORGANIZATIONNAME = "Brendon Justin";
 			};
 			buildConfigurationList = 5C0A32C515786B2600D3A49F /* Build configuration list for PBXProject "EtherPlayer" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -172,7 +182,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				5C0A32DC15786B2600D3A49F /* main.m in Sources */,
-				5C0A32E315786B2600D3A49F /* EtherPlayerAppDelegate.m in Sources */,
+				5C0A32E315786B2600D3A49F /* AppDelegate.m in Sources */,
+				5C0A32F215786C9400D3A49F /* BonjourSearcher.m in Sources */,
+				5C0A32F515786D1000D3A49F /* AirplayHandler.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
