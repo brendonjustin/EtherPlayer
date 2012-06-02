@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface BonjourSearcher : NSObject <NSNetServiceBrowserDelegate>
+@interface BonjourSearcher : NSObject <NSNetServiceBrowserDelegate, NSNetServiceDelegate>
 
 - (void)beginSearching;
 

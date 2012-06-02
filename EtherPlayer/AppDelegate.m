@@ -43,6 +43,11 @@
 {
     NSArray *services = [[notification userInfo] objectForKey:@"targets"];
     NSLog(@"Found services: %@", services);
+    
+    if (m_handler.targetService == nil && [services count] > 0) {
+        m_handler.targetService = [services objectAtIndex:0];
+        [m_handler airplay];
+    }
 }
 
 @end

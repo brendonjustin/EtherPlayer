@@ -10,7 +10,7 @@
 
 @interface AirplayHandler : NSObject
 
-- (void)transcodeInput;
+- (void)airplay;
 
 @property (strong, nonatomic) NSString      *inputPath;
 @property (strong, nonatomic) NSNetService  *targetService;

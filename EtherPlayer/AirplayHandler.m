@@ -12,7 +12,11 @@
 #import <VLCKit/VLCStreamOutput.h>
 #import <VLCKit/VLCStreamSession.h>
 
+#include <arpa/inet.h>
+
 @interface AirplayHandler ()
+
+- (void)transcodeInput;
 
 @property (strong, nonatomic) VLCMedia          *m_video;
 @property (strong, nonatomic) VLCStreamOutput   *m_output;
@@ -32,6 +36,45 @@
 @synthesize m_output;
 @synthesize m_session;
 @synthesize m_outputPath;
+
+- (void)airplay
+{
+    NSArray             *sockArray = nil;
+    NSData              *sockData = nil;
+    NSURL               *baseUrl = nil;
+    NSURLRequest        *request;
+    char                addressBuffer[100];
+    struct sockaddr_in  *sockAddress;
+    
+    sockArray = m_targetService.addresses;
+    sockData = [sockArray objectAtIndex:0];
+    
+    sockAddress = (struct sockaddr_in*) [sockData bytes];
+    
+    int sockFamily = sockAddress->sin_family;
+    if (sockFamily == AF_INET || sockFamily == AF_INET6) {
+        const char* addressStr = inet_ntop(sockFamily,
+                                           &(sockAddress->sin_addr), addressBuffer,
+                                           sizeof(addressBuffer));
+        int port = ntohs(sockAddress->sin_port);
+        if (addressStr && port) {
+            NSString *address = [NSString stringWithFormat:@"http://%s:%d", addressStr, port];
+            NSLog(@"Found service at %@", address);
+            baseUrl = [NSURL URLWithString:address];
+        }
+    }
+    
+    //  reverse
+    request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/reverse" relativeToURL:baseUrl]];
+    
+    //  play
+    
+    //  rate
+    
+    //  (GET)scrub
+    
+    //  (GET)playback-info
+}
 
 //  TODO: intelligently choose bitrates and channels
 - (void)transcodeInput

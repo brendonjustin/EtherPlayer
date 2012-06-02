@@ -14,6 +14,7 @@
 - (void)postNotificationWithServices:(NSArray *)services;
 
 @property (strong, nonatomic) NSNetServiceBrowser   *m_browser;
+@property (strong, nonatomic) NSMutableArray        *m_unresolvedServices;
 @property (strong, nonatomic) NSMutableArray        *m_services;
 
 @end
@@ -21,11 +22,13 @@
 @implementation BonjourSearcher
 
 @synthesize m_services;
+@synthesize m_unresolvedServices;
 @synthesize m_browser;
 
 - (id)init
 {
     if ((self = [super init])) {
+        m_unresolvedServices = [NSMutableArray array];
         m_services = [NSMutableArray array];
     }
     
@@ -49,7 +52,7 @@
 }
 
 #pragma mark -
-#pragma mark NSNetServiceDelegate
+#pragma mark NSNetServiceDelegate methods
 
 // Sent when browsing begins
 - (void)netServiceBrowserWillSearch:(NSNetServiceBrowser *)browser
@@ -75,9 +78,10 @@
                moreComing:(BOOL)moreComing
 {
     NSLog(@"didFindService");
-    [m_services addObject:aNetService];
+    aNetService.delegate = self;
+    [aNetService resolveWithTimeout:1000];
     
-    [self postNotificationWithServices:[m_services copy]];
+    [m_unresolvedServices addObject:aNetService];
 }
 
 - (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser 
@@ -85,10 +89,13 @@
                moreComing:(BOOL)moreComing
 {
     NSLog(@"didRemoveService");
-    if ([m_services containsObject:aNetService]) {
+    if ([m_unresolvedServices containsObject:aNetService]) {
+        [m_unresolvedServices removeObject:aNetService];
+    } else if ([m_services containsObject:aNetService]) {
         [m_services removeObject:aNetService];
         [self postNotificationWithServices:[m_services copy]];
     }
+    
 }
 
 // Error handling code
@@ -96,6 +103,20 @@
 {
     NSLog(@"An error occurred. Error code = %d", [error intValue]);
     // Handle error here    
+}
+
+#pragma mark -
+#pragma NSNetServiceDelegate methods
+
+- (void)netServiceDidResolveAddress:(NSNetService *)sender
+{
+    [m_services addObject:sender];
+    
+    if ([m_unresolvedServices containsObject:sender]) {
+        [m_unresolvedServices removeObject:sender];
+    }
+    
+    [self postNotificationWithServices:[m_services copy]];
 }
 
 @end
