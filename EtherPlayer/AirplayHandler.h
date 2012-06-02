@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface AirplayHandler : NSObject
+@interface AirplayHandler : NSObject <NSURLConnectionDelegate>
 
 - (void)airplay;
 
