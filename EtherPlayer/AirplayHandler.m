@@ -191,8 +191,8 @@
         rateString = @"/rate?value=1.00000";
     }
     
-    request = [NSURLRequest requestWithURL:[NSURL URLWithString:rateString relativeToURL:m_baseUrl]];
-    [request setHTTPMethod:@"POST"];
+    request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:rateString relativeToURL:m_baseUrl]];
+    request.HTTPMethod = @"POST";
     
     nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
     [nextConnection start];
@@ -209,6 +209,10 @@
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
 {
+    if ([response isKindOfClass: [NSHTTPURLResponse class]])
+        NSLog(@"Response type: %ld, %@", [(NSHTTPURLResponse *)response statusCode],
+              [NSHTTPURLResponse localizedStringForStatusCode:[(NSHTTPURLResponse *)response statusCode]]);
+    
     m_responseData = [[NSMutableData alloc] init];
 }
 
@@ -240,13 +244,18 @@
 {
     NSMutableURLRequest *request = nil;
     NSURLConnection     *nextConnection = nil;
-    NSString            *response = [[NSString alloc] initWithData:m_responseData encoding:NSASCIIStringEncoding];
+    NSString            *response = [[NSString alloc] initWithData:m_responseData 
+                                                          encoding:NSASCIIStringEncoding];
     NSLog(@"current request: %@, response string: %@", m_currentRequest, response);
     
     if ([m_currentRequest isEqualToString:@"/server-info"]) {
-        //  do the /reverse handshake to start
+        //  /reverse is a handshake before starting
         //  the next request is /reverse
-        request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/reverse" relativeToURL:m_baseUrl]];
+        request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/reverse" 
+                                                             relativeToURL:m_baseUrl]];
+        [request setHTTPMethod:@"POST"];
+        [request addValue:@"PTTH/1.0" forHTTPHeaderField:@"Upgrade"];
+        [request addValue:@"event" forHTTPHeaderField:@"X-Apple-Purpose"];
         
         nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
         [nextConnection start];
@@ -254,10 +263,11 @@
     } else if ([m_currentRequest isEqualToString:@"/reverse"]) {
         //  give the signal to play the file after /reverse
         //  the next request is /play
-        request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/play" relativeToURL:m_baseUrl]];
+        request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/play" 
+                                                      relativeToURL:m_baseUrl]];
         
         nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
-//        [nextConnection start];
+        [nextConnection start];
         m_currentRequest = @"/play";
     } else if ([m_currentRequest isEqualToString:@"/play"]) {
         //  check if playing successful after /play
