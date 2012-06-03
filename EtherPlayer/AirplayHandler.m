@@ -16,12 +16,16 @@
 
 #include <arpa/inet.h>
 
+const BOOL ENABLE_DEBUG_OUTPUT = NO;
+
 @interface AirplayHandler ()
 
 - (void)transcodeInput;
 - (void)playRequest;
 - (void)scrubRequest;
 - (void)playbackInfoRequest;
+- (void)stop;
+- (void)changePlaybackStatus;
 
 @property (strong, nonatomic) VLCMedia          *m_inputVideo;
 @property (strong, nonatomic) VLCStreamOutput   *m_output;
@@ -36,6 +40,7 @@
 @property (strong, nonatomic) HTTPServer        *m_httpServer;
 @property (nonatomic) BOOL                      m_playing;
 @property (nonatomic) double                    m_playbackPosition;
+@property (nonatomic) NSUInteger                m_sessionRandom;
 
 @end
 
@@ -59,6 +64,7 @@
 @synthesize m_httpServer;
 @synthesize m_playing;
 @synthesize m_playbackPosition;
+@synthesize m_sessionRandom;
 
 //  temporary directory code thanks to a Stack Overflow post
 //  http://stackoverflow.com/questions/374431/how-do-i-get-the-default-temporary-directory-on-mac-os-x
@@ -73,6 +79,7 @@
         char            *buffer;
         char            *result;
         
+        m_session = nil;
         m_playing = YES;
         m_playbackPosition = 0;
         
@@ -81,16 +88,23 @@
             tempDir = @"/tmp";
         
         template = [tempDir stringByAppendingPathComponent:@"temp.XXXXXX"];
-        NSLog(@"Template: %@", template);
+        if (ENABLE_DEBUG_OUTPUT) {
+            NSLog(@"Template: %@", template);
+        }
         const char *fsTemplate = [template fileSystemRepresentation];
         bufferData = [NSMutableData dataWithBytes:fsTemplate
                                                            length:strlen(fsTemplate)+1];
         buffer = [bufferData mutableBytes];
-        NSLog(@"FS Template: %s", buffer);
+        if (ENABLE_DEBUG_OUTPUT) {
+            NSLog(@"FS Template: %s", buffer);
+        }
         result = mkdtemp(buffer);
-        NSLog(@"mkdtemp result: %s", result);
-        m_baseOutputPath = [[NSFileManager defaultManager]  stringWithFileSystemRepresentation:buffer
-                                                                                        length:strlen(buffer)];
+        if (ENABLE_DEBUG_OUTPUT) {
+            NSLog(@"mkdtemp result: %s", result);
+        }
+        m_baseOutputPath = [[NSFileManager defaultManager]  stringWithFileSystemRepresentation:result
+                                                                                        length:strlen(result)];
+        m_baseOutputPath = [m_baseOutputPath stringByAppendingString:@"/"];
         
         //  create our http server and set the port arbitrarily
         m_httpServer = [[HTTPServer alloc] init];
@@ -135,6 +149,8 @@
     char                addressBuffer[100];
     struct sockaddr_in  *sockAddress;
     
+    [self stop];
+    
     sockArray = m_targetService.addresses;
     sockData = [sockArray objectAtIndex:0];
     
@@ -151,7 +167,10 @@
         int port = ntohs(sockAddress->sin_port);
         if (addressStr && port) {
             NSString *address = [NSString stringWithFormat:@"http://%s:%d", addressStr, port];
-            NSLog(@"Found service at %@", address);
+            
+            if (ENABLE_DEBUG_OUTPUT) {
+                NSLog(@"Found service at %@", address);
+            }
             m_baseUrl = [NSURL URLWithString:address];
         }
     }
@@ -169,19 +188,19 @@
 - (void)transcodeInput
 {
     NSString    *videoCodec = @"h264";
-    NSString    *audioCodec = @"mp3";
+    NSString    *audioCodec = @"mp4a";
     NSString    *videoBitrate = @"1024";
     NSString    *audioBitrate = @"128";
     NSString    *audioChannels = @"2";
     NSString    *width = @"640";
-    NSString    *height = @"480";
     NSString    *outputPath = nil;
-    NSUInteger  randomInt = arc4random();
+    
+    m_sessionRandom = arc4random();
     
     m_inputVideo = [VLCMedia mediaWithPath:m_inputFilePath];
     
-    m_outputFilename = [NSString stringWithFormat:@"%u.mp4", randomInt];
-    outputPath = [m_baseOutputPath stringByAppendingFormat:@"%u.mp4", randomInt];
+    m_outputFilename = [NSString stringWithFormat:@"%u.mp4", m_sessionRandom];
+    outputPath = [m_baseOutputPath stringByAppendingFormat:@"%u.mp4", m_sessionRandom];
     
     m_output = [VLCStreamOutput streamOutputWithOptionDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
                                                                   [NSDictionary dictionaryWithObjectsAndKeys:
@@ -191,7 +210,6 @@
                                                                    audioBitrate, @"audioBitrate",
                                                                    audioChannels, @"channels",
                                                                    width, @"width",
-                                                                   height, @"canvasHeight",
                                                                    @"Yes", @"audio-sync",
                                                                    nil
                                                                    ], @"transcodingOptions",
@@ -203,10 +221,6 @@
                                                                    ], @"outputOptions",
                                                                   nil
                                                                   ]];
-    
-    if (m_session) {
-        [m_session stopStreaming];
-    }
     
     m_session = [[VLCStreamSession alloc] init];
     m_session.media = m_inputVideo;
@@ -223,15 +237,14 @@
     NSData                  *data = nil;
     NSError                 *err = nil;
     NSString                *filePath = nil;
-    NSUInteger              rand = arc4random();
     NSPropertyListFormat    format;
     
     filePath = [m_httpAddress stringByAppendingString:m_outputFilename];
     
     dict = [NSDictionary dictionaryWithObjectsAndKeys:filePath, @"Content-Location", 
             [NSString stringWithFormat:@"%f", m_playbackPosition], @"Start-Position", nil];
-    [dict writeToFile:[m_baseOutputPath stringByAppendingFormat:@"%d.plist", rand] atomically:YES];
-    data = [NSData dataWithContentsOfFile:[m_baseOutputPath stringByAppendingFormat:@"%d.plist", rand]];
+    [dict writeToFile:[m_baseOutputPath stringByAppendingFormat:@"%u.plist", m_sessionRandom] atomically:YES];
+    data = [NSData dataWithContentsOfFile:[m_baseOutputPath stringByAppendingFormat:@"%u.plist", m_sessionRandom]];
     
     [NSPropertyListSerialization propertyListWithData:data 
                                               options:NSPropertyListImmutable 
@@ -252,7 +265,7 @@
         [request addValue:@"text/x-apple-plist+xml" forHTTPHeaderField:@"Content-Type"];
     } else {
         //  format == NSPropertyListOpenStepFormat
-        //  should never get here
+        //  should never get here, Apple doesn't write out PLISTs in this format any more
     }
     
     request.HTTPBody = data;
@@ -284,6 +297,14 @@
     m_currentRequest = @"/playback-info";
 }
 
+//  TODO: consider doing more in this function
+- (void)stop
+{
+    //  if m_session exists, it must be stopped
+    //  if not, this is still OK since m_session was initialized to nil
+    [m_session stopStreaming];
+}
+
 - (void)changePlaybackStatus
 {
     NSMutableURLRequest *request = nil;
@@ -312,9 +333,11 @@
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
 {
-    if ([response isKindOfClass: [NSHTTPURLResponse class]])
-        NSLog(@"Response type: %ld, %@", [(NSHTTPURLResponse *)response statusCode],
-              [NSHTTPURLResponse localizedStringForStatusCode:[(NSHTTPURLResponse *)response statusCode]]);
+    if (ENABLE_DEBUG_OUTPUT) {
+        if ([response isKindOfClass: [NSHTTPURLResponse class]])
+            NSLog(@"Response type: %ld, %@", [(NSHTTPURLResponse *)response statusCode],
+                  [NSHTTPURLResponse localizedStringForStatusCode:[(NSHTTPURLResponse *)response statusCode]]);
+    }
     
     m_responseData = [[NSMutableData alloc] init];
 }
@@ -324,7 +347,8 @@
     [m_responseData appendData:data];
 }
 
-- (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite
+- (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten 
+ totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite
 {
     
 }
@@ -349,7 +373,11 @@
     NSURLConnection     *nextConnection = nil;
     NSString            *response = [[NSString alloc] initWithData:m_responseData 
                                                           encoding:NSASCIIStringEncoding];
-    NSLog(@"current request: %@, response string: %@", m_currentRequest, response);
+    
+    if (ENABLE_DEBUG_OUTPUT) {
+        NSLog(@"current request: %@, response string: %@", m_currentRequest, response);
+    }
+    
     
     if ([m_currentRequest isEqualToString:@"/server-info"]) {
         //  /reverse is a handshake before starting
@@ -384,15 +412,17 @@
         //  no set next request
     } else if ([m_currentRequest isEqualToString:@"/scrub"]) {
         //  update our position in the file after /scrub
-        NSRange durationRange = [response rangeOfString:@"position: "];
+        NSRange     durationRange = [response rangeOfString:@"position: "];
+        NSUInteger  durationEnd;
         
         if (durationRange.location != NSNotFound) {
-            m_playbackPosition = [[response substringFromIndex:durationRange.location + durationRange.length] doubleValue];
+            durationEnd = durationRange.location + durationRange.length;
+            m_playbackPosition = [[response substringFromIndex:durationEnd] doubleValue];
         }
         
         //  the next request is /playback-info
         //  call it after a short delay to keep the polling rate reasonable
-        [NSTimer scheduledTimerWithTimeInterval:0.25 
+        [NSTimer scheduledTimerWithTimeInterval:0.5 
                                          target:self 
                                        selector:@selector(playbackInfoRequest) 
                                        userInfo:nil 
@@ -414,7 +444,7 @@
         
         //  the next request is /scrub
         //  call it after a short delay to keep the polling rate reasonable
-        [NSTimer scheduledTimerWithTimeInterval:0.25 
+        [NSTimer scheduledTimerWithTimeInterval:0.5 
                                          target:self 
                                        selector:@selector(scrubRequest) 
                                        userInfo:nil 
