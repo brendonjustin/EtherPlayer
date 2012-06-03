@@ -17,4 +17,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-EtherPlayer uses VLCKit, which is available under the LGPLv2.1+ license.
+EtherPlayer uses third party libraries:
+* VLCKit, available under the LGPLv2.1+ license.
+* CocoaHTTPServer, available under a BSD license.
