@@ -288,7 +288,6 @@
 		5C0A32C015786B2600D3A49F = {
 			isa = PBXGroup;
 			children = (
-				5C0194A7157BC9EB00418213 /* Security.framework */,
 				5C0A32D515786B2600D3A49F /* EtherPlayer */,
 				5C0192D9157BC93800418213 /* CocoaHTTPServer */,
 				5C0A32CE15786B2600D3A49F /* Frameworks */,
@@ -309,6 +308,7 @@
 			children = (
 				5C1F508D15792CE5006C8B5B /* VLCKit.framework */,
 				5C0A32CF15786B2600D3A49F /* Cocoa.framework */,
+				5C0194A7157BC9EB00418213 /* Security.framework */,
 				5C0A32D115786B2600D3A49F /* Other Frameworks */,
 			);
 			name = Frameworks;
