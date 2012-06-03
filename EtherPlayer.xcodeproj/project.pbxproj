@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5C01929E157BC43500418213 /* VLCKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5C1F508D15792CE5006C8B5B /* VLCKit.framework */; };
 		5C0A32D015786B2600D3A49F /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5C0A32CF15786B2600D3A49F /* Cocoa.framework */; };
 		5C0A32DA15786B2600D3A49F /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A32D815786B2600D3A49F /* InfoPlist.strings */; };
 		5C0A32DC15786B2600D3A49F /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32DB15786B2600D3A49F /* main.m */; };
@@ -16,7 +17,6 @@
 		5C0A32F215786C9400D3A49F /* BonjourSearcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32F115786C9400D3A49F /* BonjourSearcher.m */; };
 		5C0A32F515786D1000D3A49F /* AirplayHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32F415786D1000D3A49F /* AirplayHandler.m */; };
 		5C1F508E15792CE5006C8B5B /* VLCKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5C1F508D15792CE5006C8B5B /* VLCKit.framework */; };
-		5C1F508F15792CFD006C8B5B /* VLCKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5C1F508D15792CE5006C8B5B /* VLCKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -59,7 +59,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5C0A32D015786B2600D3A49F /* Cocoa.framework in Frameworks */,
-				5C1F508F15792CFD006C8B5B /* VLCKit.framework in Frameworks */,
+				5C01929E157BC43500418213 /* VLCKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -285,10 +285,7 @@
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../VLCKit\"",
 					"\"$(SRCROOT)\"",
-					"\"$(SRCROOT)/Frameworks\"",
-					"\"$(SRCROOT)/EtherPlayer/Frameworks\"",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "EtherPlayer/EtherPlayer-Prefix.pch";
@@ -303,10 +300,7 @@
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../VLCKit\"",
 					"\"$(SRCROOT)\"",
-					"\"$(SRCROOT)/Frameworks\"",
-					"\"$(SRCROOT)/EtherPlayer/Frameworks\"",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "EtherPlayer/EtherPlayer-Prefix.pch";
