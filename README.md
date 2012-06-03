@@ -1,4 +1,7 @@
-EtherPlayer is a no-fuss method of playing videos on your Mac to an Apple TV.  It uses the library VLCKit to convert videos, and Apple's AirPlay protocol to play them over the network.
+EtherPlayer is a no-fuss method of playing videos on your Mac to an Apple TV.  
+It uses the library VLCKit to convert videos, CocoaHTTPServer to serve 
+the converted videos over HTTP, and Apple's AirPlay protocol to initiate 
+and control playback on the Apple TV.
 
 ### License
 
