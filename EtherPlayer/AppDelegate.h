@@ -10,6 +10,8 @@
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 
+- (IBAction)openFile:(id)sender;
+
 @property (assign) IBOutlet NSWindow *window;
 
 @end

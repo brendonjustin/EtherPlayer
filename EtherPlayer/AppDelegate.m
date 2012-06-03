@@ -25,6 +25,19 @@
 @synthesize m_handler;
 @synthesize m_searcher;
 
+- (IBAction)openFile:(id)sender
+{
+    NSOpenPanel *panel = [NSOpenPanel openPanel];
+    panel.canChooseFiles = YES;
+    panel.allowsMultipleSelection = NO;
+    
+    [panel beginWithCompletionHandler:^(NSInteger result) {
+        if (result == NSFileHandlingPanelOKButton) {
+            [self application:[NSApplication sharedApplication] openFile:[panel.URL absoluteString]];
+        }
+    }];
+}
+
 - (BOOL)application:(NSApplication *)sender openFile:(NSString *)filename
 {
     m_handler.inputFilePath = filename;
