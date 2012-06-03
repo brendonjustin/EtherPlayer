@@ -29,6 +29,7 @@
 @property (strong, nonatomic) NSString          *m_currentRequest;
 @property (strong, nonatomic) NSMutableData     *m_responseData;
 @property (nonatomic) BOOL                      m_playing;
+@property (nonatomic) double                    m_playbackPosition;
 
 @end
 
@@ -48,6 +49,7 @@
 @synthesize m_currentRequest;
 @synthesize m_responseData;
 @synthesize m_playing;
+@synthesize m_playbackPosition;
 
 //  temporary directory code thanks to a Stack Overflow post
 //  http://stackoverflow.com/questions/374431/how-do-i-get-the-default-temporary-directory-on-mac-os-x
@@ -55,6 +57,7 @@
 {
     if ((self = [super init])) {
         m_playing = YES;
+        m_playbackPosition = 0;
         
         NSString * tempDir = NSTemporaryDirectory();
         if (tempDir == nil)
@@ -263,8 +266,40 @@
     } else if ([m_currentRequest isEqualToString:@"/reverse"]) {
         //  give the signal to play the file after /reverse
         //  the next request is /play
+        NSDictionary            *dict = nil;
+        NSData                  *data = nil;
+        NSError                 *err = nil;
+        NSUInteger              rand = arc4random();
+        NSPropertyListFormat    format;
+        
+        dict = [NSDictionary dictionaryWithObjectsAndKeys:@"placeholder_location", @"Location", 
+                [NSString stringWithFormat:@"%f", m_playbackPosition], @"Start Position", nil];
+        [dict writeToFile:[m_baseOutputPath stringByAppendingFormat:@"%d.plist", rand] atomically:YES];
+        data = [NSData dataWithContentsOfFile:[m_baseOutputPath stringByAppendingFormat:@"%d.plist", rand]];
+        
+        [NSPropertyListSerialization propertyListWithData:data 
+                                                  options:NSPropertyListImmutable 
+                                                   format:&format 
+                                                    error:&err];
+        
+        if (err != nil) {
+            NSLog(@"Error preparing PLIST for /play request, %ld", err.code);
+        }
+        
         request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/play" 
                                                       relativeToURL:m_baseUrl]];
+        request.HTTPMethod = @"POST";
+        
+        if (format == NSPropertyListBinaryFormat_v1_0) {
+            [request addValue:@"application/x-apple-binary-plist" forHTTPHeaderField:@"Content-Type"];
+        } else if (format == NSPropertyListXMLFormat_v1_0) {
+            [request addValue:@"text/x-apple-plist+xml" forHTTPHeaderField:@"Content-Type"];
+        } else {
+            //  format == NSPropertyListOpenStepFormat
+            //  bad things 
+        }
+        
+        request.HTTPBody = data;
         
         nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
         [nextConnection start];
@@ -279,6 +314,11 @@
         //  no set next request
     } else if ([m_currentRequest isEqualToString:@"/scrub"]) {
         //  update our position in the file after /scrub
+        NSRange durationRange = [response rangeOfString:@"position: "];
+        
+        if (durationRange.location != NSNotFound) {
+            m_playbackPosition = [[response substringFromIndex:durationRange.location + durationRange.length] doubleValue];
+        }
         
         //  the next request is /playback-info
         //  call it after a short delay to keep the polling rate reasonable
@@ -289,6 +329,18 @@
                                         repeats:NO];
     } else if ([m_currentRequest isEqualToString:@"/playback-info"]) {
         //  update our playback status and position after /playback-info
+        //  TODO: update our playing status based on m_playing
+        NSDictionary            *playbackInfo = nil;
+        NSString                *errDesc = nil;
+        NSPropertyListFormat    format;
+        
+        playbackInfo = [NSPropertyListSerialization propertyListFromData:m_responseData 
+                                                        mutabilityOption:NSPropertyListImmutable 
+                                                                  format:&format 
+                                                        errorDescription:&errDesc];
+        
+        m_playbackPosition = [[playbackInfo objectForKey:@"position"] doubleValue];
+        m_playing = [[playbackInfo objectForKey:@"rate"] doubleValue] > 0.5f ? YES : NO;
         
         //  the next request is /scrub
         //  call it after a short delay to keep the polling rate reasonable
