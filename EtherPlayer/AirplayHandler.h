@@ -12,7 +12,7 @@
 
 - (void)airplay;
 
-@property (strong, nonatomic) NSString      *inputPath;
+@property (strong, nonatomic) NSString      *inputFilePath;
 @property (strong, nonatomic) NSNetService  *targetService;
 
 @end

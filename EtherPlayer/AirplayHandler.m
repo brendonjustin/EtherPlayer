@@ -42,7 +42,7 @@
 @implementation AirplayHandler
 
 //  public properties
-@synthesize inputPath = m_inputPath;
+@synthesize inputFilePath = m_inputFilePath;
 @synthesize targetService = m_targetService;
 
 //  private properties
@@ -135,12 +135,13 @@
     char                addressBuffer[100];
     struct sockaddr_in  *sockAddress;
     
-//    [self transcodeInput];
-    
     sockArray = m_targetService.addresses;
     sockData = [sockArray objectAtIndex:0];
     
     sockAddress = (struct sockaddr_in*) [sockData bytes];
+    if (sockAddress == NULL) {
+        return;
+    }
     
     int sockFamily = sockAddress->sin_family;
     if (sockFamily == AF_INET || sockFamily == AF_INET6) {
@@ -155,6 +156,8 @@
         }
     }
     
+    [self transcodeInput];
+    
     //  /reverse
     request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/server-info" relativeToURL:m_baseUrl]];
     connection = [NSURLConnection connectionWithRequest:request delegate:self];
@@ -166,7 +169,7 @@
 - (void)transcodeInput
 {
     NSString    *videoCodec = @"h264";
-    NSString    *audioCodec = @"mp4a";
+    NSString    *audioCodec = @"mp3";
     NSString    *videoBitrate = @"1024";
     NSString    *audioBitrate = @"128";
     NSString    *audioChannels = @"2";
@@ -175,10 +178,10 @@
     NSString    *outputPath = nil;
     NSUInteger  randomInt = arc4random();
     
-    m_inputVideo = [VLCMedia mediaWithPath:m_inputPath];
+    m_inputVideo = [VLCMedia mediaWithPath:m_inputFilePath];
     
-    m_outputFilename = [NSString stringWithFormat:@"%d.mp4", randomInt];
-    outputPath = [m_baseOutputPath stringByAppendingFormat:@"%d.mp4", randomInt];
+    m_outputFilename = [NSString stringWithFormat:@"%u.mp4", randomInt];
+    outputPath = [m_baseOutputPath stringByAppendingFormat:@"%u.mp4", randomInt];
     
     m_output = [VLCStreamOutput streamOutputWithOptionDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
                                                                   [NSDictionary dictionaryWithObjectsAndKeys:
@@ -201,6 +204,10 @@
                                                                   nil
                                                                   ]];
     
+    if (m_session) {
+        [m_session stopStreaming];
+    }
+    
     m_session = [[VLCStreamSession alloc] init];
     m_session.media = m_inputVideo;
     m_session.streamOutput = m_output;
@@ -221,8 +228,8 @@
     
     filePath = [m_httpAddress stringByAppendingString:m_outputFilename];
     
-    dict = [NSDictionary dictionaryWithObjectsAndKeys:filePath, @"Location", 
-            [NSString stringWithFormat:@"%f", m_playbackPosition], @"Start Position", nil];
+    dict = [NSDictionary dictionaryWithObjectsAndKeys:filePath, @"Content-Location", 
+            [NSString stringWithFormat:@"%f", m_playbackPosition], @"Start-Position", nil];
     [dict writeToFile:[m_baseOutputPath stringByAppendingFormat:@"%d.plist", rand] atomically:YES];
     data = [NSData dataWithContentsOfFile:[m_baseOutputPath stringByAppendingFormat:@"%d.plist", rand]];
     
@@ -245,7 +252,7 @@
         [request addValue:@"text/x-apple-plist+xml" forHTTPHeaderField:@"Content-Type"];
     } else {
         //  format == NSPropertyListOpenStepFormat
-        //  bad things 
+        //  should never get here
     }
     
     request.HTTPBody = data;

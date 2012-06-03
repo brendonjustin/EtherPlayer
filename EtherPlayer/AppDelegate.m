@@ -25,6 +25,14 @@
 @synthesize m_handler;
 @synthesize m_searcher;
 
+- (BOOL)application:(NSApplication *)sender openFile:(NSString *)filename
+{
+    m_handler.inputFilePath = filename;
+    [m_handler airplay];
+    
+    return YES;
+}
+
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     // Insert code here to initialize your application
@@ -46,7 +54,6 @@
     
     if (m_handler.targetService == nil && [services count] > 0) {
         m_handler.targetService = [services objectAtIndex:0];
-        [m_handler airplay];
     }
 }
 
