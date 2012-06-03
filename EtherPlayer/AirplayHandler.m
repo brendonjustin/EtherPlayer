@@ -8,6 +8,8 @@
 
 #import "AirplayHandler.h"
 
+#import "HTTPServer.h"
+
 #import <VLCKit/VLCMedia.h>
 #import <VLCKit/VLCStreamOutput.h>
 #import <VLCKit/VLCStreamSession.h>
@@ -25,10 +27,13 @@
 @property (strong, nonatomic) VLCStreamOutput   *m_output;
 @property (strong, nonatomic) VLCStreamSession  *m_session;
 @property (strong, nonatomic) NSString          *m_baseOutputPath;
-@property (strong, nonatomic) NSString          *m_outputPath;
-@property (strong, nonatomic) NSURL             *m_baseUrl;
+@property (strong, nonatomic) NSString          *m_outputFilename;
 @property (strong, nonatomic) NSString          *m_currentRequest;
+@property (strong, nonatomic) NSString          *m_baseServerPath;
+@property (strong, nonatomic) NSString          *m_httpAddress;
+@property (strong, nonatomic) NSURL             *m_baseUrl;
 @property (strong, nonatomic) NSMutableData     *m_responseData;
+@property (strong, nonatomic) HTTPServer        *m_httpServer;
 @property (nonatomic) BOOL                      m_playing;
 @property (nonatomic) double                    m_playbackPosition;
 
@@ -45,10 +50,13 @@
 @synthesize m_output;
 @synthesize m_session;
 @synthesize m_baseOutputPath;
-@synthesize m_outputPath;
-@synthesize m_baseUrl;
+@synthesize m_outputFilename;
 @synthesize m_currentRequest;
+@synthesize m_baseServerPath;
+@synthesize m_httpAddress;
+@synthesize m_baseUrl;
 @synthesize m_responseData;
+@synthesize m_httpServer;
 @synthesize m_playing;
 @synthesize m_playbackPosition;
 
@@ -57,24 +65,59 @@
 - (id)init
 {
     if ((self = [super init])) {
+        NSString        *tempDir = nil;
+        NSString        *template = nil;
+        NSMutableData   *bufferData = nil;
+        NSError         *error = nil;
+        NSArray         *addresses = nil;
+        char            *buffer;
+        char            *result;
+        
         m_playing = YES;
         m_playbackPosition = 0;
         
-        NSString * tempDir = NSTemporaryDirectory();
+        tempDir = NSTemporaryDirectory();
         if (tempDir == nil)
             tempDir = @"/tmp";
         
-        NSString *template = [tempDir stringByAppendingPathComponent:@"temp.XXXXXX"];
+        template = [tempDir stringByAppendingPathComponent:@"temp.XXXXXX"];
         NSLog(@"Template: %@", template);
         const char *fsTemplate = [template fileSystemRepresentation];
-        NSMutableData *bufferData = [NSMutableData dataWithBytes:fsTemplate
+        bufferData = [NSMutableData dataWithBytes:fsTemplate
                                                            length:strlen(fsTemplate)+1];
-        char *buffer = [bufferData mutableBytes];
+        buffer = [bufferData mutableBytes];
         NSLog(@"FS Template: %s", buffer);
-        char *result = mkdtemp(buffer);
+        result = mkdtemp(buffer);
         NSLog(@"mkdtemp result: %s", result);
         m_baseOutputPath = [[NSFileManager defaultManager]  stringWithFileSystemRepresentation:buffer
                                                                                         length:strlen(buffer)];
+        
+        //  create our http server and set the port arbitrarily
+        m_httpServer = [[HTTPServer alloc] init];
+        m_httpServer.documentRoot = m_baseOutputPath;
+        m_httpServer.port = 6004;
+        
+        if(![m_httpServer start:&error])
+        {
+            NSLog(@"Error starting HTTP Server: %@", error);
+        }
+        
+        //  get our IPv4 addresss
+        addresses = [[NSHost currentHost] addresses];
+        for (NSString *currentAddress in addresses) {
+            if (![currentAddress hasPrefix:@"127"] && [[currentAddress componentsSeparatedByString:@"."] count] == 4) {
+                m_httpAddress = currentAddress;
+                break;
+            } else {
+                m_httpAddress = @"IPv4 address not available";
+            }
+        }
+        
+        if ([m_httpAddress isEqualToString:@"IPv4 address not available"]) {
+            NSLog(@"Error, could not find a non-loopback IPv4 address for myself.");
+        } else {
+            m_httpAddress = [@"http://" stringByAppendingFormat:@"%@:%u/", m_httpAddress, m_httpServer.port];
+        }
     }
     
     return self;
@@ -129,11 +172,13 @@
     NSString    *audioChannels = @"2";
     NSString    *width = @"640";
     NSString    *height = @"480";
+    NSString    *outputPath = nil;
     NSUInteger  randomInt = arc4random();
     
     m_inputVideo = [VLCMedia mediaWithPath:m_inputPath];
     
-    m_outputPath = [m_baseOutputPath stringByAppendingFormat:@"%d.mp4", randomInt];
+    m_outputFilename = [NSString stringWithFormat:@"%d.mp4", randomInt];
+    outputPath = [m_baseOutputPath stringByAppendingFormat:@"%d.mp4", randomInt];
     
     m_output = [VLCStreamOutput streamOutputWithOptionDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
                                                                   [NSDictionary dictionaryWithObjectsAndKeys:
@@ -150,7 +195,7 @@
                                                                   [NSDictionary dictionaryWithObjectsAndKeys:
                                                                    @"mp4", @"muxer",
                                                                    @"file", @"access",
-                                                                   m_outputPath, @"destination", 
+                                                                   outputPath, @"destination", 
                                                                    nil
                                                                    ], @"outputOptions",
                                                                   nil
@@ -170,10 +215,13 @@
     NSDictionary            *dict = nil;
     NSData                  *data = nil;
     NSError                 *err = nil;
+    NSString                *filePath = nil;
     NSUInteger              rand = arc4random();
     NSPropertyListFormat    format;
     
-    dict = [NSDictionary dictionaryWithObjectsAndKeys:@"placeholder_location", @"Location", 
+    filePath = [m_httpAddress stringByAppendingString:m_outputFilename];
+    
+    dict = [NSDictionary dictionaryWithObjectsAndKeys:filePath, @"Location", 
             [NSString stringWithFormat:@"%f", m_playbackPosition], @"Start Position", nil];
     [dict writeToFile:[m_baseOutputPath stringByAppendingFormat:@"%d.plist", rand] atomically:YES];
     data = [NSData dataWithContentsOfFile:[m_baseOutputPath stringByAppendingFormat:@"%d.plist", rand]];
