@@ -17,6 +17,7 @@
 @interface AirplayHandler ()
 
 - (void)transcodeInput;
+- (void)playRequest;
 - (void)scrubRequest;
 - (void)playbackInfoRequest;
 
@@ -162,6 +163,50 @@
     [m_session startStreaming];
 }
 
+- (void)playRequest
+{
+    NSMutableURLRequest     *request = nil;
+    NSURLConnection         *nextConnection = nil;
+    NSDictionary            *dict = nil;
+    NSData                  *data = nil;
+    NSError                 *err = nil;
+    NSUInteger              rand = arc4random();
+    NSPropertyListFormat    format;
+    
+    dict = [NSDictionary dictionaryWithObjectsAndKeys:@"placeholder_location", @"Location", 
+            [NSString stringWithFormat:@"%f", m_playbackPosition], @"Start Position", nil];
+    [dict writeToFile:[m_baseOutputPath stringByAppendingFormat:@"%d.plist", rand] atomically:YES];
+    data = [NSData dataWithContentsOfFile:[m_baseOutputPath stringByAppendingFormat:@"%d.plist", rand]];
+    
+    [NSPropertyListSerialization propertyListWithData:data 
+                                              options:NSPropertyListImmutable 
+                                               format:&format 
+                                                error:&err];
+    
+    if (err != nil) {
+        NSLog(@"Error preparing PLIST for /play request, %ld", err.code);
+    }
+    
+    request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/play" 
+                                                         relativeToURL:m_baseUrl]];
+    request.HTTPMethod = @"POST";
+    
+    if (format == NSPropertyListBinaryFormat_v1_0) {
+        [request addValue:@"application/x-apple-binary-plist" forHTTPHeaderField:@"Content-Type"];
+    } else if (format == NSPropertyListXMLFormat_v1_0) {
+        [request addValue:@"text/x-apple-plist+xml" forHTTPHeaderField:@"Content-Type"];
+    } else {
+        //  format == NSPropertyListOpenStepFormat
+        //  bad things 
+    }
+    
+    request.HTTPBody = data;
+    
+    nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
+    [nextConnection start];
+    m_currentRequest = @"/play";
+}
+
 - (void)scrubRequest
 {
     NSURLRequest    *request = nil;
@@ -254,6 +299,7 @@
     if ([m_currentRequest isEqualToString:@"/server-info"]) {
         //  /reverse is a handshake before starting
         //  the next request is /reverse
+        BOOL workaroundMissingResponse = YES;
         request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/reverse" 
                                                              relativeToURL:m_baseUrl]];
         [request setHTTPMethod:@"POST"];
@@ -263,47 +309,16 @@
         nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
         [nextConnection start];
         m_currentRequest = @"/reverse";
+        
+        //  /reverse always seems to time out, so just move on to /play
+        if (workaroundMissingResponse) {
+            [self playRequest];
+        }
     } else if ([m_currentRequest isEqualToString:@"/reverse"]) {
         //  give the signal to play the file after /reverse
         //  the next request is /play
-        NSDictionary            *dict = nil;
-        NSData                  *data = nil;
-        NSError                 *err = nil;
-        NSUInteger              rand = arc4random();
-        NSPropertyListFormat    format;
         
-        dict = [NSDictionary dictionaryWithObjectsAndKeys:@"placeholder_location", @"Location", 
-                [NSString stringWithFormat:@"%f", m_playbackPosition], @"Start Position", nil];
-        [dict writeToFile:[m_baseOutputPath stringByAppendingFormat:@"%d.plist", rand] atomically:YES];
-        data = [NSData dataWithContentsOfFile:[m_baseOutputPath stringByAppendingFormat:@"%d.plist", rand]];
-        
-        [NSPropertyListSerialization propertyListWithData:data 
-                                                  options:NSPropertyListImmutable 
-                                                   format:&format 
-                                                    error:&err];
-        
-        if (err != nil) {
-            NSLog(@"Error preparing PLIST for /play request, %ld", err.code);
-        }
-        
-        request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/play" 
-                                                      relativeToURL:m_baseUrl]];
-        request.HTTPMethod = @"POST";
-        
-        if (format == NSPropertyListBinaryFormat_v1_0) {
-            [request addValue:@"application/x-apple-binary-plist" forHTTPHeaderField:@"Content-Type"];
-        } else if (format == NSPropertyListXMLFormat_v1_0) {
-            [request addValue:@"text/x-apple-plist+xml" forHTTPHeaderField:@"Content-Type"];
-        } else {
-            //  format == NSPropertyListOpenStepFormat
-            //  bad things 
-        }
-        
-        request.HTTPBody = data;
-        
-        nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
-        [nextConnection start];
-        m_currentRequest = @"/play";
+        [self playRequest];
     } else if ([m_currentRequest isEqualToString:@"/play"]) {
         //  check if playing successful after /play
         //  the next request is /playback-info
