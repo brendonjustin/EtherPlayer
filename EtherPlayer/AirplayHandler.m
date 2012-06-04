@@ -14,7 +14,8 @@
 #import <VLCKit/VLCStreamOutput.h>
 #import <VLCKit/VLCStreamSession.h>
 
-#include <arpa/inet.h>
+#import <arpa/inet.h>
+#import <ifaddrs.h>
 
 const BOOL ENABLE_DEBUG_OUTPUT = NO;
 
@@ -69,6 +70,8 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
 
 //  temporary directory code thanks to a Stack Overflow post
 //  http://stackoverflow.com/questions/374431/how-do-i-get-the-default-temporary-directory-on-mac-os-x
+//  ip address retrieval code also thanks to a Stack Overflow post
+//  http://stackoverflow.com/questions/7072989/iphone-ipad-how-to-get-my-ip-address-programmatically
 - (id)init
 {
     if ((self = [super init])) {
@@ -76,10 +79,12 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
         NSString        *template = nil;
         NSMutableData   *bufferData = nil;
         NSError         *error = nil;
-        NSArray         *addresses = nil;
         char            *buffer;
         char            *result;
+        struct ifaddrs  *ifap;
+        struct ifaddrs  *ifap0;
         
+        m_httpAddress = nil;
         m_session = nil;
         m_playing = YES;
         m_playbackPosition = 0;
@@ -118,17 +123,33 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
         }
         
         //  get our IPv4 addresss
-        addresses = [[NSHost currentHost] addresses];
-        for (NSString *currentAddress in addresses) {
-            if (![currentAddress hasPrefix:@"127"] && [[currentAddress componentsSeparatedByString:@"."] count] == 4) {
-                m_httpAddress = currentAddress;
-                break;
-            } else {
-                m_httpAddress = @"IPv4 address not available";
+        NSString *adapterName = nil;
+        NSUInteger success = getifaddrs(&ifap0);
+        if (success == 0) {
+            //  Loop through linked list of interfaces
+            ifap = ifap0;
+            while(ifap != NULL) {
+                if(ifap->ifa_addr->sa_family == AF_INET) {
+                    //  look for en0 and hope it is the primary lan interface as on the MBA and iPhone,
+                    //  but take anything aside from loopback as a fallback
+                    adapterName = [NSString stringWithUTF8String:ifap->ifa_name];
+                    if (m_httpAddress == nil && ![adapterName isEqualToString:@"lo0"]) {
+                        //  Get NSString from C String
+                        m_httpAddress = [NSString stringWithUTF8String:inet_ntoa(((struct sockaddr_in *)ifap->ifa_addr)->sin_addr)];
+                    }
+                    
+                    if([[NSString stringWithUTF8String:ifap->ifa_name] isEqualToString:@"en0"]) {
+                        //  Get NSString from C String
+                        m_httpAddress = [NSString stringWithUTF8String:inet_ntoa(((struct sockaddr_in *)ifap->ifa_addr)->sin_addr)];               
+                    }
+                }
+                ifap = ifap->ifa_next;
             }
         }
+        //  Free memory
+        freeifaddrs(ifap0);
         
-        if ([m_httpAddress isEqualToString:@"IPv4 address not available"]) {
+        if (m_httpAddress == nil) {
             NSLog(@"Error, could not find a non-loopback IPv4 address for myself.");
         } else {
             m_httpAddress = [@"http://" stringByAppendingFormat:@"%@:%u/", m_httpAddress, m_httpServer.port];
