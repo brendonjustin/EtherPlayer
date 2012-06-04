@@ -99,7 +99,7 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
         }
         const char *fsTemplate = [template fileSystemRepresentation];
         bufferData = [NSMutableData dataWithBytes:fsTemplate
-                                                           length:strlen(fsTemplate)+1];
+                                           length:strlen(fsTemplate)+1];
         buffer = [bufferData mutableBytes];
         if (ENABLE_DEBUG_OUTPUT) {
             NSLog(@"FS Template: %s", buffer);
@@ -233,11 +233,12 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
                                                                   [NSDictionary dictionaryWithObjectsAndKeys:
                                                                    filetype, @"muxer",
                                                                    @"file", @"access",
-                                                                   outputPath, @"destination", 
+                                                                   outputPath, @"destination",
                                                                    nil
                                                                    ], @"outputOptions",
                                                                   nil
                                                                   ]];
+    //  the iPod settings for testing
 //    m_output = [VLCStreamOutput ipodStreamOutputWithFilePath:outputPath];
     
     m_session = [VLCStreamSession streamSession];
@@ -253,10 +254,10 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
     NSURLConnection     *connection = nil;
     
     if (!m_session.isComplete) {
-        [NSTimer scheduledTimerWithTimeInterval:1 
-                                         target:self 
-                                       selector:@selector(airplayWhenReady) 
-                                       userInfo:nil 
+        [NSTimer scheduledTimerWithTimeInterval:1
+                                         target:self
+                                       selector:@selector(airplayWhenReady)
+                                       userInfo:nil
                                         repeats:NO];
     } else {
         //  make a request to /reverse on the target and start the AirPlay process
@@ -279,21 +280,21 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
     
     filePath = [m_httpAddress stringByAppendingString:m_outputFilename];
     
-    dict = [NSDictionary dictionaryWithObjectsAndKeys:filePath, @"Content-Location", 
+    dict = [NSDictionary dictionaryWithObjectsAndKeys:filePath, @"Content-Location",
             [NSString stringWithFormat:@"%f", m_playbackPosition], @"Start-Position", nil];
     [dict writeToFile:[m_baseOutputPath stringByAppendingFormat:@"%u.plist", m_sessionRandom] atomically:YES];
     data = [NSData dataWithContentsOfFile:[m_baseOutputPath stringByAppendingFormat:@"%u.plist", m_sessionRandom]];
     
-    [NSPropertyListSerialization propertyListWithData:data 
-                                              options:NSPropertyListImmutable 
-                                               format:&format 
+    [NSPropertyListSerialization propertyListWithData:data
+                                              options:NSPropertyListImmutable
+                                               format:&format
                                                 error:&err];
     
     if (err != nil) {
         NSLog(@"Error preparing PLIST for /play request, %ld", err.code);
     }
     
-    request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/play" 
+    request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/play"
                                                          relativeToURL:m_baseUrl]];
     request.HTTPMethod = @"POST";
     
@@ -364,7 +365,8 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
 #pragma mark -
 #pragma mark NSURLConnectionDelegate methods
 
-- (NSCachedURLResponse *)connection:(NSURLConnection *)connection willCacheResponse:(NSCachedURLResponse *)cachedResponse
+- (NSCachedURLResponse *)connection:(NSURLConnection *)connection
+                  willCacheResponse:(NSCachedURLResponse *)cachedResponse
 {
     return cachedResponse;
 }
@@ -385,7 +387,7 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
     [m_responseData appendData:data];
 }
 
-- (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten 
+- (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten
  totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite
 {
     
@@ -409,7 +411,7 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
 {
     NSMutableURLRequest *request = nil;
     NSURLConnection     *nextConnection = nil;
-    NSString            *response = [[NSString alloc] initWithData:m_responseData 
+    NSString            *response = [[NSString alloc] initWithData:m_responseData
                                                           encoding:NSASCIIStringEncoding];
     
     if (ENABLE_DEBUG_OUTPUT) {
@@ -421,7 +423,7 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
         //  /reverse is a handshake before starting
         //  the next request is /reverse
         BOOL workaroundMissingResponse = YES;
-        request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/reverse" 
+        request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/reverse"
                                                              relativeToURL:m_baseUrl]];
         [request setHTTPMethod:@"POST"];
         [request addValue:@"PTTH/1.0" forHTTPHeaderField:@"Upgrade"];
@@ -460,10 +462,10 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
         
         //  the next request is /playback-info
         //  call it after a short delay to keep the polling rate reasonable
-        [NSTimer scheduledTimerWithTimeInterval:0.5 
-                                         target:self 
-                                       selector:@selector(playbackInfoRequest) 
-                                       userInfo:nil 
+        [NSTimer scheduledTimerWithTimeInterval:0.5
+                                         target:self
+                                       selector:@selector(playbackInfoRequest)
+                                       userInfo:nil
                                         repeats:NO];
     } else if ([m_currentRequest isEqualToString:@"/playback-info"]) {
         //  update our playback status and position after /playback-info
@@ -472,9 +474,9 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
         NSString                *errDesc = nil;
         NSPropertyListFormat    format;
         
-        playbackInfo = [NSPropertyListSerialization propertyListFromData:m_responseData 
-                                                        mutabilityOption:NSPropertyListImmutable 
-                                                                  format:&format 
+        playbackInfo = [NSPropertyListSerialization propertyListFromData:m_responseData
+                                                        mutabilityOption:NSPropertyListImmutable
+                                                                  format:&format
                                                         errorDescription:&errDesc];
         
         m_playbackPosition = [[playbackInfo objectForKey:@"position"] doubleValue];
@@ -482,10 +484,10 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
         
         //  the next request is /scrub
         //  call it after a short delay to keep the polling rate reasonable
-        [NSTimer scheduledTimerWithTimeInterval:0.5 
-                                         target:self 
-                                       selector:@selector(scrubRequest) 
-                                       userInfo:nil 
+        [NSTimer scheduledTimerWithTimeInterval:0.5
+                                         target:self
+                                       selector:@selector(scrubRequest)
+                                       userInfo:nil
                                         repeats:NO];
     } else if ([m_currentRequest isEqualToString:@"/stop"]) {
         //  no next request

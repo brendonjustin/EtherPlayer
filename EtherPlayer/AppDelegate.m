@@ -70,6 +70,7 @@
     m_handler = [[AirplayHandler alloc] init];
     m_searcher = [[BonjourSearcher alloc] init];
     m_services = [NSMutableArray array];
+    m_targetSelector.autoenablesItems = YES;
     
     [[NSNotificationCenter defaultCenter] addObserver:self 
                                              selector:@selector(airplayTargetsNotificationReceived:) 
@@ -89,7 +90,8 @@
         if (![m_services containsObject:service]) {
             [m_services addObject:service];
             [m_targetSelector addItemWithTitle:service.hostName];
-            [[m_targetSelector lastItem] setAction:@selector(targetChanged:)];
+            [[m_targetSelector lastItem] setTarget:self];
+            [[m_targetSelector lastItem] setAction:@selector(targetChanged)];
             
             if ([[m_targetSelector itemArray] count] == 1) {
                 [m_targetSelector selectItem:[m_targetSelector lastItem]];
