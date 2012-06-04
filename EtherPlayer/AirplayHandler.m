@@ -21,6 +21,7 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
 @interface AirplayHandler ()
 
 - (void)transcodeInput;
+- (void)airplayWhenReady;
 - (void)playRequest;
 - (void)scrubRequest;
 - (void)playbackInfoRequest;
@@ -144,8 +145,6 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
 {
     NSArray             *sockArray = nil;
     NSData              *sockData = nil;
-    NSMutableURLRequest *request = nil;
-    NSURLConnection     *connection = nil;
     char                addressBuffer[100];
     struct sockaddr_in  *sockAddress;
     
@@ -177,11 +176,7 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
     
     [self transcodeInput];
     
-    //  /reverse
-    request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/server-info" relativeToURL:m_baseUrl]];
-    connection = [NSURLConnection connectionWithRequest:request delegate:self];
-    [connection start];
-    m_currentRequest = @"/server-info";
+    [self airplayWhenReady];
 }
 
 //  TODO: intelligently choose bitrates and channels
@@ -193,14 +188,15 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
     NSString    *audioBitrate = @"128";
     NSString    *audioChannels = @"2";
     NSString    *width = @"640";
+    NSString    *filetype = @"mp4";
     NSString    *outputPath = nil;
     
     m_sessionRandom = arc4random();
     
     m_inputVideo = [VLCMedia mediaWithPath:m_inputFilePath];
     
-    m_outputFilename = [NSString stringWithFormat:@"%u.mp4", m_sessionRandom];
-    outputPath = [m_baseOutputPath stringByAppendingFormat:@"%u.mp4", m_sessionRandom];
+    m_outputFilename = [NSString stringWithFormat:@"%u.%@", m_sessionRandom, filetype];
+    outputPath = [m_baseOutputPath stringByAppendingFormat:@"%u.%@", m_sessionRandom, filetype];
     
     m_output = [VLCStreamOutput streamOutputWithOptionDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
                                                                   [NSDictionary dictionaryWithObjectsAndKeys:
@@ -214,19 +210,40 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
                                                                    nil
                                                                    ], @"transcodingOptions",
                                                                   [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                   @"mp4", @"muxer",
+                                                                   filetype, @"muxer",
                                                                    @"file", @"access",
                                                                    outputPath, @"destination", 
                                                                    nil
                                                                    ], @"outputOptions",
                                                                   nil
                                                                   ]];
+//    m_output = [VLCStreamOutput ipodStreamOutputWithFilePath:outputPath];
     
-    m_session = [[VLCStreamSession alloc] init];
+    m_session = [VLCStreamSession streamSession];
     m_session.media = m_inputVideo;
     m_session.streamOutput = m_output;
     
     [m_session startStreaming];
+}
+
+- (void)airplayWhenReady
+{
+    NSMutableURLRequest *request = nil;
+    NSURLConnection     *connection = nil;
+    
+    if (!m_session.isComplete) {
+        [NSTimer scheduledTimerWithTimeInterval:1 
+                                         target:self 
+                                       selector:@selector(airplayWhenReady) 
+                                       userInfo:nil 
+                                        repeats:NO];
+    } else {
+        //  make a request to /reverse on the target and start the AirPlay process
+        request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/server-info" relativeToURL:m_baseUrl]];
+        connection = [NSURLConnection connectionWithRequest:request delegate:self];
+        [connection start];
+        m_currentRequest = @"/server-info";
+    }
 }
 
 - (void)playRequest
