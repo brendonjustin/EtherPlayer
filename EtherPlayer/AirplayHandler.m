@@ -108,8 +108,8 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
         if (ENABLE_DEBUG_OUTPUT) {
             NSLog(@"mkdtemp result: %s", result);
         }
-        m_baseOutputPath = [[NSFileManager defaultManager]  stringWithFileSystemRepresentation:result
-                                                                                        length:strlen(result)];
+        m_baseOutputPath = [[NSFileManager defaultManager] stringWithFileSystemRepresentation:result
+                                                                                       length:strlen(result)];
         m_baseOutputPath = [m_baseOutputPath stringByAppendingString:@"/"];
         
         //  create our http server and set the port arbitrarily
