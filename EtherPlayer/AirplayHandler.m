@@ -37,6 +37,7 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
 @property (strong, nonatomic) NSString          *m_currentRequest;
 @property (strong, nonatomic) NSString          *m_baseServerPath;
 @property (strong, nonatomic) NSString          *m_httpAddress;
+@property (strong, nonatomic) NSString          *m_httpFilePath;
 @property (strong, nonatomic) NSURL             *m_baseUrl;
 @property (strong, nonatomic) NSMutableData     *m_responseData;
 @property (strong, nonatomic) HTTPServer        *m_httpServer;
@@ -61,6 +62,7 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
 @synthesize m_currentRequest;
 @synthesize m_baseServerPath;
 @synthesize m_httpAddress;
+@synthesize m_httpFilePath;
 @synthesize m_baseUrl;
 @synthesize m_responseData;
 @synthesize m_httpServer;
@@ -187,13 +189,15 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
 - (void)transcodeInput
 {
     NSString    *videoCodec = @"h264";
-    NSString    *audioCodec = @"mp4a";
+    NSString    *audioCodec = @"mp3";
     NSString    *videoBitrate = @"1024";
     NSString    *audioBitrate = @"128";
     NSString    *audioChannels = @"2";
     NSString    *width = @"640";
-    NSString    *filetype = @"mp4";
+    NSString    *filetype = @"ts";
     NSString    *outputPath = nil;
+    NSString    *outputM3u = nil;
+    NSString    *mrlString = nil;
     
     m_sessionRandom = arc4random();
     
@@ -201,7 +205,14 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
     
     m_outputFilename = [NSString stringWithFormat:@"%u.%@", m_sessionRandom, filetype];
     outputPath = [m_baseOutputPath stringByAppendingFormat:@"%u.%@", m_sessionRandom, filetype];
+    m_httpFilePath = [m_httpAddress stringByAppendingString:m_outputFilename];
     
+    //  use part of an mrl to set our options all at once
+    mrlString = @"livehttp{seglen=10,delsegs=true,numsegs=5,index=%@,index-url=%@},mux=ts{use-key-frames},dst=%@";
+
+    outputM3u = [NSString stringWithFormat:@"%u.m3u8", m_sessionRandom];
+    outputM3u = [m_baseOutputPath stringByAppendingString:outputM3u];
+
     m_output = [VLCStreamOutput streamOutputWithOptionDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
                                                                   [NSDictionary dictionaryWithObjectsAndKeys:
                                                                    videoCodec, @"videoCodec",
@@ -214,15 +225,12 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
                                                                    nil
                                                                    ], @"transcodingOptions",
                                                                   [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                   filetype, @"muxer",
-                                                                   @"file", @"access",
-                                                                   outputPath, @"destination",
+                                                                   [NSString stringWithFormat:mrlString, outputM3u,
+                                                                    m_httpFilePath, outputPath], @"access",
                                                                    nil
                                                                    ], @"outputOptions",
                                                                   nil
                                                                   ]];
-    //  the iPod settings for testing
-//    m_output = [VLCStreamOutput ipodStreamOutputWithFilePath:outputPath];
     
     m_session = [VLCStreamSession streamSession];
     m_session.media = m_inputVideo;
@@ -258,12 +266,9 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
     NSDictionary            *dict = nil;
     NSData                  *data = nil;
     NSError                 *err = nil;
-    NSString                *filePath = nil;
     NSPropertyListFormat    format;
     
-    filePath = [m_httpAddress stringByAppendingString:m_outputFilename];
-    
-    dict = [NSDictionary dictionaryWithObjectsAndKeys:filePath, @"Content-Location",
+    dict = [NSDictionary dictionaryWithObjectsAndKeys:m_httpFilePath, @"Content-Location",
             [NSString stringWithFormat:@"%f", m_playbackPosition], @"Start-Position", nil];
     [dict writeToFile:[m_baseOutputPath stringByAppendingFormat:@"%u.plist", m_sessionRandom] atomically:YES];
     data = [NSData dataWithContentsOfFile:[m_baseOutputPath stringByAppendingFormat:@"%u.plist", m_sessionRandom]];
