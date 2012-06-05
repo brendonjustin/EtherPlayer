@@ -22,7 +22,7 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
 @interface AirplayHandler () <VLCMediaDelegate>
 
 - (void)transcodeMedia:(VLCMedia *)inputMedia;
-- (void)airplayWhenReady;
+- (void)startAirplay;
 - (void)playRequest;
 - (void)scrubRequest;
 - (void)playbackInfoRequest;
@@ -193,21 +193,23 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
     NSString        *width = @"640";
     NSString        *filetype = @"ts";
     NSString        *outputPath = nil;
-    NSString        *outputM3u = nil;
+    NSString        *m3u8Out = nil;
+    NSString        *videoFilesPath = nil;
     NSString        *mrlString = nil;
     VLCStreamOutput *output = nil;
     
     m_sessionRandom = arc4random();
     
-    m_outputFilename = [NSString stringWithFormat:@"%u.%@", m_sessionRandom, filetype];
-    outputPath = [m_baseOutputPath stringByAppendingFormat:@"%u.%@", m_sessionRandom, filetype];
-    m_httpFilePath = [m_httpAddress stringByAppendingString:m_outputFilename];
+    m_outputFilename = [NSString stringWithFormat:@"%u-########.%@", m_sessionRandom, filetype];
+    outputPath = [m_baseOutputPath stringByAppendingFormat:@"%u-########.%@", m_sessionRandom, filetype];
+    videoFilesPath = [m_httpAddress stringByAppendingString:m_outputFilename];
     
     //  use part of an mrl to set our options all at once
     mrlString = @"livehttp{seglen=10,delsegs=true,numsegs=5,index=%@,index-url=%@},mux=ts{use-key-frames},dst=%@";
 
-    outputM3u = [NSString stringWithFormat:@"%u.m3u8", m_sessionRandom];
-    outputM3u = [m_baseOutputPath stringByAppendingString:outputM3u];
+    m3u8Out = [NSString stringWithFormat:@"%u.m3u8", m_sessionRandom];
+    m_httpFilePath = [m_httpAddress stringByAppendingString:m3u8Out];
+    m3u8Out = [m_baseOutputPath stringByAppendingString:m3u8Out];
     
     output = [VLCStreamOutput streamOutputWithOptionDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
                                                                 [NSDictionary dictionaryWithObjectsAndKeys:
@@ -221,8 +223,8 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
                                                                  nil
                                                                  ], @"transcodingOptions",
                                                                 [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                 [NSString stringWithFormat:mrlString, outputM3u,
-                                                                  m_httpFilePath, outputPath], @"access",
+                                                                 [NSString stringWithFormat:mrlString, m3u8Out,
+                                                                  videoFilesPath, outputPath], @"access",
                                                                  nil
                                                                  ], @"outputOptions",
                                                                 nil
@@ -232,25 +234,17 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
     [m_session startStreaming];
 }
 
-- (void)airplayWhenReady
+- (void)startAirplay
 {
     NSMutableURLRequest *request = nil;
     NSURLConnection     *connection = nil;
     
-    if (!m_session.isComplete) {
-        [NSTimer scheduledTimerWithTimeInterval:1
-                                         target:self
-                                       selector:@selector(airplayWhenReady)
-                                       userInfo:nil
-                                        repeats:NO];
-    } else {
-        //  make a request to /reverse on the target and start the AirPlay process
-        request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/server-info" 
-                                                      relativeToURL:m_baseUrl]];
-        connection = [NSURLConnection connectionWithRequest:request delegate:self];
-        [connection start];
-        m_currentRequest = @"/server-info";
-    }
+    //  make a request to /reverse on the target and start the AirPlay process
+    request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/server-info" 
+                                                  relativeToURL:m_baseUrl]];
+    connection = [NSURLConnection connectionWithRequest:request delegate:self];
+    [connection start];
+    m_currentRequest = @"/server-info";
 }
 
 - (void)playRequest
@@ -487,14 +481,20 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
 //  ignore
 - (void)media:(VLCMedia *)aMedia metaValueChangedFrom:(id)oldValue forKey:(NSString *)key
 {
+    NSLog(@"media:metaValueChangedFrom:forKey: called");
     return;
 }
 
-//  transcode the media once it has been parsed
+//  begin transcoding the media once it has been parsed,
+//  and start airplay a few seconds later
 - (void)mediaDidFinishParsing:(VLCMedia *)aMedia
 {
     [self transcodeMedia:aMedia];
-    [self airplayWhenReady];
+    [NSTimer scheduledTimerWithTimeInterval:30.0
+                                     target:self
+                                   selector:@selector(startAirplay)
+                                   userInfo:nil
+                                    repeats:NO];
 }
 
 @end
