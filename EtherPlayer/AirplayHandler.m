@@ -201,7 +201,7 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
     NSMutableDictionary *outputOptions = nil;
     NSMutableDictionary *streamOutputOptions = nil;
     VLCStreamOutput     *output = nil;
-    BOOL                vidoeNeedsTranscode = NO;
+    BOOL                videoNeedsTranscode = NO;
     BOOL                audioNeedsTranscode = NO;
     
     for (NSDictionary *properties in [inputMedia tracksInformation]) {
@@ -211,7 +211,7 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
                 //  Only some AirPlay devices support HD, and even those support
                 //  up 1280x720, so this may need adjusting
                 if ([[properties objectForKey:@"codec"] integerValue] != 875967080) {
-                    vidoeNeedsTranscode = YES;
+                    videoNeedsTranscode = YES;
                 }
                 width = [properties objectForKey:@"width"];
             }
@@ -239,29 +239,35 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
     videoBitrate = [NSString stringWithFormat:@"%u", [width integerValue] * 5];
     audioBitrate = [NSString stringWithFormat:@"%u", [audioChannels integerValue] * 128];
     
-    transcodingOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                          videoCodec, @"videoCodec",
-                          videoBitrate, @"videoBitrate",
-                          width, @"width",
-                          @"Yes", @"audio-sync",
-                          nil];
+    transcodingOptions = [NSMutableDictionary dictionary];
+
+    if (videoNeedsTranscode) {
+        [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
+                                                      videoCodec, @"videoCodec",
+                                                      videoBitrate, @"videoBitrate",
+                                                      width, @"width",
+                                                      nil]];
+    }
     
-    if (audioChannels != nil) {
+    if (audioNeedsTranscode) {
         [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
                                                       audioCodec, @"audioCodec",
                                                       audioBitrate, @"audioBitrate",
                                                       audioChannels, @"channels",
+                                                      @"Yes", @"audio-sync",
                                                       nil]];
     }
     
     if (subs != nil) {
-        [transcodingOptions setObject:subs forKey:@"scodec"];
+        [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
+                                                      subs, @"scodec",
+                                                      nil]];
     }
     
     m_sessionRandom = arc4random();
     
-    m_outputFilename = [NSString stringWithFormat:@"%u-########.%@", m_sessionRandom, filetype];
-    outputPath = [m_baseOutputPath stringByAppendingFormat:@"%u-########.%@", m_sessionRandom, filetype];
+    m_outputFilename = [NSString stringWithFormat:@"%u-#####.%@", m_sessionRandom, filetype];
+    outputPath = [m_baseOutputPath stringByAppendingFormat:@"%u-####.%@", m_sessionRandom, filetype];
     videoFilesPath = [m_httpAddress stringByAppendingString:m_outputFilename];
 
     //  use part of an mrl to set our options all at once
@@ -286,7 +292,7 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
                            outputOptions, @"outputOptions",
                            nil];
 
-    if (vidoeNeedsTranscode || audioNeedsTranscode) {
+    if (videoNeedsTranscode || audioNeedsTranscode) {
         [streamOutputOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
                                                        transcodingOptions, @"transcodingOptions",
                                                        nil]];
