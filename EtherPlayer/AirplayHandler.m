@@ -185,50 +185,114 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
 //  TODO: intelligently choose bitrates and channels
 - (void)transcodeMedia:(VLCMedia *)inputMedia
 {
-    NSString        *videoCodec = @"h264";
-    NSString        *audioCodec = @"mp3";
-    NSString        *videoBitrate = @"1024";
-    NSString        *audioBitrate = @"128";
-    NSString        *audioChannels = @"2";
-    NSString        *width = @"640";
-    NSString        *filetype = @"ts";
-    NSString        *outputPath = nil;
-    NSString        *m3u8Out = nil;
-    NSString        *videoFilesPath = nil;
-    NSString        *mrlString = nil;
-    VLCStreamOutput *output = nil;
+    NSString            *videoCodec = @"h264";
+    NSString            *audioCodec = @"mp3";
+    NSString            *filetype = @"ts";
+    NSString            *videoBitrate = nil;
+    NSString            *audioBitrate = nil;
+    NSString            *audioChannels = nil;
+    NSString            *width = nil;
+    NSString            *subs = nil;
+    NSString            *outputPath = nil;
+    NSString            *m3u8Out = nil;
+    NSString            *videoFilesPath = nil;
+    NSString            *mrlString = nil;
+    NSMutableDictionary *transcodingOptions = nil;
+    NSMutableDictionary *outputOptions = nil;
+    NSMutableDictionary *streamOutputOptions = nil;
+    VLCStreamOutput     *output = nil;
+    BOOL                vidoeNeedsTranscode = NO;
+    BOOL                audioNeedsTranscode = NO;
+    
+    for (NSDictionary *properties in [inputMedia tracksInformation]) {
+        if ([[properties objectForKey:@"type"] isEqualToString:@"video"]) {
+            if (width == nil) {
+                //  h264 is 875967080
+                //  Only some AirPlay devices support HD, and even those support
+                //  up 1280x720, so this may need adjusting
+                if ([[properties objectForKey:@"codec"] integerValue] != 875967080) {
+                    vidoeNeedsTranscode = YES;
+                }
+                width = [properties objectForKey:@"width"];
+            }
+        }
+        if ([[properties objectForKey:@"type"] isEqualToString:@"audio"]) {
+            if (audioChannels == nil) {
+                //  AAC is 1630826605
+                //  AC3 is 540161377
+                //  Only some AirPlay devices support AC3 audio, and only
+                //  up to 5.1, so this may need adjusting
+                if ([[properties objectForKey:@"codec"] integerValue] != 1630826605 &&
+                    [[properties objectForKey:@"codec"] integerValue] != 540161377) {
+                    audioNeedsTranscode = YES;
+                }
+                audioChannels = [properties objectForKey:@"channelsNumber"];
+            }
+        }
+        if ([[properties objectForKey:@"type"] isEqualToString:@"text"]) {
+            if (subs == nil) {
+                subs = @"tx3g";
+            }
+        }
+    }
+    
+    videoBitrate = [NSString stringWithFormat:@"%u", [width integerValue] * 5];
+    audioBitrate = [NSString stringWithFormat:@"%u", [audioChannels integerValue] * 128];
+    
+    transcodingOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                          videoCodec, @"videoCodec",
+                          videoBitrate, @"videoBitrate",
+                          width, @"width",
+                          @"Yes", @"audio-sync",
+                          nil];
+    
+    if (audioChannels != nil) {
+        [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
+                                                      audioCodec, @"audioCodec",
+                                                      audioBitrate, @"audioBitrate",
+                                                      audioChannels, @"channels",
+                                                      nil]];
+    }
+    
+    if (subs != nil) {
+        [transcodingOptions setObject:subs forKey:@"scodec"];
+    }
     
     m_sessionRandom = arc4random();
     
     m_outputFilename = [NSString stringWithFormat:@"%u-########.%@", m_sessionRandom, filetype];
     outputPath = [m_baseOutputPath stringByAppendingFormat:@"%u-########.%@", m_sessionRandom, filetype];
     videoFilesPath = [m_httpAddress stringByAppendingString:m_outputFilename];
-    
+
     //  use part of an mrl to set our options all at once
-    mrlString = @"livehttp{seglen=10,delsegs=true,numsegs=5,index=%@,index-url=%@},mux=ts{use-key-frames},dst=%@";
+    mrlString = @"livehttp{seglen=10,delsegs=false,index=%@,index-url=%@},mux=ts{use-key-frames},dst=%@";
 
     m3u8Out = [NSString stringWithFormat:@"%u.m3u8", m_sessionRandom];
     m_httpFilePath = [m_httpAddress stringByAppendingString:m3u8Out];
     m3u8Out = [m_baseOutputPath stringByAppendingString:m3u8Out];
     
-    output = [VLCStreamOutput streamOutputWithOptionDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
-                                                                [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                 videoCodec, @"videoCodec",
-                                                                 videoBitrate, @"videoBitrate",
-                                                                 audioCodec, @"audioCodec",
-                                                                 audioBitrate, @"audioBitrate",
-                                                                 audioChannels, @"channels",
-                                                                 width, @"width",
-                                                                 @"Yes", @"audio-sync",
-                                                                 nil
-                                                                 ], @"transcodingOptions",
-                                                                [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                 [NSString stringWithFormat:mrlString, m3u8Out,
-                                                                  videoFilesPath, outputPath], @"access",
-                                                                 nil
-                                                                 ], @"outputOptions",
-                                                                nil
-                                                                ]];
+    outputOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                     [NSString stringWithFormat:mrlString, m3u8Out,
+                      videoFilesPath, outputPath], @"access",
+                     nil];
+    
+    if (subs != nil) {
+        [outputOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
+                                                 @"0", @"sub-track",
+                                                 nil]];
+    }
+    
+    streamOutputOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                           outputOptions, @"outputOptions",
+                           nil];
+
+    if (vidoeNeedsTranscode || audioNeedsTranscode) {
+        [streamOutputOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
+                                                       transcodingOptions, @"transcodingOptions",
+                                                       nil]];
+    }
+    
+    output = [VLCStreamOutput streamOutputWithOptionDictionary:streamOutputOptions];
     
     m_session.streamOutput = output;
     [m_session startStreaming];
