@@ -76,11 +76,7 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
 {
     if ((self = [super init])) {
         NSString        *tempDir = nil;
-        NSString        *template = nil;
-        NSMutableData   *bufferData = nil;
         NSError         *error = nil;
-        char            *buffer;
-        char            *result;
         struct ifaddrs  *ifap;
         struct ifaddrs  *ifap0;
         
@@ -93,24 +89,11 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
         if (tempDir == nil)
             tempDir = @"/tmp";
         
-        template = [tempDir stringByAppendingPathComponent:@"temp.XXXXXX"];
-        if (ENABLE_DEBUG_OUTPUT) {
-            NSLog(@"Template: %@", template);
-        }
-        const char *fsTemplate = [template fileSystemRepresentation];
-        bufferData = [NSMutableData dataWithBytes:fsTemplate
-                                           length:strlen(fsTemplate)+1];
-        buffer = [bufferData mutableBytes];
-        if (ENABLE_DEBUG_OUTPUT) {
-            NSLog(@"FS Template: %s", buffer);
-        }
-        result = mkdtemp(buffer);
-        if (ENABLE_DEBUG_OUTPUT) {
-            NSLog(@"mkdtemp result: %s", result);
-        }
-        m_baseOutputPath = [[NSFileManager defaultManager] stringWithFileSystemRepresentation:result
-                                                                                       length:strlen(result)];
-        m_baseOutputPath = [m_baseOutputPath stringByAppendingString:@"/"];
+        m_baseOutputPath = [tempDir stringByAppendingString:@"com.brendonjustin.EtherPlayer/"];
+        [[NSFileManager defaultManager] createDirectoryAtPath:m_baseOutputPath
+                                  withIntermediateDirectories:NO 
+                                                   attributes:nil 
+                                                        error:&error];
         
         //  create our http server and set the port arbitrarily
         m_httpServer = [[HTTPServer alloc] init];
