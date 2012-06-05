@@ -10,9 +10,8 @@
 
 @interface AirplayHandler : NSObject <NSURLConnectionDelegate>
 
-- (void)airplay;
+- (void)airplayMediaAtPath:(NSString *)inputPath;
 
-@property (strong, nonatomic) NSString      *inputFilePath;
 @property (strong, nonatomic) NSNetService  *targetService;
 
 @end

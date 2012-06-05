@@ -58,8 +58,7 @@
 - (BOOL)application:(NSApplication *)sender openFile:(NSString *)filename
 {
     [[NSDocumentController sharedDocumentController] noteNewRecentDocumentURL:[NSURL URLWithString:filename]];
-    m_handler.inputFilePath = filename;
-    [m_handler airplay];
+    [m_handler airplayMediaAtPath:filename];
     
     return YES;
 }
