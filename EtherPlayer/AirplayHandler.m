@@ -8,39 +8,29 @@
 
 #import "AirplayHandler.h"
 
-#import "HTTPServer.h"
-
-#import <VLCKit/VLCMedia.h>
-#import <VLCKit/VLCStreamOutput.h>
-#import <VLCKit/VLCStreamSession.h>
+#import "OutputVideoCreator.h"
 
 #import <arpa/inet.h>
 #import <ifaddrs.h>
 
-const BOOL ENABLE_DEBUG_OUTPUT = NO;
+const BOOL kAHEnableDebugOutput = NO;
 
-@interface AirplayHandler () <VLCMediaDelegate>
+@interface AirplayHandler () <OutputVideoCreatorDelegate>
 
-- (void)transcodeMedia:(VLCMedia *)inputMedia;
 - (void)startAirplay;
 - (void)playRequest;
 - (void)scrubRequest;
 - (void)playbackInfoRequest;
-- (void)stop;
+- (void)stopRequest;
+- (void)stopPlayback;
 - (void)changePlaybackStatus;
 
-@property (strong, nonatomic) VLCStreamSession  *m_session;
-@property (strong, nonatomic) NSString          *m_baseOutputPath;
-@property (strong, nonatomic) NSString          *m_outputFilename;
-@property (strong, nonatomic) NSString          *m_currentRequest;
-@property (strong, nonatomic) NSString          *m_httpAddress;
-@property (strong, nonatomic) NSString          *m_httpFilePath;
-@property (strong, nonatomic) NSURL             *m_baseUrl;
-@property (strong, nonatomic) NSMutableData     *m_responseData;
-@property (strong, nonatomic) HTTPServer        *m_httpServer;
-@property (nonatomic) BOOL                      m_playing;
-@property (nonatomic) double                    m_playbackPosition;
-@property (nonatomic) NSUInteger                m_sessionRandom;
+@property (strong, nonatomic) OutputVideoCreator    *m_outputVideoCreator;
+@property (strong, nonatomic) NSString              *m_currentRequest;
+@property (strong, nonatomic) NSURL                 *m_baseUrl;
+@property (strong, nonatomic) NSMutableData         *m_responseData;
+@property (nonatomic) BOOL                          m_playing;
+@property (nonatomic) double                        m_playbackPosition;
 
 @end
 
@@ -50,18 +40,12 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
 @synthesize targetService = m_targetService;
 
 //  private properties
-@synthesize m_session;
-@synthesize m_baseOutputPath;
-@synthesize m_outputFilename;
+@synthesize m_outputVideoCreator;
 @synthesize m_currentRequest;
-@synthesize m_httpAddress;
-@synthesize m_httpFilePath;
 @synthesize m_baseUrl;
 @synthesize m_responseData;
-@synthesize m_httpServer;
 @synthesize m_playing;
 @synthesize m_playbackPosition;
-@synthesize m_sessionRandom;
 
 //  temporary directory code thanks to a Stack Overflow post
 //  http://stackoverflow.com/questions/374431/how-do-i-get-the-default-temporary-directory-on-mac-os-x
@@ -70,68 +54,11 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
 - (id)init
 {
     if ((self = [super init])) {
-        NSString        *tempDir = nil;
-        NSError         *error = nil;
-        struct ifaddrs  *ifap;
-        struct ifaddrs  *ifap0;
-        
-        m_httpAddress = nil;
-        m_session = nil;
         m_playing = YES;
         m_playbackPosition = 0;
         
-        tempDir = NSTemporaryDirectory();
-        if (tempDir == nil)
-            tempDir = @"/tmp";
-        
-        m_baseOutputPath = [tempDir stringByAppendingString:@"com.brendonjustin.EtherPlayer/"];
-        [[NSFileManager defaultManager] createDirectoryAtPath:m_baseOutputPath
-                                  withIntermediateDirectories:NO 
-                                                   attributes:nil 
-                                                        error:&error];
-        
-        //  create our http server and set the port arbitrarily
-        m_httpServer = [[HTTPServer alloc] init];
-        m_httpServer.documentRoot = m_baseOutputPath;
-        m_httpServer.port = 6004;
-        
-        if(![m_httpServer start:&error])
-        {
-            NSLog(@"Error starting HTTP Server: %@", error);
-        }
-        
-        //  get our IPv4 addresss
-        NSString *adapterName = nil;
-        NSUInteger success = getifaddrs(&ifap0);
-        if (success == 0) {
-            //  Loop through linked list of interfaces
-            ifap = ifap0;
-            while(ifap != NULL) {
-                if(ifap->ifa_addr->sa_family == AF_INET) {
-                    //  look for en0 and hope it is the primary lan interface as on the MBA and iPhone,
-                    //  but take anything aside from loopback as a fallback
-                    adapterName = [NSString stringWithUTF8String:ifap->ifa_name];
-                    if (m_httpAddress == nil && ![adapterName isEqualToString:@"lo0"]) {
-                        //  Get NSString from C String
-                        m_httpAddress = [NSString stringWithUTF8String:inet_ntoa(((struct sockaddr_in *)ifap->ifa_addr)->sin_addr)];
-                    }
-                    
-                    if([[NSString stringWithUTF8String:ifap->ifa_name] isEqualToString:@"en0"]) {
-                        //  Get NSString from C String
-                        m_httpAddress = [NSString stringWithUTF8String:inet_ntoa(((struct sockaddr_in *)ifap->ifa_addr)->sin_addr)];               
-                    }
-                }
-                ifap = ifap->ifa_next;
-            }
-        }
-        //  Free memory
-        freeifaddrs(ifap0);
-        
-        if (m_httpAddress == nil) {
-            NSLog(@"Error, could not find a non-loopback IPv4 address for myself.");
-        } else {
-            m_httpAddress = [@"http://" stringByAppendingFormat:@"%@:%u/", m_httpAddress, m_httpServer.port];
-        }
+        m_outputVideoCreator = [[OutputVideoCreator alloc] init];
+        m_outputVideoCreator.delegate = self;
     }
     
     return self;
@@ -140,15 +67,12 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
 //  play the current video via AirPlay
 //  only the /reverse handshake is performed in this function,
 //  other work is done in connectionDidFinishLoading:
-- (void)airplayMediaAtPath:(NSString *)inputPath
+- (void)airplayMediaForPath:(NSString *)mediaPath
 {
-    VLCMedia            *inputMedia = nil;
     NSArray             *sockArray = nil;
     NSData              *sockData = nil;
     char                addressBuffer[100];
     struct sockaddr_in  *sockAddress;
-    
-    [self stop];
     
     sockArray = m_targetService.addresses;
     sockData = [sockArray objectAtIndex:0];
@@ -167,141 +91,14 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
         if (addressStr && port) {
             NSString *address = [NSString stringWithFormat:@"http://%s:%d", addressStr, port];
             
-            if (ENABLE_DEBUG_OUTPUT) {
+            if (kAHEnableDebugOutput) {
                 NSLog(@"Found service at %@", address);
             }
             m_baseUrl = [NSURL URLWithString:address];
         }
     }
     
-    inputMedia = [VLCMedia mediaWithPath:inputPath];
-    inputMedia.delegate = self;
-    [inputMedia parse];
-    
-    m_session = [VLCStreamSession streamSession];
-    m_session.media = inputMedia;
-}
-
-//  TODO: intelligently choose bitrates and channels
-- (void)transcodeMedia:(VLCMedia *)inputMedia
-{
-    NSString            *videoCodec = @"h264";
-    NSString            *audioCodec = @"mp3";
-    NSString            *filetype = @"ts";
-    NSString            *videoBitrate = nil;
-    NSString            *audioBitrate = nil;
-    NSString            *audioChannels = nil;
-    NSString            *width = nil;
-    NSString            *subs = nil;
-    NSString            *outputPath = nil;
-    NSString            *m3u8Out = nil;
-    NSString            *videoFilesPath = nil;
-    NSString            *mrlString = nil;
-    NSMutableDictionary *transcodingOptions = nil;
-    NSMutableDictionary *outputOptions = nil;
-    NSMutableDictionary *streamOutputOptions = nil;
-    VLCStreamOutput     *output = nil;
-    BOOL                videoNeedsTranscode = NO;
-    BOOL                audioNeedsTranscode = NO;
-    
-    for (NSDictionary *properties in [inputMedia tracksInformation]) {
-        if ([[properties objectForKey:@"type"] isEqualToString:@"video"]) {
-            if (width == nil) {
-                //  h264 is 875967080
-                //  Only some AirPlay devices support HD, and even those support
-                //  up 1280x720, so this may need adjusting
-                if ([[properties objectForKey:@"codec"] integerValue] != 875967080) {
-                    videoNeedsTranscode = YES;
-                }
-                width = [properties objectForKey:@"width"];
-            }
-        }
-        if ([[properties objectForKey:@"type"] isEqualToString:@"audio"]) {
-            if (audioChannels == nil) {
-                //  AAC is 1630826605
-                //  AC3 is 540161377
-                //  Only some AirPlay devices support AC3 audio, and only
-                //  up to 5.1, so this may need adjusting
-                if ([[properties objectForKey:@"codec"] integerValue] != 1630826605 &&
-                    [[properties objectForKey:@"codec"] integerValue] != 540161377) {
-                    audioNeedsTranscode = YES;
-                }
-                audioChannels = [properties objectForKey:@"channelsNumber"];
-            }
-        }
-        if ([[properties objectForKey:@"type"] isEqualToString:@"text"]) {
-            if (subs == nil) {
-                subs = @"tx3g";
-            }
-        }
-    }
-    
-    videoBitrate = [NSString stringWithFormat:@"%u", [width integerValue] * 5];
-    audioBitrate = [NSString stringWithFormat:@"%u", [audioChannels integerValue] * 128];
-    
-    transcodingOptions = [NSMutableDictionary dictionary];
-
-    if (videoNeedsTranscode) {
-        [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
-                                                      videoCodec, @"videoCodec",
-                                                      videoBitrate, @"videoBitrate",
-                                                      width, @"width",
-                                                      nil]];
-    }
-    
-    if (audioNeedsTranscode) {
-        [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
-                                                      audioCodec, @"audioCodec",
-                                                      audioBitrate, @"audioBitrate",
-                                                      audioChannels, @"channels",
-                                                      @"Yes", @"audio-sync",
-                                                      nil]];
-    }
-    
-    if (subs != nil) {
-        [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
-                                                      subs, @"scodec",
-                                                      nil]];
-    }
-    
-    m_sessionRandom = arc4random();
-    
-    m_outputFilename = [NSString stringWithFormat:@"%u-#####.%@", m_sessionRandom, filetype];
-    outputPath = [m_baseOutputPath stringByAppendingFormat:@"%u-####.%@", m_sessionRandom, filetype];
-    videoFilesPath = [m_httpAddress stringByAppendingString:m_outputFilename];
-
-    //  use part of an mrl to set our options all at once
-    mrlString = @"livehttp{seglen=10,delsegs=false,index=%@,index-url=%@},mux=ts{use-key-frames},dst=%@";
-
-    m3u8Out = [NSString stringWithFormat:@"%u.m3u8", m_sessionRandom];
-    m_httpFilePath = [m_httpAddress stringByAppendingString:m3u8Out];
-    m3u8Out = [m_baseOutputPath stringByAppendingString:m3u8Out];
-    
-    outputOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                     [NSString stringWithFormat:mrlString, m3u8Out,
-                      videoFilesPath, outputPath], @"access",
-                     nil];
-    
-    if (subs != nil) {
-        [outputOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
-                                                 @"0", @"sub-track",
-                                                 nil]];
-    }
-    
-    streamOutputOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                           outputOptions, @"outputOptions",
-                           nil];
-
-    if (videoNeedsTranscode || audioNeedsTranscode) {
-        [streamOutputOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
-                                                       transcodingOptions, @"transcodingOptions",
-                                                       nil]];
-    }
-    
-    output = [VLCStreamOutput streamOutputWithOptionDictionary:streamOutputOptions];
-    
-    m_session.streamOutput = output;
-    [m_session startStreaming];
+    [m_outputVideoCreator transcodeMediaForPath:mediaPath];
 }
 
 - (void)startAirplay
@@ -321,41 +118,13 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
 {
     NSMutableURLRequest     *request = nil;
     NSURLConnection         *nextConnection = nil;
-    NSDictionary            *dict = nil;
-    NSData                  *data = nil;
-    NSError                 *err = nil;
-    NSPropertyListFormat    format;
-    
-    dict = [NSDictionary dictionaryWithObjectsAndKeys:m_httpFilePath, @"Content-Location",
-            [NSString stringWithFormat:@"%f", m_playbackPosition], @"Start-Position", nil];
-    [dict writeToFile:[m_baseOutputPath stringByAppendingFormat:@"%u.plist", m_sessionRandom]
-           atomically:YES];
-    data = [NSData dataWithContentsOfFile:[m_baseOutputPath stringByAppendingFormat:@"%u.plist",
-                                           m_sessionRandom]];
-    
-    [NSPropertyListSerialization propertyListWithData:data
-                                              options:NSPropertyListImmutable
-                                               format:&format
-                                                error:&err];
-    
-    if (err != nil) {
-        NSLog(@"Error preparing PLIST for /play request, %ld", err.code);
-    }
     
     request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/play"
                                                          relativeToURL:m_baseUrl]];
     request.HTTPMethod = @"POST";
     
-    if (format == NSPropertyListBinaryFormat_v1_0) {
-        [request addValue:@"application/x-apple-binary-plist" forHTTPHeaderField:@"Content-Type"];
-    } else if (format == NSPropertyListXMLFormat_v1_0) {
-        [request addValue:@"text/x-apple-plist+xml" forHTTPHeaderField:@"Content-Type"];
-    } else {
-        //  format == NSPropertyListOpenStepFormat
-        //  should never get here, Apple doesn't write out PLISTs in this format any more
-    }
-    
-    request.HTTPBody = data;
+    [request addValue:m_outputVideoCreator.playRequestDataType forHTTPHeaderField:@"Content-Type"];
+    request.HTTPBody = m_outputVideoCreator.playRequestData;
     
     nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
     [nextConnection start];
@@ -386,13 +155,24 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
     m_currentRequest = @"/playback-info";
 }
 
-//  TODO: consider doing more in this function
-- (void)stop
+- (void)stopRequest
 {
-    //  if m_session exists, it must be stopped
-    //  if not, this is still OK since m_session was initialized to nil
-    [m_session stopStreaming];
+    NSURLRequest    *request = nil;
+    NSURLConnection *nextConnection = nil;
+    
+    request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/stop"
+                                                  relativeToURL:m_baseUrl]];
+    nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
+    [nextConnection start];
+    m_currentRequest = @"/stop";
 }
+
+//  TODO: more in this function?
+- (void)stopPlayback
+{
+    [self stopRequest];
+}
+
 
 - (void)changePlaybackStatus
 {
@@ -424,7 +204,7 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
 {
-    if (ENABLE_DEBUG_OUTPUT) {
+    if (kAHEnableDebugOutput) {
         if ([response isKindOfClass: [NSHTTPURLResponse class]])
             NSLog(@"Response type: %ld, %@", [(NSHTTPURLResponse *)response statusCode],
                   [NSHTTPURLResponse localizedStringForStatusCode:[(NSHTTPURLResponse *)response statusCode]]);
@@ -465,7 +245,7 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
     NSString            *response = [[NSString alloc] initWithData:m_responseData
                                                           encoding:NSASCIIStringEncoding];
     
-    if (ENABLE_DEBUG_OUTPUT) {
+    if (kAHEnableDebugOutput) {
         NSLog(@"current request: %@, response string: %@", m_currentRequest, response);
     }
     
@@ -545,26 +325,12 @@ const BOOL ENABLE_DEBUG_OUTPUT = NO;
     }
 }
 
-#pragma mark -
-#pragma mark VLCMediaDelegate functions
+#pragma mark - 
+#pragma mark OutputVideoCreatorDelegate functions
 
-//  ignore
-- (void)media:(VLCMedia *)aMedia metaValueChangedFrom:(id)oldValue forKey:(NSString *)key
+- (void)outputReady:(id)sender
 {
-    NSLog(@"media:metaValueChangedFrom:forKey: called");
-    return;
-}
-
-//  begin transcoding the media once it has been parsed,
-//  and start airplay a few seconds later
-- (void)mediaDidFinishParsing:(VLCMedia *)aMedia
-{
-    [self transcodeMedia:aMedia];
-    [NSTimer scheduledTimerWithTimeInterval:30.0
-                                     target:self
-                                   selector:@selector(startAirplay)
-                                   userInfo:nil
-                                    repeats:NO];
+    [self startAirplay];
 }
 
 @end

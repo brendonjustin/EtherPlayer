@@ -48,6 +48,7 @@
 		5C0A32E615786B2700D3A49F /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A32E415786B2700D3A49F /* MainMenu.xib */; };
 		5C0A32F215786C9400D3A49F /* BonjourSearcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32F115786C9400D3A49F /* BonjourSearcher.m */; };
 		5C0A32F515786D1000D3A49F /* AirplayHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32F415786D1000D3A49F /* AirplayHandler.m */; };
+		5C0DD8C6157FF566005C8FF8 /* OutputVideoCreator.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0DD8C5157FF566005C8FF8 /* OutputVideoCreator.m */; };
 		5C1F508E15792CE5006C8B5B /* VLCKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5C1F508D15792CE5006C8B5B /* VLCKit.framework */; };
 /* End PBXBuildFile section */
 
@@ -140,6 +141,8 @@
 		5C0A32F115786C9400D3A49F /* BonjourSearcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BonjourSearcher.m; sourceTree = "<group>"; };
 		5C0A32F315786D1000D3A49F /* AirplayHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AirplayHandler.h; sourceTree = "<group>"; };
 		5C0A32F415786D1000D3A49F /* AirplayHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AirplayHandler.m; sourceTree = "<group>"; };
+		5C0DD8C4157FF566005C8FF8 /* OutputVideoCreator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputVideoCreator.h; sourceTree = "<group>"; };
+		5C0DD8C5157FF566005C8FF8 /* OutputVideoCreator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OutputVideoCreator.m; sourceTree = "<group>"; };
 		5C1F508D15792CE5006C8B5B /* VLCKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = VLCKit.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -331,6 +334,8 @@
 				5C0A32E215786B2600D3A49F /* AppDelegate.m */,
 				5C0A32F315786D1000D3A49F /* AirplayHandler.h */,
 				5C0A32F415786D1000D3A49F /* AirplayHandler.m */,
+				5C0DD8C4157FF566005C8FF8 /* OutputVideoCreator.h */,
+				5C0DD8C5157FF566005C8FF8 /* OutputVideoCreator.m */,
 				5C0A32F015786C9400D3A49F /* BonjourSearcher.h */,
 				5C0A32F115786C9400D3A49F /* BonjourSearcher.m */,
 				5C0A32E415786B2700D3A49F /* MainMenu.xib */,
@@ -453,6 +458,7 @@
 				5C019485157BC93900418213 /* DDTTYLogger.m in Sources */,
 				5C019486157BC93900418213 /* ContextFilterLogFormatter.m in Sources */,
 				5C019487157BC93900418213 /* DispatchQueueLogFormatter.m in Sources */,
+				5C0DD8C6157FF566005C8FF8 /* OutputVideoCreator.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
