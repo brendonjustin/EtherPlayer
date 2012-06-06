@@ -17,7 +17,8 @@
 #import <arpa/inet.h>
 #import <ifaddrs.h>
 
-const NSString *kOVCOutputFiletype = @"ts";
+const NSString      *kOVCOutputFiletype = @"ts";
+const NSUInteger    kOVCSegmentDuration = 10;
 
 @interface OutputVideoCreator () <VLCMediaDelegate>
 
@@ -236,13 +237,13 @@ const NSString *kOVCOutputFiletype = @"ts";
     videoFilesPath = [m_httpAddress stringByAppendingString:m_outputSegsFilename];
     
     //  use part of an mrl to set our options all at once
-    mrlString = @"livehttp{seglen=10,delsegs=false,index=%@,index-url=%@},mux=ts{use-key-frames},dst=%@";
+    mrlString = @"livehttp{seglen=%u,delsegs=false,index=%@,index-url=%@},mux=ts{use-key-frames},dst=%@";
     
     m3u8Out = [m_baseOutputPath stringByAppendingString:m_outputM3u8Filename];
     
     outputOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                     [NSString stringWithFormat:mrlString, m3u8Out,
-                      videoFilesPath, outputPath], @"access",
+                     [NSString stringWithFormat:mrlString, kOVCSegmentDuration,
+                      m3u8Out, videoFilesPath, outputPath], @"access",
                      nil];
     
     if (subs != nil) {
@@ -333,12 +334,17 @@ const NSString *kOVCOutputFiletype = @"ts";
     return;
 }
 
-//  begin transcoding the media once it has been parsed,
-//  and start checking if the playlist file has been created
+//  begin transcoding only after the media has been parsed
 - (void)mediaDidFinishParsing:(VLCMedia *)aMedia
 {
     [self transcodeMedia:aMedia];
-    [self waitForPlaylist];
+    //  give VLCKit at least one segment duration before checking
+    //  for the playlist file
+    [NSTimer scheduledTimerWithTimeInterval:kOVCSegmentDuration
+                                     target:self
+                                   selector:@selector(waitForPlaylist)
+                                   userInfo:nil
+                                    repeats:NO];
 }
 
 @end
