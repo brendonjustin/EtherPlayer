@@ -8,10 +8,18 @@
 
 #import <Foundation/Foundation.h>
 
+@protocol AirplayHandlerDelegate <NSObject>
+
+- (void)playStateChanged:(BOOL)playing;
+
+@end
+
 @interface AirplayHandler : NSObject <NSURLConnectionDelegate>
 
 - (void)airplayMediaForPath:(NSString *)mediaPath;
+- (void)togglePlaying:(BOOL)playing;
 
+@property (strong, nonatomic) id<AirplayHandlerDelegate> delegate;
 @property (strong, nonatomic) NSNetService  *targetService;
 
 @end

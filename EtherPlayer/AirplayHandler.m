@@ -19,8 +19,7 @@ const BOOL kAHEnableDebugOutput = NO;
 
 - (void)startAirplay;
 - (void)playRequest;
-- (void)scrubRequest;
-- (void)playbackInfoRequest;
+- (void)infoRequest;
 - (void)stopRequest;
 - (void)stopPlayback;
 - (void)changePlaybackStatus;
@@ -29,6 +28,7 @@ const BOOL kAHEnableDebugOutput = NO;
 @property (strong, nonatomic) NSString              *m_currentRequest;
 @property (strong, nonatomic) NSURL                 *m_baseUrl;
 @property (strong, nonatomic) NSMutableData         *m_responseData;
+@property (strong, nonatomic) NSTimer               *m_infoTimer;
 @property (nonatomic) BOOL                          m_playing;
 @property (nonatomic) double                        m_playbackPosition;
 
@@ -37,6 +37,7 @@ const BOOL kAHEnableDebugOutput = NO;
 @implementation AirplayHandler
 
 //  public properties
+@synthesize delegate;
 @synthesize targetService = m_targetService;
 
 //  private properties
@@ -44,6 +45,7 @@ const BOOL kAHEnableDebugOutput = NO;
 @synthesize m_currentRequest;
 @synthesize m_baseUrl;
 @synthesize m_responseData;
+@synthesize m_infoTimer;
 @synthesize m_playing;
 @synthesize m_playbackPosition;
 
@@ -131,28 +133,23 @@ const BOOL kAHEnableDebugOutput = NO;
     m_currentRequest = @"/play";
 }
 
-- (void)scrubRequest
+- (void)infoRequest
 {
+    NSString        *nextRequest = nil;
     NSURLRequest    *request = nil;
     NSURLConnection *nextConnection = nil;
     
-    request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/scrub"
-                                                  relativeToURL:m_baseUrl]];
-    nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
-    [nextConnection start];
-    m_currentRequest = @"/scrub";
-}
-
-- (void)playbackInfoRequest
-{
-    NSURLRequest    *request = nil;
-    NSURLConnection *nextConnection = nil;
+    if ([m_currentRequest isEqualToString:@"/playback-info"]) {
+        nextRequest = @"/scrub";
+    } else {
+        nextRequest = @"/playback-info";
+    }
     
-    request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/playback-info"
+    request = [NSURLRequest requestWithURL:[NSURL URLWithString:nextRequest
                                                   relativeToURL:m_baseUrl]];
     nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
     [nextConnection start];
-    m_currentRequest = @"/playback-info";
+    m_currentRequest = nextRequest;
 }
 
 - (void)stopRequest
@@ -178,7 +175,7 @@ const BOOL kAHEnableDebugOutput = NO;
 {
     NSMutableURLRequest *request = nil;
     NSURLConnection     *nextConnection = nil;
-    NSString *rateString = @"/rate?value=0.00000";
+    NSString            *rateString = @"/rate?value=0.00000";
     
     if (m_playing) {
         rateString = @"/rate?value=1.00000";
@@ -191,6 +188,13 @@ const BOOL kAHEnableDebugOutput = NO;
     nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
     [nextConnection start];
     m_currentRequest = @"/rate";
+}
+
+- (void)togglePlaying:(BOOL)playing
+{
+    m_playing = playing;
+    [self changePlaybackStatus];
+    [delegate playStateChanged:m_playing];
 }
 
 #pragma mark -
@@ -277,7 +281,14 @@ const BOOL kAHEnableDebugOutput = NO;
         //  check if playing successful after /play
         //  the next request is /playback-info
         
-        [self playbackInfoRequest];
+        m_playing = YES;
+        [delegate playStateChanged:m_playing];
+        
+        m_infoTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
+                                                       target:self
+                                                     selector:@selector(playbackInfoRequest)
+                                                     userInfo:nil
+                                                      repeats:YES];
     } else if ([m_currentRequest isEqualToString:@"/rate"]) {
         //  nothing to do for /rate
         //  no set next request
@@ -291,16 +302,9 @@ const BOOL kAHEnableDebugOutput = NO;
             m_playbackPosition = [[response substringFromIndex:durationEnd] doubleValue];
         }
         
-        //  the next request is /playback-info
-        //  call it after a short delay to keep the polling rate reasonable
-        [NSTimer scheduledTimerWithTimeInterval:0.5
-                                         target:self
-                                       selector:@selector(playbackInfoRequest)
-                                       userInfo:nil
-                                        repeats:NO];
+        //  nothing else to do
     } else if ([m_currentRequest isEqualToString:@"/playback-info"]) {
         //  update our playback status and position after /playback-info
-        //  TODO: update our playing status based on m_playing
         NSDictionary            *playbackInfo = nil;
         NSString                *errDesc = nil;
         NSPropertyListFormat    format;
@@ -313,15 +317,13 @@ const BOOL kAHEnableDebugOutput = NO;
         m_playbackPosition = [[playbackInfo objectForKey:@"position"] doubleValue];
         m_playing = [[playbackInfo objectForKey:@"rate"] doubleValue] > 0.5f ? YES : NO;
         
-        //  the next request is /scrub
-        //  call it after a short delay to keep the polling rate reasonable
-        [NSTimer scheduledTimerWithTimeInterval:0.5
-                                         target:self
-                                       selector:@selector(scrubRequest)
-                                       userInfo:nil
-                                        repeats:NO];
+        [delegate playStateChanged:m_playing];
+        
+        //  nothing else to do
     } else if ([m_currentRequest isEqualToString:@"/stop"]) {
         //  no next request
+        
+        [m_infoTimer invalidate];
     }
 }
 
