@@ -176,26 +176,36 @@ const NSUInteger    kOVCSegmentDuration = 10;
     for (NSDictionary *properties in [inputMedia tracksInformation]) {
         if ([[properties objectForKey:@"type"] isEqualToString:@"video"]) {
             if (width == nil) {
+                width = [properties objectForKey:@"width"];
+                if ([width integerValue] > 1920) {
+                    width = @"1920";
+                    videoNeedsTranscode = YES;
+                }
+                
                 //  h264 is 875967080
                 //  Only some AirPlay devices support HD, and even those support
                 //  up 1280x720, so this may need adjusting
                 if ([[properties objectForKey:@"codec"] integerValue] != 875967080) {
                     videoNeedsTranscode = YES;
                 }
-                width = [properties objectForKey:@"width"];
             }
         }
         if ([[properties objectForKey:@"type"] isEqualToString:@"audio"]) {
             if (audioChannels == nil) {
+                audioChannels = [properties objectForKey:@"channelsNumber"];
+                if ([audioChannels integerValue] > 6) {
+                    audioChannels = @"6";
+                    audioNeedsTranscode = YES;
+                }
+                
                 //  AAC is 1630826605
+                //  MP3 is ???
                 //  AC3 is 540161377
-                //  Only some AirPlay devices support AC3 audio, and only
-                //  up to 5.1, so this may need adjusting
+                //  Only some AirPlay devices support AC3 audio, so this may need adjusting
                 if ([[properties objectForKey:@"codec"] integerValue] != 1630826605 &&
                     [[properties objectForKey:@"codec"] integerValue] != 540161377) {
                     audioNeedsTranscode = YES;
                 }
-                audioChannels = [properties objectForKey:@"channelsNumber"];
             }
         }
         if ([[properties objectForKey:@"type"] isEqualToString:@"text"]) {
