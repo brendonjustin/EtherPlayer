@@ -28,7 +28,8 @@ const BOOL kAHEnableDebugOutput = NO;
 @property (strong, nonatomic) NSURL                 *m_baseUrl;
 @property (strong, nonatomic) NSMutableData         *m_responseData;
 @property (strong, nonatomic) NSTimer               *m_infoTimer;
-@property (nonatomic) BOOL                          m_playing;
+@property (nonatomic) BOOL                          m_airplaying;
+@property (nonatomic) BOOL                          m_paused;
 @property (nonatomic) double                        m_playbackPosition;
 
 @end
@@ -45,7 +46,8 @@ const BOOL kAHEnableDebugOutput = NO;
 @synthesize m_baseUrl;
 @synthesize m_responseData;
 @synthesize m_infoTimer;
-@synthesize m_playing;
+@synthesize m_airplaying;
+@synthesize m_paused;
 @synthesize m_playbackPosition;
 
 //  temporary directory code thanks to a Stack Overflow post
@@ -55,7 +57,8 @@ const BOOL kAHEnableDebugOutput = NO;
 - (id)init
 {
     if ((self = [super init])) {
-        m_playing = YES;
+        m_airplaying = NO;
+        m_paused = YES;
         m_playbackPosition = 0;
         
         m_outputVideoCreator = [[OutputVideoCreator alloc] init];
@@ -80,6 +83,9 @@ const BOOL kAHEnableDebugOutput = NO;
     
     sockAddress = (struct sockaddr_in*) [sockData bytes];
     if (sockAddress == NULL) {
+        if (kAHEnableDebugOutput) {
+            NSLog(@"No AirPlay targets found, taking no action.");
+        }
         return;
     }
     
@@ -130,6 +136,7 @@ const BOOL kAHEnableDebugOutput = NO;
     nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
     [nextConnection start];
     m_currentRequest = @"/play";
+    m_airplaying = YES;
 }
 
 - (void)infoRequest
@@ -161,12 +168,15 @@ const BOOL kAHEnableDebugOutput = NO;
     nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
     [nextConnection start];
     m_currentRequest = @"/stop";
+    m_airplaying = NO;
+    [delegate isPaused:NO];
 }
 
-//  TODO: more in this function?
 - (void)stopPlayback
 {
-    [self stopRequest];
+    if (m_airplaying) {
+        [self stopRequest];
+    }
 }
 
 
@@ -174,10 +184,10 @@ const BOOL kAHEnableDebugOutput = NO;
 {
     NSMutableURLRequest *request = nil;
     NSURLConnection     *nextConnection = nil;
-    NSString            *rateString = @"/rate?value=0.00000";
+    NSString            *rateString = @"/rate?value=1.00000";
     
-    if (m_playing) {
-        rateString = @"/rate?value=1.00000";
+    if (m_paused) {
+        rateString = @"/rate?value=0.00000";
     }
     
     request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:rateString
@@ -189,11 +199,13 @@ const BOOL kAHEnableDebugOutput = NO;
     m_currentRequest = @"/rate";
 }
 
-- (void)togglePlaying:(BOOL)playing
+- (void)togglePaused
 {
-    m_playing = playing;
-    [self changePlaybackStatus];
-    [delegate playStateChanged:m_playing];
+    if (m_airplaying) {
+        m_paused = !m_paused;
+        [self changePlaybackStatus];
+        [delegate isPaused:m_paused];
+    }
 }
 
 #pragma mark -
@@ -280,12 +292,12 @@ const BOOL kAHEnableDebugOutput = NO;
         //  check if playing successful after /play
         //  the next request is /playback-info
         
-        m_playing = YES;
-        [delegate playStateChanged:m_playing];
+        m_paused = NO;
+        [delegate isPaused:m_paused];
         
         m_infoTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
                                                        target:self
-                                                     selector:@selector(playbackInfoRequest)
+                                                     selector:@selector(infoRequest)
                                                      userInfo:nil
                                                       repeats:YES];
     } else if ([m_currentRequest isEqualToString:@"/rate"]) {
@@ -314,9 +326,9 @@ const BOOL kAHEnableDebugOutput = NO;
                                                         errorDescription:&errDesc];
         
         m_playbackPosition = [[playbackInfo objectForKey:@"position"] doubleValue];
-        m_playing = [[playbackInfo objectForKey:@"rate"] doubleValue] > 0.5f ? YES : NO;
+        m_paused = [[playbackInfo objectForKey:@"rate"] doubleValue] < 0.5f ? YES : NO;
         
-        [delegate playStateChanged:m_playing];
+        [delegate isPaused:m_paused];
         
         //  nothing else to do
     } else if ([m_currentRequest isEqualToString:@"/stop"]) {

@@ -18,7 +18,6 @@
 @property (strong, nonatomic) AirplayHandler    *m_handler;
 @property (strong, nonatomic) BonjourSearcher   *m_searcher;
 @property (strong, nonatomic) NSMutableArray    *m_services;
-@property (strong, nonatomic) NSString          *m_currentPlayButtonImage;
 
 @end
 
@@ -30,16 +29,17 @@
 @synthesize m_handler;
 @synthesize m_searcher;
 @synthesize m_services;
-@synthesize m_currentPlayButtonImage;
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     // Insert code here to initialize your application
     m_handler = [[AirplayHandler alloc] init];
+    m_handler.delegate = self;
+    
     m_searcher = [[BonjourSearcher alloc] init];
     m_services = [NSMutableArray array];
+    
     m_targetSelector.autoenablesItems = YES;
-    m_currentPlayButtonImage = @"play.png";
     
     [[NSNotificationCenter defaultCenter] addObserver:self 
                                              selector:@selector(airplayTargetsNotificationReceived:) 
@@ -117,15 +117,7 @@
 
 - (IBAction)pausePlayback:(id)sender
 {
-    if ([m_currentPlayButtonImage isEqualToString:@"play.png"]) {
-        m_currentPlayButtonImage = @"pause.png";
-        [m_handler togglePlaying:NO];
-    } else {
-        m_currentPlayButtonImage = @"play.png";
-        [m_handler togglePlaying:YES];
-    }
-    
-    [m_playButton setImage:[NSImage imageNamed:m_currentPlayButtonImage]];
+    [m_handler togglePaused];
 }
 
 - (IBAction)stopPlaying:(id)sender
@@ -137,15 +129,13 @@
 #pragma mark - 
 #pragma mark AirplayHandlerDelegate functions
 
-- (void)playStateChanged:(BOOL)playing
+- (void)isPaused:(BOOL)paused
 {
-    if (playing) {
-        m_currentPlayButtonImage = @"play.png";
+    if (paused) {
+        [m_playButton setImage:[NSImage imageNamed:@"play.png"]];
     } else {
-        m_currentPlayButtonImage = @"pause.png";
+        [m_playButton setImage:[NSImage imageNamed:@"pause.png"]];
     }
-    
-    [m_playButton setImage:[NSImage imageNamed:m_currentPlayButtonImage]];
 }
 
 @end

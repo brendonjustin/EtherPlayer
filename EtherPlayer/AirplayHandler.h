@@ -10,14 +10,14 @@
 
 @protocol AirplayHandlerDelegate <NSObject>
 
-- (void)playStateChanged:(BOOL)playing;
+- (void)isPaused:(BOOL)paused;
 
 @end
 
 @interface AirplayHandler : NSObject <NSURLConnectionDelegate>
 
 - (void)airplayMediaForPath:(NSString *)mediaPath;
-- (void)togglePlaying:(BOOL)playing;
+- (void)togglePaused;
 - (void)stopPlayback;
 
 @property (strong, nonatomic) id<AirplayHandlerDelegate> delegate;
