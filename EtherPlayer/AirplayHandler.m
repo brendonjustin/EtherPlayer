@@ -21,7 +21,6 @@ const BOOL kAHEnableDebugOutput = NO;
 - (void)playRequest;
 - (void)infoRequest;
 - (void)stopRequest;
-- (void)stopPlayback;
 - (void)changePlaybackStatus;
 
 @property (strong, nonatomic) OutputVideoCreator    *m_outputVideoCreator;

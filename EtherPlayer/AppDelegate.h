@@ -11,8 +11,11 @@
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 
 - (IBAction)openFile:(id)sender;
+- (IBAction)pausePlayback:(id)sender;
+- (IBAction)stopPlaying:(id)sender;
 
 @property (assign) IBOutlet NSWindow *window;
 @property (assign) IBOutlet NSPopUpButton *targetSelector;
+@property (assign) IBOutlet NSButton *playButton;
 
 @end

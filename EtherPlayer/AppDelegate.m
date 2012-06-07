@@ -10,7 +10,7 @@
 #import "AirplayHandler.h"
 #import "BonjourSearcher.h"
 
-@interface AppDelegate ()
+@interface AppDelegate () <AirplayHandlerDelegate>
 
 - (void)targetChanged;
 - (void)airplayTargetsNotificationReceived:(NSNotification *)notification;
@@ -18,6 +18,7 @@
 @property (strong, nonatomic) AirplayHandler    *m_handler;
 @property (strong, nonatomic) BonjourSearcher   *m_searcher;
 @property (strong, nonatomic) NSMutableArray    *m_services;
+@property (strong, nonatomic) NSString          *m_currentPlayButtonImage;
 
 @end
 
@@ -25,9 +26,28 @@
 
 @synthesize window = _window;
 @synthesize targetSelector = m_targetSelector;
+@synthesize playButton = m_playButton;
 @synthesize m_handler;
 @synthesize m_searcher;
 @synthesize m_services;
+@synthesize m_currentPlayButtonImage;
+
+- (void)applicationDidFinishLaunching:(NSNotification *)aNotification
+{
+    // Insert code here to initialize your application
+    m_handler = [[AirplayHandler alloc] init];
+    m_searcher = [[BonjourSearcher alloc] init];
+    m_services = [NSMutableArray array];
+    m_targetSelector.autoenablesItems = YES;
+    m_currentPlayButtonImage = @"play.png";
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self 
+                                             selector:@selector(airplayTargetsNotificationReceived:) 
+                                                 name:@"AirplayTargets" 
+                                               object:m_searcher];
+    
+    [m_searcher beginSearching];
+}
 
 - (IBAction)openFile:(id)sender
 {
@@ -63,22 +83,6 @@
     return YES;
 }
 
-- (void)applicationDidFinishLaunching:(NSNotification *)aNotification
-{
-    // Insert code here to initialize your application
-    m_handler = [[AirplayHandler alloc] init];
-    m_searcher = [[BonjourSearcher alloc] init];
-    m_services = [NSMutableArray array];
-    m_targetSelector.autoenablesItems = YES;
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self 
-                                             selector:@selector(airplayTargetsNotificationReceived:) 
-                                                 name:@"AirplayTargets" 
-                                               object:m_searcher];
-    
-    [m_searcher beginSearching];
-}
-
 - (void)airplayTargetsNotificationReceived:(NSNotification *)notification
 {
     NSMutableArray *servicesToRemove = [NSMutableArray array];
@@ -109,6 +113,39 @@
     for (NSNetService *service in servicesToRemove) {
         [m_services removeObject:service];
     }
+}
+
+- (IBAction)pausePlayback:(id)sender
+{
+    if ([m_currentPlayButtonImage isEqualToString:@"play.png"]) {
+        m_currentPlayButtonImage = @"pause.png";
+        [m_handler togglePlaying:NO];
+    } else {
+        m_currentPlayButtonImage = @"play.png";
+        [m_handler togglePlaying:YES];
+    }
+    
+    [m_playButton setImage:[NSImage imageNamed:m_currentPlayButtonImage]];
+}
+
+- (IBAction)stopPlaying:(id)sender
+{
+    [m_handler stopPlayback];
+    [m_playButton setImage:[NSImage imageNamed:@"play.png"]];
+}
+
+#pragma mark - 
+#pragma mark AirplayHandlerDelegate functions
+
+- (void)playStateChanged:(BOOL)playing
+{
+    if (playing) {
+        m_currentPlayButtonImage = @"play.png";
+    } else {
+        m_currentPlayButtonImage = @"pause.png";
+    }
+    
+    [m_playButton setImage:[NSImage imageNamed:m_currentPlayButtonImage]];
 }
 
 @end

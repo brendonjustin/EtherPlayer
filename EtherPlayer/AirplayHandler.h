@@ -18,6 +18,7 @@
 
 - (void)airplayMediaForPath:(NSString *)mediaPath;
 - (void)togglePlaying:(BOOL)playing;
+- (void)stopPlayback;
 
 @property (strong, nonatomic) id<AirplayHandlerDelegate> delegate;
 @property (strong, nonatomic) NSNetService  *targetService;

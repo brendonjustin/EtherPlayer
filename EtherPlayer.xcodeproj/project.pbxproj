@@ -50,6 +50,9 @@
 		5C0A32F515786D1000D3A49F /* AirplayHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32F415786D1000D3A49F /* AirplayHandler.m */; };
 		5C0DD8C6157FF566005C8FF8 /* OutputVideoCreator.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0DD8C5157FF566005C8FF8 /* OutputVideoCreator.m */; };
 		5C1F508E15792CE5006C8B5B /* VLCKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5C1F508D15792CE5006C8B5B /* VLCKit.framework */; };
+		5C4D440D15804915007B94F2 /* pause.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C4D440A15804915007B94F2 /* pause.png */; };
+		5C4D440E15804915007B94F2 /* play.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C4D440B15804915007B94F2 /* play.png */; };
+		5C4D440F15804915007B94F2 /* stop.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C4D440C15804915007B94F2 /* stop.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -144,6 +147,9 @@
 		5C0DD8C4157FF566005C8FF8 /* OutputVideoCreator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputVideoCreator.h; sourceTree = "<group>"; };
 		5C0DD8C5157FF566005C8FF8 /* OutputVideoCreator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OutputVideoCreator.m; sourceTree = "<group>"; };
 		5C1F508D15792CE5006C8B5B /* VLCKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = VLCKit.framework; sourceTree = "<group>"; };
+		5C4D440A15804915007B94F2 /* pause.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pause.png; sourceTree = "<group>"; };
+		5C4D440B15804915007B94F2 /* play.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = play.png; sourceTree = "<group>"; };
+		5C4D440C15804915007B94F2 /* stop.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = stop.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -339,6 +345,7 @@
 				5C0A32F015786C9400D3A49F /* BonjourSearcher.h */,
 				5C0A32F115786C9400D3A49F /* BonjourSearcher.m */,
 				5C0A32E415786B2700D3A49F /* MainMenu.xib */,
+				5C4D4408158048F0007B94F2 /* Resources */,
 				5C0A32D615786B2600D3A49F /* Supporting Files */,
 			);
 			path = EtherPlayer;
@@ -354,6 +361,16 @@
 				5C0A32DE15786B2600D3A49F /* Credits.rtf */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		5C4D4408158048F0007B94F2 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				5C4D440A15804915007B94F2 /* pause.png */,
+				5C4D440B15804915007B94F2 /* play.png */,
+				5C4D440C15804915007B94F2 /* stop.png */,
+			);
+			name = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -420,6 +437,9 @@
 				5C01947E157BC93900418213 /* About.txt in Resources */,
 				5C019480157BC93900418213 /* About.txt in Resources */,
 				5C019488157BC93900418213 /* README.txt in Resources */,
+				5C4D440D15804915007B94F2 /* pause.png in Resources */,
+				5C4D440E15804915007B94F2 /* play.png in Resources */,
+				5C4D440F15804915007B94F2 /* stop.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
