@@ -249,6 +249,11 @@ const BOOL kAHEnableDebugOutput = NO;
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
     NSLog(@"Connection failed with error code %ld", error.code);
+    
+    m_paused = NO;
+    [delegate isPaused:m_paused];
+    m_airplaying = NO;
+    [m_infoTimer invalidate];
 }
 
 //  TDOO: finish our responses to successful requests for 
