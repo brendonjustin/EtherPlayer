@@ -8,8 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		5C01929E157BC43500418213 /* VLCKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5C1F508D15792CE5006C8B5B /* VLCKit.framework */; };
-		5C01940D157BC93900418213 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 5C0192DA157BC93800418213 /* .gitignore */; };
-		5C01940E157BC93900418213 /* .hgignore in Resources */ = {isa = PBXBuildFile; fileRef = 5C0192DB157BC93800418213 /* .hgignore */; };
 		5C01940F157BC93900418213 /* DDData.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0192DF157BC93800418213 /* DDData.m */; };
 		5C019410157BC93900418213 /* DDNumber.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0192E1157BC93800418213 /* DDNumber.m */; };
 		5C019411157BC93900418213 /* DDRange.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0192E3157BC93800418213 /* DDRange.m */; };
@@ -26,11 +24,7 @@
 		5C01941C157BC93900418213 /* HTTPFileResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0192FD157BC93800418213 /* HTTPFileResponse.m */; };
 		5C01941D157BC93900418213 /* HTTPRedirectResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0192FF157BC93800418213 /* HTTPRedirectResponse.m */; };
 		5C01941E157BC93900418213 /* WebSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C019301157BC93800418213 /* WebSocket.m */; };
-		5C019423157BC93900418213 /* LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 5C01930C157BC93800418213 /* LICENSE.txt */; };
-		5C019424157BC93900418213 /* README.markdown in Resources */ = {isa = PBXBuildFile; fileRef = 5C01930D157BC93800418213 /* README.markdown */; };
-		5C01947E157BC93900418213 /* About.txt in Resources */ = {isa = PBXBuildFile; fileRef = 5C0193D0157BC93800418213 /* About.txt */; };
 		5C01947F157BC93900418213 /* GCDAsyncSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0193D2157BC93800418213 /* GCDAsyncSocket.m */; };
-		5C019480157BC93900418213 /* About.txt in Resources */ = {isa = PBXBuildFile; fileRef = 5C0193D4157BC93800418213 /* About.txt */; };
 		5C019481157BC93900418213 /* DDAbstractDatabaseLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0193D6157BC93800418213 /* DDAbstractDatabaseLogger.m */; };
 		5C019482157BC93900418213 /* DDASLLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0193D8157BC93800418213 /* DDASLLogger.m */; };
 		5C019483157BC93900418213 /* DDFileLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0193DA157BC93800418213 /* DDFileLogger.m */; };
@@ -38,7 +32,6 @@
 		5C019485157BC93900418213 /* DDTTYLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0193DE157BC93800418213 /* DDTTYLogger.m */; };
 		5C019486157BC93900418213 /* ContextFilterLogFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0193E1157BC93800418213 /* ContextFilterLogFormatter.m */; };
 		5C019487157BC93900418213 /* DispatchQueueLogFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0193E3157BC93800418213 /* DispatchQueueLogFormatter.m */; };
-		5C019488157BC93900418213 /* README.txt in Resources */ = {isa = PBXBuildFile; fileRef = 5C0193E4157BC93800418213 /* README.txt */; };
 		5C0194A8157BC9EB00418213 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5C0194A7157BC9EB00418213 /* Security.framework */; };
 		5C0A32D015786B2600D3A49F /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5C0A32CF15786B2600D3A49F /* Cocoa.framework */; };
 		5C0A32DA15786B2600D3A49F /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A32D815786B2600D3A49F /* InfoPlist.strings */; };
@@ -430,13 +423,6 @@
 				5C0A32DA15786B2600D3A49F /* InfoPlist.strings in Resources */,
 				5C0A32E015786B2600D3A49F /* Credits.rtf in Resources */,
 				5C0A32E615786B2700D3A49F /* MainMenu.xib in Resources */,
-				5C01940D157BC93900418213 /* .gitignore in Resources */,
-				5C01940E157BC93900418213 /* .hgignore in Resources */,
-				5C019423157BC93900418213 /* LICENSE.txt in Resources */,
-				5C019424157BC93900418213 /* README.markdown in Resources */,
-				5C01947E157BC93900418213 /* About.txt in Resources */,
-				5C019480157BC93900418213 /* About.txt in Resources */,
-				5C019488157BC93900418213 /* README.txt in Resources */,
 				5C4D440D15804915007B94F2 /* pause.png in Resources */,
 				5C4D440E15804915007B94F2 /* play.png in Resources */,
 				5C4D440F15804915007B94F2 /* stop.png in Resources */,
