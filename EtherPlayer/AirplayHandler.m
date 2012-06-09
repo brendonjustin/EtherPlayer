@@ -14,6 +14,7 @@
 #import <ifaddrs.h>
 
 const BOOL kAHEnableDebugOutput = NO;
+const BOOL kAHAssumeReverseTimesOut = YES;
 
 @interface AirplayHandler () <OutputVideoCreatorDelegate>
 
@@ -22,8 +23,10 @@ const BOOL kAHEnableDebugOutput = NO;
 - (void)infoRequest;
 - (void)stopRequest;
 - (void)changePlaybackStatus;
+- (void)setStopped;
 
 @property (strong, nonatomic) OutputVideoCreator    *m_outputVideoCreator;
+@property (strong, nonatomic) NSString              *m_mediaPath;
 @property (strong, nonatomic) NSString              *m_currentRequest;
 @property (strong, nonatomic) NSURL                 *m_baseUrl;
 @property (strong, nonatomic) NSMutableData         *m_responseData;
@@ -42,6 +45,7 @@ const BOOL kAHEnableDebugOutput = NO;
 
 //  private properties
 @synthesize m_outputVideoCreator;
+@synthesize m_mediaPath;
 @synthesize m_currentRequest;
 @synthesize m_baseUrl;
 @synthesize m_responseData;
@@ -73,10 +77,14 @@ const BOOL kAHEnableDebugOutput = NO;
 //  other work is done in connectionDidFinishLoading:
 - (void)airplayMediaForPath:(NSString *)mediaPath
 {
+    NSMutableURLRequest *request = nil;
+    NSURLConnection     *connection = nil;
     NSArray             *sockArray = nil;
     NSData              *sockData = nil;
     char                addressBuffer[100];
     struct sockaddr_in  *sockAddress;
+    
+    m_mediaPath = mediaPath;
     
     sockArray = m_targetService.addresses;
     sockData = [sockArray objectAtIndex:0];
@@ -105,7 +113,22 @@ const BOOL kAHEnableDebugOutput = NO;
         }
     }
     
-    [m_outputVideoCreator transcodeMediaForPath:mediaPath];
+    //  make a request to /server-info on the target to get some info before
+    //  we do anything else
+    request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/server-info" 
+                                                  relativeToURL:m_baseUrl]];
+    connection = [NSURLConnection connectionWithRequest:request delegate:self];
+    [connection start];
+    m_currentRequest = @"/server-info";
+}
+
+- (void)togglePaused
+{
+    if (m_airplaying) {
+        m_paused = !m_paused;
+        [self changePlaybackStatus];
+        [delegate isPaused:m_paused];
+    }
 }
 
 - (void)startAirplay
@@ -113,12 +136,20 @@ const BOOL kAHEnableDebugOutput = NO;
     NSMutableURLRequest *request = nil;
     NSURLConnection     *connection = nil;
     
-    //  make a request to /reverse on the target and start the AirPlay process
-    request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/server-info" 
-                                                  relativeToURL:m_baseUrl]];
+    request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/reverse"
+                                                         relativeToURL:m_baseUrl]];
+    [request setHTTPMethod:@"POST"];
+    [request addValue:@"PTTH/1.0" forHTTPHeaderField:@"Upgrade"];
+    [request addValue:@"event" forHTTPHeaderField:@"X-Apple-Purpose"];
+    
     connection = [NSURLConnection connectionWithRequest:request delegate:self];
     [connection start];
-    m_currentRequest = @"/server-info";
+    m_currentRequest = @"/reverse";
+    
+    //  /reverse always times out in my airplay server, so just move on to /play
+    if (kAHAssumeReverseTimesOut) {
+        [self playRequest];
+    }
 }
 
 - (void)playRequest
@@ -139,6 +170,7 @@ const BOOL kAHEnableDebugOutput = NO;
     m_airplaying = YES;
 }
 
+//  alternates /scrub and /playback-info
 - (void)infoRequest
 {
     NSString        *nextRequest = nil;
@@ -179,7 +211,6 @@ const BOOL kAHEnableDebugOutput = NO;
     }
 }
 
-
 - (void)changePlaybackStatus
 {
     NSMutableURLRequest *request = nil;
@@ -199,13 +230,12 @@ const BOOL kAHEnableDebugOutput = NO;
     m_currentRequest = @"/rate";
 }
 
-- (void)togglePaused
+- (void)setStopped
 {
-    if (m_airplaying) {
-        m_paused = !m_paused;
-        [self changePlaybackStatus];
-        [delegate isPaused:m_paused];
-    }
+    m_paused = NO;
+    [delegate isPaused:m_paused];
+    m_airplaying = NO;
+    [m_infoTimer invalidate];
 }
 
 #pragma mark -
@@ -249,19 +279,12 @@ const BOOL kAHEnableDebugOutput = NO;
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
     NSLog(@"Connection failed with error code %ld", error.code);
-    
-    m_paused = NO;
-    [delegate isPaused:m_paused];
-    m_airplaying = NO;
-    [m_infoTimer invalidate];
+
+    [self setStopped];
 }
 
-//  TDOO: finish our responses to successful requests for 
-//  /play, /scrub, /playback-info
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
-    NSMutableURLRequest *request = nil;
-    NSURLConnection     *nextConnection = nil;
     NSString            *response = [[NSString alloc] initWithData:m_responseData
                                                           encoding:NSASCIIStringEncoding];
     
@@ -269,25 +292,11 @@ const BOOL kAHEnableDebugOutput = NO;
         NSLog(@"current request: %@, response string: %@", m_currentRequest, response);
     }
     
-    
     if ([m_currentRequest isEqualToString:@"/server-info"]) {
-        //  /reverse is a handshake before starting
-        //  the next request is /reverse
-        BOOL workaroundMissingResponse = YES;
-        request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/reverse"
-                                                             relativeToURL:m_baseUrl]];
-        [request setHTTPMethod:@"POST"];
-        [request addValue:@"PTTH/1.0" forHTTPHeaderField:@"Upgrade"];
-        [request addValue:@"event" forHTTPHeaderField:@"X-Apple-Purpose"];
+        //  TODO: give m_outputVideoCreator some of the info we got
+        //  from /server-info?
         
-        nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
-        [nextConnection start];
-        m_currentRequest = @"/reverse";
-        
-        //  /reverse always seems to time out, so just move on to /play
-        if (workaroundMissingResponse) {
-            [self playRequest];
-        }
+        [m_outputVideoCreator transcodeMediaForPath:m_mediaPath];
     } else if ([m_currentRequest isEqualToString:@"/reverse"]) {
         //  give the signal to play the file after /reverse
         //  the next request is /play
@@ -325,6 +334,10 @@ const BOOL kAHEnableDebugOutput = NO;
         NSString                *errDesc = nil;
         NSPropertyListFormat    format;
         
+        if (!m_airplaying) {
+            return;
+        }
+        
         playbackInfo = [NSPropertyListSerialization propertyListFromData:m_responseData
                                                         mutabilityOption:NSPropertyListImmutable
                                                                   format:&format
@@ -339,7 +352,7 @@ const BOOL kAHEnableDebugOutput = NO;
     } else if ([m_currentRequest isEqualToString:@"/stop"]) {
         //  no next request
         
-        [m_infoTimer invalidate];
+        [self setStopped];
     }
 }
 
