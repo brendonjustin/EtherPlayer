@@ -179,7 +179,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
             if (width == nil) {
                 width = [properties objectForKey:@"width"];
                 
-                //  Only some AirPlay devices support HD, and even some of those
+                //  AirPlay devices need not support HD, and some that do may
                 //  only support up 1280x720, so this may need adjusting
                 if ([width integerValue] > 1920) {
                     width = @"1920";
@@ -187,6 +187,8 @@ const NSUInteger    kOVCSegmentDuration = 10;
                 }
                 
                 //  h264 is 875967080
+                //  other video codecs may be supported, further investigation
+                //  is required
                 if ([[properties objectForKey:@"codec"] integerValue] != 875967080) {
                     videoNeedsTranscode = YES;
                 }
@@ -194,6 +196,8 @@ const NSUInteger    kOVCSegmentDuration = 10;
         }
         if ([[properties objectForKey:@"type"] isEqualToString:@"audio"]) {
             if (audioChannels == nil) {
+                //  AirPlay devices need not support higher than stereo audio, so
+                //  this may need adjusting
                 audioChannels = [properties objectForKey:@"channelsNumber"];
                 if ([audioChannels integerValue] > 6) {
                     audioChannels = @"6";
@@ -201,10 +205,11 @@ const NSUInteger    kOVCSegmentDuration = 10;
                 }
                 
                 //  AAC is 1630826605
-                //  MP3 is ???
+                //  MP3 is 1634168941
                 //  AC3 is 540161377
-                //  Only some AirPlay devices support AC3 audio, so this may need adjusting
+                //  AirPlay devices need not support AC3 audio, so this may need adjusting
                 if ([[properties objectForKey:@"codec"] integerValue] != 1630826605 &&
+                    [[properties objectForKey:@"codec"] integerValue] != 1634168941 &&
                     [[properties objectForKey:@"codec"] integerValue] != 540161377) {
                     audioNeedsTranscode = YES;
                 }
