@@ -31,9 +31,11 @@ const BOOL kAHAssumeReverseTimesOut = YES;
 @property (strong, nonatomic) NSURL                 *m_baseUrl;
 @property (strong, nonatomic) NSMutableData         *m_responseData;
 @property (strong, nonatomic) NSTimer               *m_infoTimer;
+@property (strong, nonatomic) NSNetService          *m_targetService;
 @property (nonatomic) BOOL                          m_airplaying;
 @property (nonatomic) BOOL                          m_paused;
 @property (nonatomic) double                        m_playbackPosition;
+@property (nonatomic) uint8_t                       m_serverCapabilities;
 
 @end
 
@@ -41,7 +43,6 @@ const BOOL kAHAssumeReverseTimesOut = YES;
 
 //  public properties
 @synthesize delegate;
-@synthesize targetService = m_targetService;
 
 //  private properties
 @synthesize m_outputVideoCreator;
@@ -50,9 +51,11 @@ const BOOL kAHAssumeReverseTimesOut = YES;
 @synthesize m_baseUrl;
 @synthesize m_responseData;
 @synthesize m_infoTimer;
+@synthesize m_targetService;
 @synthesize m_airplaying;
 @synthesize m_paused;
 @synthesize m_playbackPosition;
+@synthesize m_serverCapabilities;
 
 //  temporary directory code thanks to a Stack Overflow post
 //  http://stackoverflow.com/questions/374431/how-do-i-get-the-default-temporary-directory-on-mac-os-x
@@ -72,10 +75,7 @@ const BOOL kAHAssumeReverseTimesOut = YES;
     return self;
 }
 
-//  play the current video via AirPlay
-//  only the /reverse handshake is performed in this function,
-//  other work is done in connectionDidFinishLoading:
-- (void)airplayMediaForPath:(NSString *)mediaPath
+- (void)setTargetService:(NSNetService *)targetService
 {
     NSMutableURLRequest *request = nil;
     NSURLConnection     *connection = nil;
@@ -84,7 +84,7 @@ const BOOL kAHAssumeReverseTimesOut = YES;
     char                addressBuffer[100];
     struct sockaddr_in  *sockAddress;
     
-    m_mediaPath = mediaPath;
+    m_targetService = targetService;
     
     sockArray = m_targetService.addresses;
     sockData = [sockArray objectAtIndex:0];
@@ -120,6 +120,18 @@ const BOOL kAHAssumeReverseTimesOut = YES;
     connection = [NSURLConnection connectionWithRequest:request delegate:self];
     [connection start];
     m_currentRequest = @"/server-info";
+}
+
+//  play the current video via AirPlay
+//  only the /reverse handshake is performed in this function,
+//  other work is done in connectionDidFinishLoading:
+- (void)airplayMediaForPath:(NSString *)mediaPath
+{
+    m_mediaPath = mediaPath;
+
+    //  TODO: give m_outputVideoCreator some of the info we got
+    //  from /server-info?
+    [m_outputVideoCreator transcodeMediaForPath:m_mediaPath];
 }
 
 - (void)togglePaused
@@ -297,10 +309,16 @@ const BOOL kAHAssumeReverseTimesOut = YES;
     }
     
     if ([m_currentRequest isEqualToString:@"/server-info"]) {
-        //  TODO: give m_outputVideoCreator some of the info we got
-        //  from /server-info?
+        NSDictionary            *serverInfo = nil;
+        NSString                *errDesc = nil;
+        NSPropertyListFormat    format;
         
-        [m_outputVideoCreator transcodeMediaForPath:m_mediaPath];
+        serverInfo = [NSPropertyListSerialization propertyListFromData:m_responseData
+                                                      mutabilityOption:NSPropertyListImmutable
+                                                                format:&format
+                                                      errorDescription:&errDesc];
+        
+        m_serverCapabilities = [[serverInfo objectForKey:@"features"] integerValue];
     } else if ([m_currentRequest isEqualToString:@"/reverse"]) {
         //  give the signal to play the file after /reverse
         //  the next request is /play

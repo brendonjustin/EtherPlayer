@@ -74,7 +74,7 @@
         }
     }
     
-    m_handler.targetService = selectedService;
+    [m_handler setTargetService:selectedService];
 }
 
 - (BOOL)application:(NSApplication *)sender openFile:(NSString *)filename

@@ -18,11 +18,11 @@
 
 @interface AirplayHandler : NSObject <NSURLConnectionDelegate>
 
+- (void)setTargetService:(NSNetService *)targetService;
 - (void)airplayMediaForPath:(NSString *)mediaPath;
 - (void)togglePaused;
 - (void)stopPlayback;
 
 @property (strong, nonatomic) id<AirplayHandlerDelegate> delegate;
-@property (strong, nonatomic) NSNetService  *targetService;
 
 @end
