@@ -334,6 +334,11 @@ const NSUInteger    kOVCSegmentDuration = 10;
     }
 }
 
+- (double)duration
+{
+    return m_inputMedia.length.intValue / 1000.0f;
+}
+
 #pragma mark -
 #pragma mark VLCMediaDelegate functions
 

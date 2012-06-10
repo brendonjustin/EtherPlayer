@@ -17,5 +17,7 @@
 @property (assign) IBOutlet NSWindow *window;
 @property (assign) IBOutlet NSPopUpButton *targetSelector;
 @property (assign) IBOutlet NSButton *playButton;
+@property (assign) IBOutlet NSTextFieldCell *positionFieldCell;
+@property (assign) IBOutlet NSTextFieldCell *durationFieldCell;
 
 @end

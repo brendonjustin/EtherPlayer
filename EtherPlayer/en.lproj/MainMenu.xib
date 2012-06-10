@@ -2278,6 +2278,22 @@
 					</object>
 					<int key="connectionID">1232</int>
 				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">positionFieldCell</string>
+						<reference key="source" ref="976324537"/>
+						<reference key="destination" ref="1065309270"/>
+					</object>
+					<int key="connectionID">1233</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">durationFieldCell</string>
+						<reference key="source" ref="976324537"/>
+						<reference key="destination" ref="727519281"/>
+					</object>
+					<int key="connectionID">1234</int>
+				</object>
 			</array>
 			<object class="IBMutableOrderedSet" key="objectRecords">
 				<array key="orderedObjects">
@@ -4141,7 +4157,7 @@
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">1232</int>
+			<int key="maxID">1234</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -4168,14 +4184,24 @@
 						</object>
 					</dictionary>
 					<dictionary class="NSMutableDictionary" key="outlets">
+						<string key="durationFieldCell">NSTextFieldCell</string>
 						<string key="playButton">NSButton</string>
+						<string key="positionFieldCell">NSTextFieldCell</string>
 						<string key="targetSelector">NSPopUpButton</string>
 						<string key="window">NSWindow</string>
 					</dictionary>
 					<dictionary class="NSMutableDictionary" key="toOneOutletInfosByName">
+						<object class="IBToOneOutletInfo" key="durationFieldCell">
+							<string key="name">durationFieldCell</string>
+							<string key="candidateClassName">NSTextFieldCell</string>
+						</object>
 						<object class="IBToOneOutletInfo" key="playButton">
 							<string key="name">playButton</string>
 							<string key="candidateClassName">NSButton</string>
+						</object>
+						<object class="IBToOneOutletInfo" key="positionFieldCell">
+							<string key="name">positionFieldCell</string>
+							<string key="candidateClassName">NSTextFieldCell</string>
 						</object>
 						<object class="IBToOneOutletInfo" key="targetSelector">
 							<string key="name">targetSelector</string>
@@ -4213,7 +4239,7 @@
 			<string key="NSMenuCheckmark">{11, 11}</string>
 			<string key="NSMenuMixedState">{10, 3}</string>
 			<string key="play">{50, 50}</string>
-			<string key="stop">{50, 50}</string>
+			<string key="stop">{33, 33}</string>
 		</dictionary>
 		<bool key="IBDocument.UseAutolayout">YES</bool>
 	</data>

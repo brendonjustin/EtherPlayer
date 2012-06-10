@@ -26,6 +26,8 @@
 @synthesize window = _window;
 @synthesize targetSelector = m_targetSelector;
 @synthesize playButton = m_playButton;
+@synthesize positionFieldCell = m_positionFieldCell;
+@synthesize durationFieldCell = m_durationFieldCell;
 @synthesize m_handler;
 @synthesize m_searcher;
 @synthesize m_services;
@@ -136,6 +138,20 @@
     } else {
         [m_playButton setImage:[NSImage imageNamed:@"pause.png"]];
     }
+}
+
+- (void)positionUpdated:(float)position
+{
+    self.positionFieldCell.title = [NSString stringWithFormat:@"%u:%.2u:%.2u",
+                                    (int)position / 3600, ((int)position / 60) % 60,
+                                    (int)position % 60];
+}
+
+- (void)durationUpdated:(float)duration
+{
+    self.durationFieldCell.title = [NSString stringWithFormat:@"%u:%.2u:%.2u",
+                                    (int)duration / 3600, ((int)duration / 60) % 60,
+                                    (int)duration % 60];
 }
 
 @end

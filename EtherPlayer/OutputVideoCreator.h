@@ -23,5 +23,6 @@
 @property (strong, nonatomic) NSString  *playRequestDataType;
 @property (strong, nonatomic) NSString  *outputSegsFilename;
 @property (strong, nonatomic) NSString  *outputM3u8Filename;
+@property (nonatomic, readonly) double  duration;
 
 @end

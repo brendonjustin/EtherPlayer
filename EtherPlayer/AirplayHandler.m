@@ -233,9 +233,13 @@ const BOOL kAHAssumeReverseTimesOut = YES;
 - (void)setStopped
 {
     m_paused = NO;
-    [delegate isPaused:m_paused];
     m_airplaying = NO;
     [m_infoTimer invalidate];
+    
+    m_playbackPosition = 0;
+    [delegate isPaused:m_paused];
+    [delegate positionUpdated:m_playbackPosition];
+    [delegate durationUpdated:0];
 }
 
 #pragma mark -
@@ -266,7 +270,7 @@ const BOOL kAHAssumeReverseTimesOut = YES;
 - (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten
  totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite
 {
-    
+    return;
 }
 
 - (NSURLRequest *)connection:(NSURLConnection *)connection 
@@ -308,6 +312,7 @@ const BOOL kAHAssumeReverseTimesOut = YES;
         
         m_paused = NO;
         [delegate isPaused:m_paused];
+        [delegate durationUpdated:m_outputVideoCreator.duration];
         
         m_infoTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
                                                        target:self
@@ -319,12 +324,13 @@ const BOOL kAHAssumeReverseTimesOut = YES;
         //  no set next request
     } else if ([m_currentRequest isEqualToString:@"/scrub"]) {
         //  update our position in the file after /scrub
-        NSRange     durationRange = [response rangeOfString:@"position: "];
-        NSUInteger  durationEnd;
+        NSRange     cachedDurationRange = [response rangeOfString:@"position: "];
+        NSUInteger  cachedDurationEnd;
         
-        if (durationRange.location != NSNotFound) {
-            durationEnd = durationRange.location + durationRange.length;
-            m_playbackPosition = [[response substringFromIndex:durationEnd] doubleValue];
+        if (cachedDurationRange.location != NSNotFound) {
+            cachedDurationEnd = cachedDurationRange.location + cachedDurationRange.length;
+            m_playbackPosition = [[response substringFromIndex:cachedDurationEnd] doubleValue];
+            [delegate positionUpdated:m_playbackPosition];
         }
         
         //  nothing else to do
@@ -347,6 +353,7 @@ const BOOL kAHAssumeReverseTimesOut = YES;
         m_paused = [[playbackInfo objectForKey:@"rate"] doubleValue] < 0.5f ? YES : NO;
         
         [delegate isPaused:m_paused];
+        [delegate positionUpdated:m_playbackPosition];
         
         //  nothing else to do
     } else if ([m_currentRequest isEqualToString:@"/stop"]) {
