@@ -157,7 +157,6 @@ const NSUInteger    kOVCSegmentDuration = 10;
     NSString            *audioChannels = nil;
     NSString            *width = nil;
     NSString            *subs = nil;
-    NSString            *subsMuxString = nil;
     NSString            *outputPath = nil;
     NSString            *m3u8Out = nil;
     NSString            *videoFilesPath = nil;
@@ -248,27 +247,26 @@ const NSUInteger    kOVCSegmentDuration = 10;
         [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
                                                       subs, @"scodec",
                                                       nil]];
-        subsMuxString = [NSString stringWithFormat:@"scodec=%@,sub-track=0", subs];
     }
     
     outputPath = [m_baseOutputPath stringByAppendingFormat:m_outputSegsFilename];
     videoFilesPath = [m_httpAddress stringByAppendingString:m_outputSegsFilename];
     
     //  use part of an mrl to set our options all at once
-    mrlString = @"livehttp{seglen=%u,delsegs=false,index=%@,index-url=%@},mux=ts{use-key-frames%@},dst=%@";
+    mrlString = @"livehttp{seglen=%u,delsegs=false,index=%@,index-url=%@},mux=ts{use-key-frames},dst=%@";
     
     m3u8Out = [m_baseOutputPath stringByAppendingString:m_outputM3u8Filename];
     
     outputOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
                      [NSString stringWithFormat:mrlString, kOVCSegmentDuration,
-                      m3u8Out, videoFilesPath, subsMuxString, outputPath], @"access",
+                      m3u8Out, videoFilesPath, outputPath], @"access",
                      nil];
     
     streamOutputOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
                            outputOptions, @"outputOptions",
                            nil];
     
-    if (videoNeedsTranscode || audioNeedsTranscode) {
+    if (transcodingOptions != nil) {
         [streamOutputOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
                                                        transcodingOptions, @"transcodingOptions",
                                                        nil]];
