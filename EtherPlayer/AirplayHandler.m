@@ -8,7 +8,7 @@
 
 #import "AirplayHandler.h"
 
-#import "OutputVideoCreator.h"
+#import "VideoManager.h"
 
 #import <arpa/inet.h>
 #import <ifaddrs.h>
@@ -16,17 +16,14 @@
 const BOOL kAHEnableDebugOutput = NO;
 const BOOL kAHAssumeReverseTimesOut = YES;
 
-@interface AirplayHandler () <OutputVideoCreatorDelegate>
+@interface AirplayHandler ()
 
-- (void)startAirplay;
 - (void)playRequest;
 - (void)infoRequest;
 - (void)stopRequest;
 - (void)changePlaybackStatus;
 - (void)setStopped;
 
-@property (strong, nonatomic) OutputVideoCreator    *m_outputVideoCreator;
-@property (strong, nonatomic) NSString              *m_mediaPath;
 @property (strong, nonatomic) NSString              *m_currentRequest;
 @property (strong, nonatomic) NSURL                 *m_baseUrl;
 @property (strong, nonatomic) NSMutableData         *m_responseData;
@@ -43,10 +40,9 @@ const BOOL kAHAssumeReverseTimesOut = YES;
 
 //  public properties
 @synthesize delegate;
+@synthesize videoManager = m_videoManager;
 
 //  private properties
-@synthesize m_outputVideoCreator;
-@synthesize m_mediaPath;
 @synthesize m_currentRequest;
 @synthesize m_baseUrl;
 @synthesize m_responseData;
@@ -67,9 +63,6 @@ const BOOL kAHAssumeReverseTimesOut = YES;
         m_airplaying = NO;
         m_paused = YES;
         m_playbackPosition = 0;
-        
-        m_outputVideoCreator = [[OutputVideoCreator alloc] init];
-        m_outputVideoCreator.delegate = self;
     }
     
     return self;
@@ -85,6 +78,10 @@ const BOOL kAHAssumeReverseTimesOut = YES;
     struct sockaddr_in  *sockAddress;
     
     m_targetService = targetService;
+    
+    if (m_targetService == nil) {
+        return;
+    }
     
     sockArray = m_targetService.addresses;
     sockData = [sockArray objectAtIndex:0];
@@ -122,18 +119,6 @@ const BOOL kAHAssumeReverseTimesOut = YES;
     m_currentRequest = @"/server-info";
 }
 
-//  play the current video via AirPlay
-//  only the /reverse handshake is performed in this function,
-//  other work is done in connectionDidFinishLoading:
-- (void)airplayMediaForPath:(NSString *)mediaPath
-{
-    m_mediaPath = mediaPath;
-
-    //  TODO: give m_outputVideoCreator some of the info we got
-    //  from /server-info?
-    [m_outputVideoCreator transcodeMediaForPath:m_mediaPath];
-}
-
 - (void)togglePaused
 {
     if (m_airplaying) {
@@ -147,6 +132,11 @@ const BOOL kAHAssumeReverseTimesOut = YES;
 {
     NSMutableURLRequest *request = nil;
     NSURLConnection     *connection = nil;
+    
+    //  we must have a target service to AirPlay to
+    if (m_targetService == nil) {
+        return;
+    }
     
     request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/reverse"
                                                          relativeToURL:m_baseUrl]];
@@ -168,14 +158,14 @@ const BOOL kAHAssumeReverseTimesOut = YES;
 {
     NSMutableURLRequest     *request = nil;
     NSURLConnection         *nextConnection = nil;
-    
+
     request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/play"
                                                          relativeToURL:m_baseUrl]];
     request.HTTPMethod = @"POST";
-    
-    [request addValue:m_outputVideoCreator.playRequestDataType forHTTPHeaderField:@"Content-Type"];
-    request.HTTPBody = m_outputVideoCreator.playRequestData;
-    
+
+    [request addValue:m_videoManager.playRequestDataType forHTTPHeaderField:@"Content-Type"];
+    request.HTTPBody = m_videoManager.playRequestData;
+
     nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
     [nextConnection start];
     m_currentRequest = @"/play";
@@ -188,13 +178,13 @@ const BOOL kAHAssumeReverseTimesOut = YES;
     NSString        *nextRequest = nil;
     NSURLRequest    *request = nil;
     NSURLConnection *nextConnection = nil;
-    
+
     if ([m_currentRequest isEqualToString:@"/playback-info"]) {
         nextRequest = @"/scrub";
     } else {
         nextRequest = @"/playback-info";
     }
-    
+
     request = [NSURLRequest requestWithURL:[NSURL URLWithString:nextRequest
                                                   relativeToURL:m_baseUrl]];
     nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
@@ -206,7 +196,7 @@ const BOOL kAHAssumeReverseTimesOut = YES;
 {
     NSURLRequest    *request = nil;
     NSURLConnection *nextConnection = nil;
-    
+
     request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/stop"
                                                   relativeToURL:m_baseUrl]];
     nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
@@ -330,7 +320,7 @@ const BOOL kAHAssumeReverseTimesOut = YES;
         
         m_paused = NO;
         [delegate isPaused:m_paused];
-        [delegate durationUpdated:m_outputVideoCreator.duration];
+        [delegate durationUpdated:m_videoManager.duration];
         
         m_infoTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
                                                        target:self
@@ -379,14 +369,6 @@ const BOOL kAHAssumeReverseTimesOut = YES;
         
         [self setStopped];
     }
-}
-
-#pragma mark - 
-#pragma mark OutputVideoCreatorDelegate functions
-
-- (void)outputReady:(id)sender
-{
-    [self startAirplay];
 }
 
 @end

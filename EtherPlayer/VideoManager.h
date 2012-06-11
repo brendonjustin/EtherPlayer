@@ -8,17 +8,18 @@
 
 #import <Foundation/Foundation.h>
 
-@protocol OutputVideoCreatorDelegate <NSObject>
+@protocol VideoManagerDelegate <NSObject>
 
 - (void)outputReady:(id)sender;
 
 @end
 
-@interface OutputVideoCreator : NSObject
+@interface VideoManager : NSObject
 
 - (void)transcodeMediaForPath:(NSString *)mediaPath;
+- (void)cleanup;
 
-@property (strong, nonatomic) id<OutputVideoCreatorDelegate>    delegate;
+@property (strong, nonatomic) id<VideoManagerDelegate>    delegate;
 @property (strong, nonatomic) NSData    *playRequestData;
 @property (strong, nonatomic) NSString  *playRequestDataType;
 @property (strong, nonatomic) NSString  *outputSegsFilename;

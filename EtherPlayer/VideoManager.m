@@ -6,7 +6,7 @@
 //  Copyright (c) 2012 Brendon Justin. All rights reserved.
 //
 
-#import "OutputVideoCreator.h"
+#import "VideoManager.h"
 
 #import "HTTPServer.h"
 
@@ -20,7 +20,7 @@
 const NSString      *kOVCOutputFiletype = @"ts";
 const NSUInteger    kOVCSegmentDuration = 10;
 
-@interface OutputVideoCreator () <VLCMediaDelegate>
+@interface VideoManager () <VLCMediaDelegate>
 
 - (void)transcodeMedia:(VLCMedia *)inputMedia;
 - (void)createMediaPlist;
@@ -38,7 +38,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
 
 @end
 
-@implementation OutputVideoCreator
+@implementation VideoManager
 
 //  public properties
 @synthesize delegate;
@@ -337,6 +337,23 @@ const NSUInteger    kOVCSegmentDuration = 10;
 - (double)duration
 {
     return m_inputMedia.length.intValue / 1000.0f;
+}
+
+- (void)cleanup
+{
+    NSFileManager           *fileManager = [NSFileManager defaultManager];
+    NSDirectoryEnumerator   *directoryEnum = [fileManager enumeratorAtPath:m_baseOutputPath];    
+    NSError                 *error = nil;
+    NSString                *currentFile = nil;
+    BOOL                    success;
+    
+    while (currentFile = [directoryEnum nextObject]) {
+        success = [fileManager removeItemAtPath:[m_baseOutputPath stringByAppendingPathComponent:currentFile]
+                                          error:&error];
+        if (!success && error != nil) {
+            NSLog(@"Error deleting temporary file: %@: %@", currentFile, error);
+        }
+    }
 }
 
 #pragma mark -

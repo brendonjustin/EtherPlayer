@@ -16,13 +16,16 @@
 
 @end
 
+@class VideoManager;
+
 @interface AirplayHandler : NSObject <NSURLConnectionDelegate>
 
 - (void)setTargetService:(NSNetService *)targetService;
-- (void)airplayMediaForPath:(NSString *)mediaPath;
+- (void)startAirplay;
 - (void)togglePaused;
 - (void)stopPlayback;
 
-@property (strong, nonatomic) id<AirplayHandlerDelegate> delegate;
+@property (strong, nonatomic) id<AirplayHandlerDelegate>    delegate;
+@property (strong, nonatomic) VideoManager                  *videoManager;
 
 @end

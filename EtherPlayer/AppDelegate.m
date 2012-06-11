@@ -9,8 +9,9 @@
 #import "AppDelegate.h"
 #import "AirplayHandler.h"
 #import "BonjourSearcher.h"
+#import "VideoManager.h"
 
-@interface AppDelegate () <AirplayHandlerDelegate>
+@interface AppDelegate () <AirplayHandlerDelegate, VideoManagerDelegate>
 
 - (void)targetChanged;
 - (void)airplayTargetsNotificationReceived:(NSNotification *)notification;
@@ -18,6 +19,7 @@
 @property (strong, nonatomic) AirplayHandler    *m_handler;
 @property (strong, nonatomic) BonjourSearcher   *m_searcher;
 @property (strong, nonatomic) NSMutableArray    *m_services;
+@property (strong, nonatomic) VideoManager      *m_manager;
 
 @end
 
@@ -31,24 +33,34 @@
 @synthesize m_handler;
 @synthesize m_searcher;
 @synthesize m_services;
+@synthesize m_manager;
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     // Insert code here to initialize your application
-    m_handler = [[AirplayHandler alloc] init];
-    m_handler.delegate = self;
-    
     m_searcher = [[BonjourSearcher alloc] init];
     m_services = [NSMutableArray array];
-    
+
     m_targetSelector.autoenablesItems = YES;
-    
+
     [[NSNotificationCenter defaultCenter] addObserver:self 
                                              selector:@selector(airplayTargetsNotificationReceived:) 
                                                  name:@"AirplayTargets" 
                                                object:m_searcher];
+
+    m_manager =  [[VideoManager alloc] init];
+    m_manager.delegate = self;
     
+    m_handler = [[AirplayHandler alloc] init];
+    m_handler.delegate = self;
+    m_handler.videoManager = m_manager;
+
     [m_searcher beginSearching];
+}
+
+- (void)applicationWillTerminate:(NSNotification *)notification
+{
+    [m_manager cleanup];
 }
 
 - (IBAction)openFile:(id)sender
@@ -80,7 +92,7 @@
 - (BOOL)application:(NSApplication *)sender openFile:(NSString *)filename
 {
     [[NSDocumentController sharedDocumentController] noteNewRecentDocumentURL:[NSURL URLWithString:filename]];
-    [m_handler airplayMediaForPath:filename];
+    [m_manager transcodeMediaForPath:filename];
     
     return YES;
 }
@@ -152,6 +164,15 @@
     self.durationFieldCell.title = [NSString stringWithFormat:@"%u:%.2u:%.2u",
                                     (int)duration / 3600, ((int)duration / 60) % 60,
                                     (int)duration % 60];
+}
+
+
+#pragma mark - 
+#pragma mark VideoManagerDelegate functions
+
+- (void)outputReady:(id)sender
+{
+    [m_handler startAirplay];
 }
 
 @end
