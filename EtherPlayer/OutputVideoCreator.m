@@ -253,13 +253,13 @@ const NSUInteger    kOVCSegmentDuration = 10;
     videoFilesPath = [m_httpAddress stringByAppendingString:m_outputSegsFilename];
     
     //  use part of an mrl to set our options all at once
-    mrlString = @"livehttp{seglen=%u,delsegs=false,index=%@,index-url=%@},mux=ts{use-key-frames},dst=%@";
+    mrlString = @"livehttp{seglen=%u,delsegs=false,index=%@,index-url=%@},mux=%@{use-key-frames},dst=%@";
     
     m3u8Out = [m_baseOutputPath stringByAppendingString:m_outputM3u8Filename];
     
     outputOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
                      [NSString stringWithFormat:mrlString, kOVCSegmentDuration,
-                      m3u8Out, videoFilesPath, outputPath], @"access",
+                      m3u8Out, videoFilesPath, kOVCOutputFiletype, outputPath], @"access",
                      nil];
     
     streamOutputOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
