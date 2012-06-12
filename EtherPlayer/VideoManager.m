@@ -134,10 +134,10 @@ const NSUInteger    kOVCSegmentDuration = 10;
 {
     m_sessionRandom = arc4random();
     
-    m_outputSegsFilename = [NSString stringWithFormat:@"%u-#####.%@", m_sessionRandom,
+    m_outputSegsFilename = [NSString stringWithFormat:@"%lu-#####.%@", m_sessionRandom,
                             kOVCOutputFiletype];
     
-    m_outputM3u8Filename = [NSString stringWithFormat:@"%u.m3u8", m_sessionRandom];
+    m_outputM3u8Filename = [NSString stringWithFormat:@"%lu.m3u8", m_sessionRandom];
     m_httpFilePath = [m_httpAddress stringByAppendingString:m_outputM3u8Filename];
     
     m_inputMedia = [VLCMedia mediaWithPath:mediaPath];
@@ -221,8 +221,8 @@ const NSUInteger    kOVCSegmentDuration = 10;
         }
     }
     
-    videoBitrate = [NSString stringWithFormat:@"%u", [width integerValue] * 5];
-    audioBitrate = [NSString stringWithFormat:@"%u", [audioChannels integerValue] * 128];
+    videoBitrate = [NSString stringWithFormat:@"%lu", [width integerValue] * 5];
+    audioBitrate = [NSString stringWithFormat:@"%lu", [audioChannels integerValue] * 128];
     
     transcodingOptions = [NSMutableDictionary dictionary];
     
@@ -249,7 +249,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
                                                       nil]];
     }
     
-    outputPath = [m_baseOutputPath stringByAppendingFormat:m_outputSegsFilename];
+    outputPath = [m_baseOutputPath stringByAppendingString:m_outputSegsFilename];
     videoFilesPath = [m_httpAddress stringByAppendingString:m_outputSegsFilename];
     
     //  use part of an mrl to set our options all at once
@@ -285,10 +285,10 @@ const NSUInteger    kOVCSegmentDuration = 10;
     NSPropertyListFormat    format;
     
     dict = [NSDictionary dictionaryWithObjectsAndKeys:m_httpFilePath, @"Content-Location",
-            [NSString stringWithFormat:@"%f", 0], @"Start-Position", nil];
-    [dict writeToFile:[m_baseOutputPath stringByAppendingFormat:@"%u.plist", m_sessionRandom]
+            [NSString stringWithFormat:@"%f", (double)0], @"Start-Position", nil];
+    [dict writeToFile:[m_baseOutputPath stringByAppendingFormat:@"%lu.plist", m_sessionRandom]
            atomically:YES];
-    m_playRequestData = [NSData dataWithContentsOfFile:[m_baseOutputPath stringByAppendingFormat:@"%u.plist",
+    m_playRequestData = [NSData dataWithContentsOfFile:[m_baseOutputPath stringByAppendingFormat:@"%lu.plist",
                                                         m_sessionRandom]];
     
     [NSPropertyListSerialization propertyListWithData:m_playRequestData
