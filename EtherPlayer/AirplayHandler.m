@@ -13,11 +13,14 @@
 #import <arpa/inet.h>
 #import <ifaddrs.h>
 
-const BOOL kAHEnableDebugOutput = NO;
-const BOOL kAHAssumeReverseTimesOut = YES;
+const BOOL kAHEnableDebugOutput = YES;
+const BOOL kAHAssumeReverseTimesOut = NO;
 
 @interface AirplayHandler ()
 
+- (void)setCommonHeadersForRequest:(NSMutableURLRequest *)request;
+- (void)fpSetupRequest;
+- (void)reverseRequest;
 - (void)playRequest;
 - (void)infoRequest;
 - (void)stopRequest;
@@ -112,8 +115,9 @@ const BOOL kAHAssumeReverseTimesOut = YES;
     
     //  make a request to /server-info on the target to get some info before
     //  we do anything else
-    request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/server-info" 
-                                                  relativeToURL:m_baseUrl]];
+    request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/server-info"
+                                                         relativeToURL:m_baseUrl]];
+    [self setCommonHeadersForRequest:request];
     connection = [NSURLConnection connectionWithRequest:request delegate:self];
     [connection start];
     m_currentRequest = @"/server-info";
@@ -130,13 +134,54 @@ const BOOL kAHAssumeReverseTimesOut = YES;
 
 - (void)startAirplay
 {
-    NSMutableURLRequest *request = nil;
-    NSURLConnection     *connection = nil;
+    BOOL assumeATV3 = YES;
     
     //  we must have a target service to AirPlay to
     if (m_targetService == nil) {
         return;
     }
+    
+    if (assumeATV3) {
+        [self fpSetupRequest];
+    } else {
+        [self reverseRequest];
+    }
+}
+
+- (void)setCommonHeadersForRequest:(NSMutableURLRequest *)request
+{
+    [request addValue:@"MediaControl/1.0" forHTTPHeaderField:@"User-Agent"];
+    [request addValue:@"09080524-2e51-457e-9bf5-bef9847f34ff" forHTTPHeaderField:@"X-Apple-Session-ID"];
+}
+
+- (void)fpSetupRequest
+{
+    NSMutableURLRequest     *request = nil;
+    NSURLConnection         *connection = nil;
+    //  hex data: 46 50 4c 59 03 01 01 00 00 00 00 04 02 00 00 bb
+    const char requestBytes[] = {
+        0x46,0x50,0x4C,0x59,
+        0x03,0x01,0x01,0x00,
+        0x00,0x00,0x00,0x40,
+        0x02,0x00,0x00,0xBB };
+
+    request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/fp-setup"
+                                                         relativeToURL:m_baseUrl]];
+    request.HTTPMethod = @"POST";
+
+    [request addValue:@"application/octect-stream" forHTTPHeaderField:@"Content-Type"];
+    [self setCommonHeadersForRequest:request];
+    request.HTTPBody = [NSData dataWithBytes:requestBytes length:16];
+
+    connection = [NSURLConnection connectionWithRequest:request delegate:self];
+    [connection start];
+    m_currentRequest = @"/fp-setup";
+}
+
+- (void)reverseRequest
+{
+    NSMutableURLRequest     *request = nil;
+    NSURLConnection         *connection = nil;
     
     request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/reverse"
                                                          relativeToURL:m_baseUrl]];
@@ -145,8 +190,7 @@ const BOOL kAHAssumeReverseTimesOut = YES;
     [request addValue:@"Upgrade" forHTTPHeaderField:@"Connection"];
     [request addValue:@"event" forHTTPHeaderField:@"X-Apple-Purpose"];
     [request addValue:@"0" forHTTPHeaderField:@"Content-Length"];
-    [request addValue:@"MediaControl/1.0" forHTTPHeaderField:@"User-Agent"];
-    [request addValue:@"09080524-2e51-457e-9bf5-bef9847f34ff" forHTTPHeaderField:@"X-Apple-Session-ID"];
+    [self setCommonHeadersForRequest:request];
     
     connection = [NSURLConnection connectionWithRequest:request delegate:self];
     [connection start];
@@ -168,6 +212,7 @@ const BOOL kAHAssumeReverseTimesOut = YES;
     request.HTTPMethod = @"POST";
 
     [request addValue:m_videoManager.playRequestDataType forHTTPHeaderField:@"Content-Type"];
+    [self setCommonHeadersForRequest:request];
     request.HTTPBody = m_videoManager.playRequestData;
 
     nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
@@ -179,9 +224,9 @@ const BOOL kAHAssumeReverseTimesOut = YES;
 //  alternates /scrub and /playback-info
 - (void)infoRequest
 {
-    NSString        *nextRequest = nil;
-    NSURLRequest    *request = nil;
-    NSURLConnection *nextConnection = nil;
+    NSString                *nextRequest = nil;
+    NSMutableURLRequest     *request = nil;
+    NSURLConnection         *nextConnection = nil;
 
     if ([m_currentRequest isEqualToString:@"/playback-info"]) {
         nextRequest = @"/scrub";
@@ -189,8 +234,10 @@ const BOOL kAHAssumeReverseTimesOut = YES;
         nextRequest = @"/playback-info";
     }
 
-    request = [NSURLRequest requestWithURL:[NSURL URLWithString:nextRequest
-                                                  relativeToURL:m_baseUrl]];
+    request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:nextRequest
+                                                         relativeToURL:m_baseUrl]];
+    
+    [self setCommonHeadersForRequest:request];
     nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
     [nextConnection start];
     m_currentRequest = nextRequest;
@@ -198,11 +245,13 @@ const BOOL kAHAssumeReverseTimesOut = YES;
 
 - (void)stopRequest
 {
-    NSURLRequest    *request = nil;
-    NSURLConnection *nextConnection = nil;
+    NSMutableURLRequest *request = nil;
+    NSURLConnection     *nextConnection = nil;
 
-    request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/stop"
-                                                  relativeToURL:m_baseUrl]];
+    request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/stop"
+                                                         relativeToURL:m_baseUrl]];
+    
+    [self setCommonHeadersForRequest:request];
     nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
     [nextConnection start];
     m_currentRequest = @"/stop";
@@ -229,6 +278,7 @@ const BOOL kAHAssumeReverseTimesOut = YES;
     
     request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:rateString
                                                          relativeToURL:m_baseUrl]];
+    [self setCommonHeadersForRequest:request];
     request.HTTPMethod = @"POST";
     
     nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
@@ -300,9 +350,6 @@ const BOOL kAHAssumeReverseTimesOut = YES;
     NSString            *response = [[NSString alloc] initWithData:m_responseData
                                                           encoding:NSASCIIStringEncoding];
     
-    if ([m_currentRequest isEqualToString:@"/reverse"]) {
-        m_currentRequest = m_currentRequest;
-    }
     if (kAHEnableDebugOutput) {
         NSLog(@"current request: %@, response string: %@", m_currentRequest, response);
     }
@@ -318,7 +365,12 @@ const BOOL kAHAssumeReverseTimesOut = YES;
                                                       errorDescription:&errDesc];
         
         m_serverCapabilities = [[serverInfo objectForKey:@"features"] integerValue];
-    } else if ([m_currentRequest isEqualToString:@"/reverse"]) {
+    } else if ([m_currentRequest isEqualToString:@"/fp-setup"]) {
+        //  give the signal to play the file after /fp-setup
+        //  the next request is /play
+        
+        [self playRequest];
+    }  else if ([m_currentRequest isEqualToString:@"/reverse"]) {
         //  give the signal to play the file after /reverse
         //  the next request is /play
         
