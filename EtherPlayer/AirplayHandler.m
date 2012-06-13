@@ -142,7 +142,11 @@ const BOOL kAHAssumeReverseTimesOut = YES;
                                                          relativeToURL:m_baseUrl]];
     [request setHTTPMethod:@"POST"];
     [request addValue:@"PTTH/1.0" forHTTPHeaderField:@"Upgrade"];
+    [request addValue:@"Upgrade" forHTTPHeaderField:@"Connection"];
     [request addValue:@"event" forHTTPHeaderField:@"X-Apple-Purpose"];
+    [request addValue:@"0" forHTTPHeaderField:@"Content-Length"];
+    [request addValue:@"MediaControl/1.0" forHTTPHeaderField:@"User-Agent"];
+    [request addValue:@"09080524-2e51-457e-9bf5-bef9847f34ff" forHTTPHeaderField:@"X-Apple-Session-ID"];
     
     connection = [NSURLConnection connectionWithRequest:request delegate:self];
     [connection start];
@@ -257,8 +261,10 @@ const BOOL kAHAssumeReverseTimesOut = YES;
 {
     if (kAHEnableDebugOutput) {
         if ([response isKindOfClass: [NSHTTPURLResponse class]])
-            NSLog(@"Response type: %ld, %@", [(NSHTTPURLResponse *)response statusCode],
-                  [NSHTTPURLResponse localizedStringForStatusCode:[(NSHTTPURLResponse *)response statusCode]]);
+            NSLog(@"Response code: %ld %@; relative request URL: %@",
+                  [(NSHTTPURLResponse *)response statusCode],
+                  [NSHTTPURLResponse localizedStringForStatusCode:[(NSHTTPURLResponse *)response statusCode]],
+                  m_currentRequest);
     }
     
     m_responseData = [[NSMutableData alloc] init];
@@ -294,6 +300,9 @@ const BOOL kAHAssumeReverseTimesOut = YES;
     NSString            *response = [[NSString alloc] initWithData:m_responseData
                                                           encoding:NSASCIIStringEncoding];
     
+    if ([m_currentRequest isEqualToString:@"/reverse"]) {
+        m_currentRequest = m_currentRequest;
+    }
     if (kAHEnableDebugOutput) {
         NSLog(@"current request: %@, response string: %@", m_currentRequest, response);
     }
