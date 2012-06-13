@@ -19,7 +19,7 @@ const BOOL kAHAssumeReverseTimesOut = NO;
 @interface AirplayHandler ()
 
 - (void)setCommonHeadersForRequest:(NSMutableURLRequest *)request;
-- (void)fpSetupRequest;
+//- (void)fpSetupRequest;
 - (void)reverseRequest;
 - (void)playRequest;
 - (void)infoRequest;
@@ -87,6 +87,12 @@ const BOOL kAHAssumeReverseTimesOut = NO;
     }
     
     sockArray = m_targetService.addresses;
+    
+    if ([sockArray count] < 1) {
+        m_targetService = nil;
+        return;
+    }
+    
     sockData = [sockArray objectAtIndex:0];
     
     sockAddress = (struct sockaddr_in*) [sockData bytes];
@@ -134,18 +140,12 @@ const BOOL kAHAssumeReverseTimesOut = NO;
 
 - (void)startAirplay
 {
-    BOOL assumeATV3 = YES;
-    
     //  we must have a target service to AirPlay to
     if (m_targetService == nil) {
         return;
     }
     
-    if (assumeATV3) {
-        [self fpSetupRequest];
-    } else {
-        [self reverseRequest];
-    }
+    [self reverseRequest];
 }
 
 - (void)setCommonHeadersForRequest:(NSMutableURLRequest *)request
@@ -154,29 +154,30 @@ const BOOL kAHAssumeReverseTimesOut = NO;
     [request addValue:@"09080524-2e51-457e-9bf5-bef9847f34ff" forHTTPHeaderField:@"X-Apple-Session-ID"];
 }
 
-- (void)fpSetupRequest
-{
-    NSMutableURLRequest     *request = nil;
-    NSURLConnection         *connection = nil;
-    //  hex data: 46 50 4c 59 03 01 01 00 00 00 00 04 02 00 00 bb
-    const char requestBytes[] = {
-        0x46,0x50,0x4C,0x59,
-        0x03,0x01,0x01,0x00,
-        0x00,0x00,0x00,0x40,
-        0x02,0x00,0x00,0xBB };
-
-    request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/fp-setup"
-                                                         relativeToURL:m_baseUrl]];
-    request.HTTPMethod = @"POST";
-
-    [request addValue:@"application/octect-stream" forHTTPHeaderField:@"Content-Type"];
-    [self setCommonHeadersForRequest:request];
-    request.HTTPBody = [NSData dataWithBytes:requestBytes length:16];
-
-    connection = [NSURLConnection connectionWithRequest:request delegate:self];
-    [connection start];
-    m_currentRequest = @"/fp-setup";
-}
+//  used to set up FairPlay DRM, currently non-functional
+//- (void)fpSetupRequest
+//{
+//    NSMutableURLRequest     *request = nil;
+//    NSURLConnection         *connection = nil;
+//    //  hex data: 46 50 4c 59 03 01 01 00 00 00 00 04 02 00 00 bb
+//    const char requestBytes[] = {
+//        0x46,0x50,0x4C,0x59,
+//        0x03,0x01,0x01,0x00,
+//        0x00,0x00,0x00,0x40,
+//        0x02,0x00,0x00,0xBB };
+//
+//    request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/fp-setup"
+//                                                         relativeToURL:m_baseUrl]];
+//    request.HTTPMethod = @"POST";
+//
+//    [request addValue:@"application/octect-stream" forHTTPHeaderField:@"Content-Type"];
+//    [self setCommonHeadersForRequest:request];
+//    request.HTTPBody = [NSData dataWithBytes:requestBytes length:16];
+//
+//    connection = [NSURLConnection connectionWithRequest:request delegate:self];
+//    [connection start];
+//    m_currentRequest = @"/fp-setup";
+//}
 
 - (void)reverseRequest
 {
