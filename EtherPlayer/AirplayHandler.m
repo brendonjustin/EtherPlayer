@@ -15,6 +15,18 @@
 
 const BOOL kAHEnableDebugOutput = YES;
 const BOOL kAHAssumeReverseTimesOut = NO;
+const NSUInteger kVideo = 0,
+kPhoto = 1,
+kVideoFairPlay = 2,
+kVideoVolumeControl = 3,
+kVideoHTTPLiveStreams = 4,
+kSlideshow = 5,
+kScreen = 7,
+kScreenRotate = 8,
+kAudio = 9,
+kAudioRedundant = 11,
+kFPSAPv2pt5_AES_GCM = 12,
+kPhotoCaching = 13;
 
 @interface AirplayHandler ()
 
@@ -27,11 +39,12 @@ const BOOL kAHAssumeReverseTimesOut = NO;
 - (void)changePlaybackStatus;
 - (void)setStopped;
 
-@property (strong, nonatomic) NSString              *m_currentRequest;
 @property (strong, nonatomic) NSURL                 *m_baseUrl;
+@property (strong, nonatomic) NSString              *m_currentRequest;
 @property (strong, nonatomic) NSMutableData         *m_responseData;
 @property (strong, nonatomic) NSTimer               *m_infoTimer;
 @property (strong, nonatomic) NSNetService          *m_targetService;
+@property (strong, nonatomic) NSDictionary          *m_serverInfo;
 @property (nonatomic) BOOL                          m_airplaying;
 @property (nonatomic) BOOL                          m_paused;
 @property (nonatomic) double                        m_playbackPosition;
@@ -55,6 +68,7 @@ const BOOL kAHAssumeReverseTimesOut = NO;
 @synthesize m_paused;
 @synthesize m_playbackPosition;
 @synthesize m_serverCapabilities;
+@synthesize m_serverInfo;
 
 //  temporary directory code thanks to a Stack Overflow post
 //  http://stackoverflow.com/questions/374431/how-do-i-get-the-default-temporary-directory-on-mac-os-x
@@ -312,10 +326,10 @@ const BOOL kAHAssumeReverseTimesOut = NO;
 {
     if (kAHEnableDebugOutput) {
         if ([response isKindOfClass: [NSHTTPURLResponse class]])
-            NSLog(@"Response code: %ld %@; relative request URL: %@",
+            NSLog(@"Response code: %ld %@; request URL: %@",
                   [(NSHTTPURLResponse *)response statusCode],
                   [NSHTTPURLResponse localizedStringForStatusCode:[(NSHTTPURLResponse *)response statusCode]],
-                  m_currentRequest);
+                  [m_baseUrl URLByAppendingPathComponent:m_currentRequest]);
     }
     
     m_responseData = [[NSMutableData alloc] init];
@@ -356,16 +370,19 @@ const BOOL kAHAssumeReverseTimesOut = NO;
     }
     
     if ([m_currentRequest isEqualToString:@"/server-info"]) {
-        NSDictionary            *serverInfo = nil;
         NSString                *errDesc = nil;
         NSPropertyListFormat    format;
+        BOOL                    useHLS = NO;
         
-        serverInfo = [NSPropertyListSerialization propertyListFromData:m_responseData
-                                                      mutabilityOption:NSPropertyListImmutable
-                                                                format:&format
-                                                      errorDescription:&errDesc];
+        m_serverInfo = [NSPropertyListSerialization propertyListFromData:m_responseData
+                                                        mutabilityOption:NSPropertyListImmutable
+                                                                  format:&format
+                                                        errorDescription:&errDesc];
         
-        m_serverCapabilities = [[serverInfo objectForKey:@"features"] integerValue];
+        useHLS = ([[m_serverInfo objectForKey:@"features"] integerValue] & kVideoHTTPLiveStreams) != 0;
+        m_videoManager.useHttpLiveStreaming = useHLS;
+        
+        m_serverCapabilities = [[m_serverInfo objectForKey:@"features"] integerValue];
     } else if ([m_currentRequest isEqualToString:@"/fp-setup"]) {
         //  give the signal to play the file after /fp-setup
         //  the next request is /play

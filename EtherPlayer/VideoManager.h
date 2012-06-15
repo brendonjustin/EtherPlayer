@@ -25,5 +25,6 @@
 @property (strong, nonatomic) NSString  *outputSegsFilename;
 @property (strong, nonatomic) NSString  *outputM3u8Filename;
 @property (nonatomic, readonly) double  duration;
+@property (nonatomic) BOOL              useHttpLiveStreaming;
 
 @end
