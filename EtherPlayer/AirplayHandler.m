@@ -31,7 +31,6 @@ kPhotoCaching = 13;
 @interface AirplayHandler ()
 
 - (void)setCommonHeadersForRequest:(NSMutableURLRequest *)request;
-//- (void)fpSetupRequest;
 - (void)reverseRequest;
 - (void)playRequest;
 - (void)infoRequest;
@@ -167,31 +166,6 @@ kPhotoCaching = 13;
     [request addValue:@"MediaControl/1.0" forHTTPHeaderField:@"User-Agent"];
     [request addValue:@"09080524-2e51-457e-9bf5-bef9847f34ff" forHTTPHeaderField:@"X-Apple-Session-ID"];
 }
-
-//  used to set up FairPlay DRM, currently non-functional
-//- (void)fpSetupRequest
-//{
-//    NSMutableURLRequest     *request = nil;
-//    NSURLConnection         *connection = nil;
-//    //  hex data: 46 50 4c 59 03 01 01 00 00 00 00 04 02 00 00 bb
-//    const char requestBytes[] = {
-//        0x46,0x50,0x4C,0x59,
-//        0x03,0x01,0x01,0x00,
-//        0x00,0x00,0x00,0x40,
-//        0x02,0x00,0x00,0xBB };
-//
-//    request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/fp-setup"
-//                                                         relativeToURL:m_baseUrl]];
-//    request.HTTPMethod = @"POST";
-//
-//    [request addValue:@"application/octect-stream" forHTTPHeaderField:@"Content-Type"];
-//    [self setCommonHeadersForRequest:request];
-//    request.HTTPBody = [NSData dataWithBytes:requestBytes length:16];
-//
-//    connection = [NSURLConnection connectionWithRequest:request delegate:self];
-//    [connection start];
-//    m_currentRequest = @"/fp-setup";
-//}
 
 - (void)reverseRequest
 {
@@ -383,12 +357,7 @@ kPhotoCaching = 13;
         m_videoManager.useHttpLiveStreaming = useHLS;
         
         m_serverCapabilities = [[m_serverInfo objectForKey:@"features"] integerValue];
-    } else if ([m_currentRequest isEqualToString:@"/fp-setup"]) {
-        //  give the signal to play the file after /fp-setup
-        //  the next request is /play
-        
-        [self playRequest];
-    }  else if ([m_currentRequest isEqualToString:@"/reverse"]) {
+    } else if ([m_currentRequest isEqualToString:@"/reverse"]) {
         //  give the signal to play the file after /reverse
         //  the next request is /play
         
