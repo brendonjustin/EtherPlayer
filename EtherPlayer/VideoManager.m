@@ -23,15 +23,16 @@ const NSUInteger    kOVCSegmentDuration = 10;
 @interface VideoManager () <VLCMediaDelegate>
 
 - (void)transcodeMedia:(VLCMedia *)inputMedia;
-- (void)createMediaPlist;
 - (void)stop;
-- (void)waitForPlaylist;
+- (void)waitForOutputStream;
 
 @property (strong, nonatomic) VLCMedia          *m_inputMedia;
 @property (strong, nonatomic) VLCStreamSession  *m_session;
 @property (strong, nonatomic) NSString          *m_baseOutputPath;
 @property (strong, nonatomic) NSString          *m_httpAddress;
 @property (strong, nonatomic) NSString          *m_httpFilePath;
+@property (strong, nonatomic) NSString          *m_outputStreamFilename;
+@property (strong, nonatomic) NSString          *m_outputM3u8Filename;
 @property (strong, nonatomic) NSURL             *m_baseUrl;
 @property (strong, nonatomic) HTTPServer        *m_httpServer;
 @property (nonatomic) NSUInteger                m_sessionRandom;
@@ -42,10 +43,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
 
 //  public properties
 @synthesize delegate;
-@synthesize playRequestData = m_playRequestData;
-@synthesize playRequestDataType = m_playRequestDataType;
-@synthesize outputSegsFilename = m_outputSegsFilename;
-@synthesize outputM3u8Filename = m_outputM3u8Filename;
+@synthesize outputStreamFile = m_outputStreamFile;
 @synthesize useHttpLiveStreaming = m_useHLS;
 
 //  private properties
@@ -54,6 +52,8 @@ const NSUInteger    kOVCSegmentDuration = 10;
 @synthesize m_baseOutputPath;
 @synthesize m_httpAddress;
 @synthesize m_httpFilePath;
+@synthesize m_outputStreamFilename;
+@synthesize m_outputM3u8Filename;
 @synthesize m_baseUrl;
 @synthesize m_httpServer;
 @synthesize m_sessionRandom;
@@ -135,17 +135,22 @@ const NSUInteger    kOVCSegmentDuration = 10;
 {
     m_sessionRandom = arc4random();
     
-    m_outputSegsFilename = [NSString stringWithFormat:@"%lu-#####.%@", m_sessionRandom,
-                            kOVCOutputFiletype];
     
-    m_outputM3u8Filename = [NSString stringWithFormat:@"%lu.m3u8", m_sessionRandom];
-    m_httpFilePath = [m_httpAddress stringByAppendingString:m_outputM3u8Filename];
+    if (m_useHLS) {
+        m_outputStreamFilename = [NSString stringWithFormat:@"%lu-#####.%@", m_sessionRandom,
+                                kOVCOutputFiletype];
+        
+        m_outputM3u8Filename = [NSString stringWithFormat:@"%lu.m3u8", m_sessionRandom];
+        m_httpFilePath = [m_httpAddress stringByAppendingString:m_outputM3u8Filename];
+    } else {
+        m_outputStreamFilename = [NSString stringWithFormat:@"%lu.%@", m_sessionRandom,
+                                  kOVCOutputFiletype];
+        m_httpFilePath = [m_httpAddress stringByAppendingString:m_outputStreamFilename];
+    }
     
     m_inputMedia = [VLCMedia mediaWithPath:mediaPath];
     m_inputMedia.delegate = self;
     [m_inputMedia parse];
-    
-    [self createMediaPlist];
 }
 
 //  TODO: intelligently choose bitrates and channels
@@ -158,8 +163,6 @@ const NSUInteger    kOVCSegmentDuration = 10;
     NSString            *audioChannels = nil;
     NSString            *width = nil;
     NSString            *subs = nil;
-    NSString            *outputPath = nil;
-    NSString            *m3u8Out = nil;
     NSString            *videoFilesPath = nil;
     NSString            *mrlString = nil;
     NSMutableDictionary *transcodingOptions = nil;
@@ -173,6 +176,8 @@ const NSUInteger    kOVCSegmentDuration = 10;
     
     m_session = [VLCStreamSession streamSession];
     m_session.media = inputMedia;
+    
+    streamOutputOptions = [NSMutableDictionary dictionary];
     
     for (NSDictionary *properties in [inputMedia tracksInformation]) {
         if ([[properties objectForKey:@"type"] isEqualToString:@"video"]) {
@@ -217,7 +222,9 @@ const NSUInteger    kOVCSegmentDuration = 10;
         }
         if ([[properties objectForKey:@"type"] isEqualToString:@"text"]) {
             if (subs == nil) {
-                subs = @"tx3g";
+                if (m_useHLS) {
+                    subs = @"tx3g";
+                }
             }
         }
     }
@@ -250,69 +257,42 @@ const NSUInteger    kOVCSegmentDuration = 10;
                                                       nil]];
     }
     
-    outputPath = [m_baseOutputPath stringByAppendingString:m_outputSegsFilename];
-    videoFilesPath = [m_httpAddress stringByAppendingString:m_outputSegsFilename];
-    
-    //  use part of an mrl to set our options all at once
-    if (m_useHLS) {
-        mrlString = @"livehttp{seglen=%u,delsegs=false,index=%@,index-url=%@},mux=%@{use-key-frames},dst=%@";
-    } else {
-        mrlString = @"file,mux=%@{use-key-frames},dst=%@";
-    }
-    
-    m3u8Out = [m_baseOutputPath stringByAppendingString:m_outputM3u8Filename];
-    
-    outputOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                     [NSString stringWithFormat:mrlString, kOVCSegmentDuration,
-                      m3u8Out, videoFilesPath, kOVCOutputFiletype, outputPath], @"access",
-                     nil];
-    
-    streamOutputOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                           outputOptions, @"outputOptions",
-                           nil];
-    
     if (transcodingOptions != nil) {
         [streamOutputOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
                                                        transcodingOptions, @"transcodingOptions",
                                                        nil]];
     }
     
+    videoFilesPath = [m_httpAddress stringByAppendingString:m_outputStreamFilename];
+    
+    //  use part of an mrl to set our options all at once
+    if (m_useHLS) {
+        m_outputStreamFile = [m_baseOutputPath stringByAppendingString:m_outputM3u8Filename];
+        
+        mrlString = @"livehttp{seglen=%u,delsegs=false,index=%@,index-url=%@},mux=%@{use-key-frames},dst=%@";
+        outputOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                         [NSString stringWithFormat:mrlString, kOVCSegmentDuration,
+                          m_outputStreamFile, videoFilesPath, kOVCOutputFiletype,
+                          m_outputStreamFile], @"access",
+                         nil];
+    } else {
+        m_outputStreamFile = [m_baseOutputPath stringByAppendingString:m_outputStreamFilename];
+        
+        mrlString = @"file,mux=%@{use-key-frames},dst=%@";
+        outputOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                         [NSString stringWithFormat:mrlString, kOVCOutputFiletype,
+                          m_outputStreamFile], @"access",
+                         nil];
+    }
+    
+    [streamOutputOptions addEntriesFromDictionary:[NSMutableDictionary dictionaryWithObjectsAndKeys:
+                                                  outputOptions, @"outputOptions",
+                                                  nil]];
+    
     output = [VLCStreamOutput streamOutputWithOptionDictionary:streamOutputOptions];
     
     m_session.streamOutput = output;
     [m_session startStreaming];
-}
-
-- (void)createMediaPlist
-{
-    NSDictionary            *dict = nil;
-    NSError                 *err = nil;
-    NSPropertyListFormat    format;
-    
-    dict = [NSDictionary dictionaryWithObjectsAndKeys:m_httpFilePath, @"Content-Location",
-            [NSString stringWithFormat:@"%f", (double)0], @"Start-Position", nil];
-    [dict writeToFile:[m_baseOutputPath stringByAppendingFormat:@"%lu.plist", m_sessionRandom]
-           atomically:YES];
-    m_playRequestData = [NSData dataWithContentsOfFile:[m_baseOutputPath stringByAppendingFormat:@"%lu.plist",
-                                                        m_sessionRandom]];
-    
-    [NSPropertyListSerialization propertyListWithData:m_playRequestData
-                                              options:NSPropertyListImmutable
-                                               format:&format
-                                                error:&err];
-    
-    if (err != nil) {
-        NSLog(@"Error preparing PLIST for current media, %ld", err.code);
-    }
-    
-    if (format == NSPropertyListBinaryFormat_v1_0) {
-        m_playRequestDataType = @"application/x-apple-binary-plist";
-    } else if (format == NSPropertyListXMLFormat_v1_0) {
-        m_playRequestDataType = @"text/x-apple-plist+xml";
-    } else {
-        //  format == NSPropertyListOpenStepFormat
-        //  should never get here, Apple doesn't write out PLISTs in this format any more
-    }
 }
 
 //  TODO: consider doing more in this function
@@ -323,17 +303,17 @@ const NSUInteger    kOVCSegmentDuration = 10;
     [m_session stopStreaming];
 }
 
-//  wait for the playlist file for this session to be created,
-//  i.e. the .m3u8 file that says how to play the segments that have
+//  wait for the output file for this session to be created,
+//  i.e. the .m3u8 file for HLS (or the actual video file otherwise) has
 //  been created for the input video
-- (void)waitForPlaylist
+- (void)waitForOutputStream
 {
-    if ([[NSFileManager defaultManager] fileExistsAtPath:[m_baseOutputPath stringByAppendingString:m_outputM3u8Filename]]) {
+    if ([[NSFileManager defaultManager] fileExistsAtPath:m_outputStreamFile]) {
         [delegate outputReady:self];
     } else {
         [NSTimer scheduledTimerWithTimeInterval:2.0
                                          target:self
-                                       selector:@selector(waitForPlaylist)
+                                       selector:@selector(waitForOutputStream)
                                        userInfo:nil
                                         repeats:NO];
     }
@@ -379,7 +359,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
     //  for the playlist file
     [NSTimer scheduledTimerWithTimeInterval:kOVCSegmentDuration
                                      target:self
-                                   selector:@selector(waitForPlaylist)
+                                   selector:@selector(waitForOutputStream)
                                    userInfo:nil
                                     repeats:NO];
 }

@@ -195,14 +195,18 @@ kPhotoCaching = 13;
 {
     NSMutableURLRequest     *request = nil;
     NSURLConnection         *nextConnection = nil;
+    NSString                *outputStreamFile = nil;
 
     request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/play"
                                                          relativeToURL:m_baseUrl]];
     request.HTTPMethod = @"POST";
+    
+    outputStreamFile = m_videoManager.outputStreamFile;
 
-    [request addValue:m_videoManager.playRequestDataType forHTTPHeaderField:@"Content-Type"];
+    [request addValue:@"text/plain" forHTTPHeaderField:@"Content-Type"];
     [self setCommonHeadersForRequest:request];
-    request.HTTPBody = m_videoManager.playRequestData;
+    request.HTTPBody = [[NSString stringWithFormat:@"Content-Location:%@\r\nStart-Position:%f",
+                        outputStreamFile, 0.0f] dataUsingEncoding:NSUTF8StringEncoding];
 
     nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
     [nextConnection start];
@@ -300,10 +304,10 @@ kPhotoCaching = 13;
 {
     if (kAHEnableDebugOutput) {
         if ([response isKindOfClass: [NSHTTPURLResponse class]])
-            NSLog(@"Response code: %ld %@; request URL: %@",
+            NSLog(@"Response code: %ld %@; connection: %@",
                   [(NSHTTPURLResponse *)response statusCode],
                   [NSHTTPURLResponse localizedStringForStatusCode:[(NSHTTPURLResponse *)response statusCode]],
-                  [m_baseUrl URLByAppendingPathComponent:m_currentRequest]);
+                  connection);
     }
     
     m_responseData = [[NSMutableData alloc] init];
@@ -340,7 +344,11 @@ kPhotoCaching = 13;
                                                           encoding:NSASCIIStringEncoding];
     
     if (kAHEnableDebugOutput) {
-        NSLog(@"current request: %@, response string: %@", m_currentRequest, response);
+        if ([response isEqualToString:@""]) {
+            NSLog(@"current request: %@, empty response body", m_currentRequest);
+        } else {
+            NSLog(@"current request: %@, response body: %@", m_currentRequest, response);
+        }
     }
     
     if ([m_currentRequest isEqualToString:@"/server-info"]) {
