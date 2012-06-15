@@ -164,7 +164,8 @@ kPhotoCaching = 13;
 - (void)setCommonHeadersForRequest:(NSMutableURLRequest *)request
 {
     [request addValue:@"MediaControl/1.0" forHTTPHeaderField:@"User-Agent"];
-    [request addValue:@"09080524-2e51-457e-9bf5-bef9847f34ff" forHTTPHeaderField:@"X-Apple-Session-ID"];
+    [request addValue:@"09080524-2e51-457e-9bf5-bef9847f34ff"
+   forHTTPHeaderField:@"X-Apple-Session-ID"];
 }
 
 - (void)reverseRequest
@@ -203,7 +204,7 @@ kPhotoCaching = 13;
     
     outputStreamFile = m_videoManager.outputStreamFile;
 
-    [request addValue:@"text/plain" forHTTPHeaderField:@"Content-Type"];
+    [request addValue:@"text/parameters" forHTTPHeaderField:@"Content-Type"];
     [self setCommonHeadersForRequest:request];
     request.HTTPBody = [[NSString stringWithFormat:@"Content-Location:%@\r\nStart-Position:%f",
                         outputStreamFile, 0.0f] dataUsingEncoding:NSUTF8StringEncoding];
