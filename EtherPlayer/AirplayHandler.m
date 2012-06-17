@@ -15,18 +15,18 @@
 
 const BOOL kAHEnableDebugOutput = YES;
 const BOOL kAHAssumeReverseTimesOut = NO;
-const NSUInteger kVideo = 0,
-kPhoto = 1,
-kVideoFairPlay = 2,
-kVideoVolumeControl = 3,
-kVideoHTTPLiveStreams = 4,
-kSlideshow = 5,
-kScreen = 7,
-kScreenRotate = 8,
-kAudio = 9,
-kAudioRedundant = 11,
-kFPSAPv2pt5_AES_GCM = 12,
-kPhotoCaching = 13;
+const NSUInteger    kAHVideo = 0,
+                    kAHPhoto = 1,
+                    kAHVideoFairPlay = 2,
+                    kAHVideoVolumeControl = 3,
+                    kAHVideoHTTPLiveStreams = 4,
+                    kAHSlideshow = 5,
+                    kAHScreen = 7,
+                    kAHScreenRotate = 8,
+                    kAHAudio = 9,
+                    kAHAudioRedundant = 11,
+                    kAHFPSAPv2pt5_AES_GCM = 12,
+                    kAHPhotoCaching = 13;
 
 @interface AirplayHandler ()
 
@@ -176,11 +176,11 @@ kPhotoCaching = 13;
     request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/reverse"
                                                          relativeToURL:m_baseUrl]];
     [request setHTTPMethod:@"POST"];
+    [self setCommonHeadersForRequest:request];
     [request addValue:@"PTTH/1.0" forHTTPHeaderField:@"Upgrade"];
     [request addValue:@"Upgrade" forHTTPHeaderField:@"Connection"];
     [request addValue:@"event" forHTTPHeaderField:@"X-Apple-Purpose"];
     [request addValue:@"0" forHTTPHeaderField:@"Content-Length"];
-    [self setCommonHeadersForRequest:request];
     
     connection = [NSURLConnection connectionWithRequest:request delegate:self];
     [connection start];
@@ -230,7 +230,6 @@ kPhotoCaching = 13;
 
     request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:nextRequest
                                                          relativeToURL:m_baseUrl]];
-    
     [self setCommonHeadersForRequest:request];
     nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
     [nextConnection start];
@@ -272,8 +271,8 @@ kPhotoCaching = 13;
     
     request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:rateString
                                                          relativeToURL:m_baseUrl]];
-    [self setCommonHeadersForRequest:request];
     request.HTTPMethod = @"POST";
+    [self setCommonHeadersForRequest:request];
     
     nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
     [nextConnection start];
@@ -362,7 +361,7 @@ kPhotoCaching = 13;
                                                                   format:&format
                                                         errorDescription:&errDesc];
         
-        useHLS = ([[m_serverInfo objectForKey:@"features"] integerValue] & kVideoHTTPLiveStreams) != 0;
+        useHLS = ([[m_serverInfo objectForKey:@"features"] integerValue] & kAHVideoHTTPLiveStreams) != 0;
         m_videoManager.useHttpLiveStreaming = useHLS;
         
         m_serverCapabilities = [[m_serverInfo objectForKey:@"features"] integerValue];
