@@ -47,6 +47,7 @@ const NSUInteger    kAHVideo = 0,
 @property (strong, nonatomic) NSTimer               *m_infoTimer;
 @property (strong, nonatomic) NSNetService          *m_targetService;
 @property (strong, nonatomic) NSDictionary          *m_serverInfo;
+@property (strong, nonatomic) NSInputStream         *m_inputStream;
 @property (strong, nonatomic) NSOutputStream        *m_outputStream;
 @property (nonatomic) BOOL                          m_airplaying;
 @property (nonatomic) BOOL                          m_paused;
@@ -69,6 +70,7 @@ const NSUInteger    kAHVideo = 0,
 @synthesize m_data;
 @synthesize m_infoTimer;
 @synthesize m_targetService;
+@synthesize m_inputStream;
 @synthesize m_outputStream;
 @synthesize m_airplaying;
 @synthesize m_paused;
@@ -178,6 +180,7 @@ const NSUInteger    kAHVideo = 0,
 
 - (void)reverseRequest
 {
+    NSLog(@"/reverse");
     CFStringRef bodyString = CFSTR("");
     CFURLRef myURL = (__bridge CFURLRef)[m_baseUrl URLByAppendingPathComponent:@"/reverse"];
     CFStringRef requestMethod = CFSTR("POST");
@@ -195,11 +198,20 @@ const NSUInteger    kAHVideo = 0,
     m_data = (__bridge NSMutableData *)mySerializedRequest;
     m_byteIndex = 0;
 
-    m_outputStream = [NSOutputStream outputStreamWithURL:[m_baseUrl URLByAppendingPathComponent:@"/reverse"]
-                                                  append:NO];
+    CFReadStreamRef readStream;
+    CFWriteStreamRef writeStream;
+    
+    CFStreamCreatePairWithSocketToHost(kCFAllocatorDefault, (__bridge CFStringRef)@"http://192.168.11.140/reverse", 7000, &readStream, &writeStream);
+    m_outputStream = (__bridge NSOutputStream *)writeStream;
+    m_inputStream = (__bridge NSInputStream *)readStream;
+    [m_inputStream setDelegate:self];
+    [m_inputStream open];
+//    m_outputStream = [NSOutputStream outputStreamWithURL:[m_baseUrl URLByAppendingPathComponent:@"/reverse"]
+//                                                  append:NO];
     [m_outputStream setDelegate:self];
     [m_outputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
     [m_outputStream open];
+    [m_outputStream write:[m_data bytes] maxLength:[m_data length]];
 }
 
 - (void)playRequest
@@ -442,7 +454,12 @@ const NSUInteger    kAHVideo = 0,
 
 - (void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode
 {
+    NSLog(@"stream:handleEvent: called");
     switch(eventCode) {
+        case NSStreamEventOpenCompleted:
+        {
+            break;
+        }
         case NSStreamEventHasSpaceAvailable:
         {
             uint8_t *readBytes = (uint8_t *)[m_data mutableBytes];
@@ -465,7 +482,15 @@ const NSUInteger    kAHVideo = 0,
             break;
         }
         case NSStreamEventErrorOccurred:
+        {
+            NSError *theError = [aStream streamError];
+            NSAlert *theAlert = [[NSAlert alloc] init]; // modal delegate releases
+            [theAlert setMessageText:@"Error reading stream!"];
+            [theAlert setInformativeText:[NSString stringWithFormat:@"Error %i: %@",
+                                          [theError code], [theError localizedDescription]]];
+            [aStream close];
             break;
+        }
         default:
             break;
             // continued ...
