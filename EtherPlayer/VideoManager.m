@@ -31,6 +31,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
 @property (strong, nonatomic) NSString          *m_baseOutputPath;
 @property (strong, nonatomic) NSString          *m_httpAddress;
 @property (strong, nonatomic) NSString          *m_httpFilePath;
+@property (strong, nonatomic) NSString          *m_outputStreamFile;
 @property (strong, nonatomic) NSString          *m_outputStreamFilename;
 @property (strong, nonatomic) NSString          *m_outputM3u8Filename;
 @property (strong, nonatomic) NSURL             *m_baseUrl;
@@ -43,7 +44,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
 
 //  public properties
 @synthesize delegate;
-@synthesize outputStreamFile = m_outputStreamFile;
+@synthesize httpFilePath = m_httpFilePath;
 @synthesize useHttpLiveStreaming = m_useHLS;
 
 //  private properties
@@ -51,7 +52,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
 @synthesize m_session;
 @synthesize m_baseOutputPath;
 @synthesize m_httpAddress;
-@synthesize m_httpFilePath;
+@synthesize m_outputStreamFile;
 @synthesize m_outputStreamFilename;
 @synthesize m_outputM3u8Filename;
 @synthesize m_baseUrl;
@@ -134,8 +135,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
 - (void)transcodeMediaForPath:(NSString *)mediaPath
 {
     m_sessionRandom = arc4random();
-    
-    
+
     if (m_useHLS) {
         m_outputStreamFilename = [NSString stringWithFormat:@"%lu-#####.%@", m_sessionRandom,
                                 kOVCOutputFiletype];

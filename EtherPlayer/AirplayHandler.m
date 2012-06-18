@@ -222,7 +222,7 @@ const NSUInteger    kAHVideo = 0,
 
 - (void)playRequest
 {
-    NSString            *outputStreamFile = nil;
+    NSString            *httpFilePath = nil;
     NSError             *error = nil;
     CFURLRef            myURL;
     CFStringRef         bodyString;
@@ -233,10 +233,10 @@ const NSUInteger    kAHVideo = 0,
     
     NSLog(@"/play");
     
-    outputStreamFile = m_videoManager.outputStreamFile;
+    httpFilePath = m_videoManager.httpFilePath;
     
     bodyString = (__bridge CFStringRef)[NSString stringWithFormat:@"Content-Location: %@\r\nStart-Position: %f",
-                                        outputStreamFile, 0.0f];
+                                        httpFilePath, 0.0f];
     requestMethod = CFSTR("POST");
     myURL = (__bridge CFURLRef)[m_baseUrl URLByAppendingPathComponent:@"play"];
     myRequest = CFHTTPMessageCreateRequest(kCFAllocatorDefault, requestMethod,
@@ -412,6 +412,7 @@ const NSUInteger    kAHVideo = 0,
                                                         errorDescription:&errDesc];
         
         useHLS = ([[m_serverInfo objectForKey:@"features"] integerValue] & kAHVideoHTTPLiveStreams) != 0;
+//        useHLS = NO;
         m_videoManager.useHttpLiveStreaming = useHLS;
         
         m_serverCapabilities = [[m_serverInfo objectForKey:@"features"] integerValue];

@@ -20,7 +20,7 @@
 - (void)cleanup;
 
 @property (strong, nonatomic) id<VideoManagerDelegate>    delegate;
-@property (strong, nonatomic) NSString  *outputStreamFile;
+@property (strong, nonatomic) NSString  *httpFilePath;
 @property (nonatomic, readonly) double  duration;
 @property (nonatomic) BOOL              useHttpLiveStreaming;
 
