@@ -183,6 +183,7 @@ const NSUInteger    kAHVideo = 0,
 
 - (void)reverseRequest
 {
+    NSData              *data = nil;
     NSError             *error = nil;
     CFURLRef            myURL;
     CFStringRef         bodyString;
@@ -207,61 +208,70 @@ const NSUInteger    kAHVideo = 0,
     CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("User-Agent"), CFSTR("MediaControl/1.0"));
     CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("X-Apple-Session-ID"), (__bridge CFStringRef)m_sessionID);
     mySerializedRequest = CFHTTPMessageCopySerializedMessage(myRequest);
-    m_data = (__bridge NSMutableData *)mySerializedRequest;
+    data = (__bridge NSData *)mySerializedRequest;
     
-    NSLog(@"Request:\r\n%@", [[NSString alloc] initWithData:m_data encoding:NSUTF8StringEncoding]);
+    NSLog(@"Request:\r\n%@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
     m_reverseSocket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:dispatch_get_main_queue()];
     [m_reverseSocket connectToAddress:[[m_targetService addresses] objectAtIndex:0] error:&error];
     
     if (error != nil) {
-        NSLog(@"Error connecting socket to address, %@", error);
+        NSLog(@"Error connecting socket for /reverse: %@", error);
     } else {
-        [m_reverseSocket writeData:m_data withTimeout:1.0f tag:1];
+        [m_reverseSocket writeData:data withTimeout:1.0f tag:1];
     }
 }
 
 - (void)playRequest
 {
     NSString            *httpFilePath = nil;
+    NSString            *errDesc = nil;
     NSError             *error = nil;
     CFURLRef            myURL;
     CFStringRef         bodyString;
     CFStringRef         requestMethod;
     CFHTTPMessageRef    myRequest;
-    CFDataRef           bodyDataExt;
     CFDataRef           mySerializedRequest;
+    NSData              *outData = nil;
+    NSDictionary        *plist = nil;
     
     NSLog(@"/play");
     
     httpFilePath = m_videoManager.httpFilePath;
+
+    plist = [NSDictionary dictionaryWithObjectsAndKeys:httpFilePath, @"Content-Location",
+             [NSNumber numberWithFloat:1.0f], @"Start-Position", nil];
     
-    bodyString = (__bridge CFStringRef)[NSString stringWithFormat:@"Content-Location: %@\r\nStart-Position: %f",
-                                        httpFilePath, 0.0f];
+    outData = [NSPropertyListSerialization dataFromPropertyList:plist
+                                                         format:NSPropertyListBinaryFormat_v1_0
+                                               errorDescription:&errDesc];
+
+    bodyString = CFSTR("");
     requestMethod = CFSTR("POST");
     myURL = (__bridge CFURLRef)[m_baseUrl URLByAppendingPathComponent:@"play"];
     myRequest = CFHTTPMessageCreateRequest(kCFAllocatorDefault, requestMethod,
                                            myURL, kCFHTTPVersion1_1);
-    bodyDataExt = CFStringCreateExternalRepresentation(kCFAllocatorDefault, bodyString,
-                                                       kCFStringEncodingUTF8, 0);
-    CFHTTPMessageSetBody(myRequest, bodyDataExt);
+
     CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("User-Agent"), CFSTR("EtherPlayer"));
     CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("Content-Length"),
                                      (__bridge CFStringRef)[NSString stringWithFormat:@"%lu",
-                                                            [(__bridge NSData *)bodyDataExt length]]);
-    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("Content-Type"), CFSTR("text/parameters"));
+                                                            [outData length]]);
+    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("Content-Type"), CFSTR("application/x-apple-binary-plist"));
     CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("X-Apple-Session-ID"), (__bridge CFStringRef)m_sessionID);
     mySerializedRequest = CFHTTPMessageCopySerializedMessage(myRequest);
-    m_data = (__bridge NSMutableData *)mySerializedRequest;
-    
-    NSLog(@"Request:\r\n%@", [[NSString alloc] initWithData:m_data encoding:NSUTF8StringEncoding]);
+    m_data = [(__bridge NSData *)mySerializedRequest mutableCopy];
+    [m_data appendData:outData];
+
     m_mainSocket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:dispatch_get_main_queue()];
     [m_mainSocket connectToAddress:[[m_targetService addresses] objectAtIndex:0] error:&error];
     
     if (error != nil) {
-        NSLog(@"Error connecting socket to address, %@", error);
+        NSLog(@"Error connecting socket for /play: %@", error);
     } else {
         [m_mainSocket writeData:m_data withTimeout:1.0f tag:2];
         m_airplaying = YES;
+        m_paused = NO;
+        [delegate isPaused:m_paused];
+        [delegate durationUpdated:m_videoManager.duration];
     }
 }
 
