@@ -426,24 +426,6 @@ const NSUInteger    kAHVideo = 0,
         m_videoManager.useHttpLiveStreaming = useHLS;
         
         m_serverCapabilities = [[m_serverInfo objectForKey:@"features"] integerValue];
-    } else if ([m_currentRequest isEqualToString:@"/reverse"]) {
-        //  give the signal to play the file after /reverse
-        //  the next request is /play
-        
-        [self playRequest];
-    } else if ([m_currentRequest isEqualToString:@"/play"]) {
-        //  check if playing successful after /play
-        //  the next request is /playback-info
-        
-        m_paused = NO;
-        [delegate isPaused:m_paused];
-        [delegate durationUpdated:m_videoManager.duration];
-        
-        m_infoTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
-                                                       target:self
-                                                     selector:@selector(infoRequest)
-                                                     userInfo:nil
-                                                      repeats:YES];
     } else if ([m_currentRequest isEqualToString:@"/rate"]) {
         //  nothing to do for /rate
         //  no set next request
