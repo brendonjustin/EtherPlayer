@@ -10,6 +10,8 @@
 
 #import "VideoManager.h"
 
+#import <CFNetwork/CFHTTPStream.h>
+
 #import <arpa/inet.h>
 #import <ifaddrs.h>
 
@@ -28,7 +30,7 @@ const NSUInteger    kAHVideo = 0,
                     kAHFPSAPv2pt5_AES_GCM = 12,
                     kAHPhotoCaching = 13;
 
-@interface AirplayHandler ()
+@interface AirplayHandler () <NSStreamDelegate>
 
 - (void)setCommonHeadersForRequest:(NSMutableURLRequest *)request;
 - (void)reverseRequest;
@@ -41,13 +43,16 @@ const NSUInteger    kAHVideo = 0,
 @property (strong, nonatomic) NSURL                 *m_baseUrl;
 @property (strong, nonatomic) NSString              *m_currentRequest;
 @property (strong, nonatomic) NSMutableData         *m_responseData;
+@property (strong, nonatomic) NSMutableData         *m_data;
 @property (strong, nonatomic) NSTimer               *m_infoTimer;
 @property (strong, nonatomic) NSNetService          *m_targetService;
 @property (strong, nonatomic) NSDictionary          *m_serverInfo;
+@property (strong, nonatomic) NSOutputStream        *m_outputStream;
 @property (nonatomic) BOOL                          m_airplaying;
 @property (nonatomic) BOOL                          m_paused;
 @property (nonatomic) double                        m_playbackPosition;
 @property (nonatomic) uint8_t                       m_serverCapabilities;
+@property (nonatomic) uint8_t                       m_byteIndex;
 
 @end
 
@@ -61,13 +66,16 @@ const NSUInteger    kAHVideo = 0,
 @synthesize m_currentRequest;
 @synthesize m_baseUrl;
 @synthesize m_responseData;
+@synthesize m_data;
 @synthesize m_infoTimer;
 @synthesize m_targetService;
+@synthesize m_outputStream;
 @synthesize m_airplaying;
 @synthesize m_paused;
 @synthesize m_playbackPosition;
 @synthesize m_serverCapabilities;
 @synthesize m_serverInfo;
+@synthesize m_byteIndex;
 
 //  temporary directory code thanks to a Stack Overflow post
 //  http://stackoverflow.com/questions/374431/how-do-i-get-the-default-temporary-directory-on-mac-os-x
@@ -170,26 +178,28 @@ const NSUInteger    kAHVideo = 0,
 
 - (void)reverseRequest
 {
-    NSMutableURLRequest     *request = nil;
-    NSURLConnection         *connection = nil;
-    
-    request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/reverse"
-                                                         relativeToURL:m_baseUrl]];
-    [request setHTTPMethod:@"POST"];
-    [self setCommonHeadersForRequest:request];
-    [request addValue:@"PTTH/1.0" forHTTPHeaderField:@"Upgrade"];
-    [request addValue:@"Upgrade" forHTTPHeaderField:@"Connection"];
-    [request addValue:@"event" forHTTPHeaderField:@"X-Apple-Purpose"];
-    [request addValue:@"0" forHTTPHeaderField:@"Content-Length"];
-    
-    connection = [NSURLConnection connectionWithRequest:request delegate:self];
-    [connection start];
-    m_currentRequest = @"/reverse";
-    
-    //  /reverse always times out in my airplay server, so just move on to /play
-    if (kAHAssumeReverseTimesOut) {
-        [self playRequest];
-    }
+    CFStringRef bodyString = CFSTR("");
+    CFURLRef myURL = (__bridge CFURLRef)[m_baseUrl URLByAppendingPathComponent:@"/reverse"];
+    CFStringRef requestMethod = CFSTR("POST");
+    CFHTTPMessageRef myRequest = CFHTTPMessageCreateRequest(kCFAllocatorDefault, requestMethod,
+                                                            myURL, kCFHTTPVersion1_1);
+    CFDataRef bodyDataExt = CFStringCreateExternalRepresentation(kCFAllocatorDefault, bodyString,
+                                                                 kCFStringEncodingUTF8, 0);
+    CFHTTPMessageSetBody(myRequest, bodyDataExt);
+    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("Upgrade"), CFSTR("PTTH/1.0"));
+    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("Connection"), CFSTR("Upgrade"));
+    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("X-Apple-Purpose"), CFSTR("event"));
+    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("X-Apple-Session-ID"), CFSTR("09080524-2e51-457e-9bf5-bef9847f34ff"));
+    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("User-Agent"), CFSTR("MediaControl/1.0"));
+    CFDataRef mySerializedRequest = CFHTTPMessageCopySerializedMessage(myRequest);
+    m_data = (__bridge NSMutableData *)mySerializedRequest;
+    m_byteIndex = 0;
+
+    m_outputStream = [NSOutputStream outputStreamWithURL:[m_baseUrl URLByAppendingPathComponent:@"/reverse"]
+                                                  append:NO];
+    [m_outputStream setDelegate:self];
+    [m_outputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+    [m_outputStream open];
 }
 
 - (void)playRequest
@@ -424,6 +434,41 @@ const NSUInteger    kAHVideo = 0,
         //  no next request
         
         [self setStopped];
+    }
+}
+
+#pragma mark -
+#pragma mark NSStreamDelegate methods
+
+- (void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode
+{
+    switch(eventCode) {
+        case NSStreamEventHasSpaceAvailable:
+        {
+            uint8_t *readBytes = (uint8_t *)[m_data mutableBytes];
+            readBytes += m_byteIndex; // instance variable to move pointer
+            unsigned int data_len = (unsigned int)[m_data length];
+            unsigned int len = ((data_len - m_byteIndex >= 1024) ?
+                                1024 : (data_len-m_byteIndex));
+            uint8_t buf[len];
+            (void)memcpy(buf, readBytes, len);
+            len = (unsigned int)[(NSOutputStream *)aStream write:(const uint8_t *)buf maxLength:len];
+            m_byteIndex += len;
+            break;
+        }
+        case NSStreamEventEndEncountered:
+        {
+            [aStream close];
+            [aStream removeFromRunLoop:[NSRunLoop currentRunLoop]
+                              forMode:NSDefaultRunLoopMode];
+            m_outputStream = nil;
+            break;
+        }
+        case NSStreamEventErrorOccurred:
+            break;
+        default:
+            break;
+            // continued ...
     }
 }
 

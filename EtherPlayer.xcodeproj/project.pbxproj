@@ -46,6 +46,7 @@
 		5C4D440D15804915007B94F2 /* pause.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C4D440A15804915007B94F2 /* pause.png */; };
 		5C4D440E15804915007B94F2 /* play.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C4D440B15804915007B94F2 /* play.png */; };
 		5C4D440F15804915007B94F2 /* stop.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C4D440C15804915007B94F2 /* stop.png */; };
+		5CBB2C0C158E9301008EF412 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CBB2C0B158E9301008EF412 /* CFNetwork.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -143,6 +144,7 @@
 		5C4D440A15804915007B94F2 /* pause.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pause.png; sourceTree = "<group>"; };
 		5C4D440B15804915007B94F2 /* play.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = play.png; sourceTree = "<group>"; };
 		5C4D440C15804915007B94F2 /* stop.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = stop.png; sourceTree = "<group>"; };
+		5CBB2C0B158E9301008EF412 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -150,6 +152,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5CBB2C0C158E9301008EF412 /* CFNetwork.framework in Frameworks */,
 				5C0194A8157BC9EB00418213 /* Security.framework in Frameworks */,
 				5C0A32D015786B2600D3A49F /* Cocoa.framework in Frameworks */,
 				5C01929E157BC43500418213 /* VLCKit.framework in Frameworks */,
@@ -308,6 +311,7 @@
 		5C0A32CE15786B2600D3A49F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				5CBB2C0B158E9301008EF412 /* CFNetwork.framework */,
 				5C1F508D15792CE5006C8B5B /* VLCKit.framework */,
 				5C0A32CF15786B2600D3A49F /* Cocoa.framework */,
 				5C0194A7157BC9EB00418213 /* Security.framework */,
