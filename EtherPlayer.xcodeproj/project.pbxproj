@@ -63,8 +63,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		5C0192DA157BC93800418213 /* .gitignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
-		5C0192DB157BC93800418213 /* .hgignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .hgignore; sourceTree = "<group>"; };
 		5C0192DE157BC93800418213 /* DDData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDData.h; sourceTree = "<group>"; };
 		5C0192DF157BC93800418213 /* DDData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDData.m; sourceTree = "<group>"; };
 		5C0192E0157BC93800418213 /* DDNumber.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDNumber.h; sourceTree = "<group>"; };
@@ -165,8 +163,6 @@
 		5C0192D9157BC93800418213 /* CocoaHTTPServer */ = {
 			isa = PBXGroup;
 			children = (
-				5C0192DA157BC93800418213 /* .gitignore */,
-				5C0192DB157BC93800418213 /* .hgignore */,
 				5C0192DC157BC93800418213 /* Core */,
 				5C01930C157BC93800418213 /* LICENSE.txt */,
 				5C01930D157BC93800418213 /* README.markdown */,
