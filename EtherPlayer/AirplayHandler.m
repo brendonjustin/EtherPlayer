@@ -10,6 +10,8 @@
 
 #import "VideoManager.h"
 
+#import "GCDAsyncSocket.h"
+
 #import <CFNetwork/CFHTTPStream.h>
 
 #import <arpa/inet.h>
@@ -30,7 +32,7 @@ const NSUInteger    kAHVideo = 0,
                     kAHFPSAPv2pt5_AES_GCM = 12,
                     kAHPhotoCaching = 13;
 
-@interface AirplayHandler () <NSStreamDelegate>
+@interface AirplayHandler () <GCDAsyncSocketDelegate>
 
 - (void)setCommonHeadersForRequest:(NSMutableURLRequest *)request;
 - (void)reverseRequest;
@@ -42,18 +44,17 @@ const NSUInteger    kAHVideo = 0,
 
 @property (strong, nonatomic) NSURL                 *m_baseUrl;
 @property (strong, nonatomic) NSString              *m_currentRequest;
+@property (strong, nonatomic) NSString              *m_sessionID;
 @property (strong, nonatomic) NSMutableData         *m_responseData;
 @property (strong, nonatomic) NSMutableData         *m_data;
 @property (strong, nonatomic) NSTimer               *m_infoTimer;
 @property (strong, nonatomic) NSNetService          *m_targetService;
 @property (strong, nonatomic) NSDictionary          *m_serverInfo;
-@property (strong, nonatomic) NSInputStream         *m_inputStream;
-@property (strong, nonatomic) NSOutputStream        *m_outputStream;
+@property (strong, nonatomic) GCDAsyncSocket        *m_socket;
 @property (nonatomic) BOOL                          m_airplaying;
 @property (nonatomic) BOOL                          m_paused;
 @property (nonatomic) double                        m_playbackPosition;
 @property (nonatomic) uint8_t                       m_serverCapabilities;
-@property (nonatomic) uint8_t                       m_byteIndex;
 
 @end
 
@@ -66,18 +67,17 @@ const NSUInteger    kAHVideo = 0,
 //  private properties
 @synthesize m_currentRequest;
 @synthesize m_baseUrl;
+@synthesize m_sessionID;
 @synthesize m_responseData;
 @synthesize m_data;
 @synthesize m_infoTimer;
 @synthesize m_targetService;
-@synthesize m_inputStream;
-@synthesize m_outputStream;
+@synthesize m_socket;
 @synthesize m_airplaying;
 @synthesize m_paused;
 @synthesize m_playbackPosition;
 @synthesize m_serverCapabilities;
 @synthesize m_serverInfo;
-@synthesize m_byteIndex;
 
 //  temporary directory code thanks to a Stack Overflow post
 //  http://stackoverflow.com/questions/374431/how-do-i-get-the-default-temporary-directory-on-mac-os-x
@@ -142,6 +142,8 @@ const NSUInteger    kAHVideo = 0,
         }
     }
     
+    m_sessionID = @"09080524-2e51-457e-9bf5-bef9847f34ff";
+    
     //  make a request to /server-info on the target to get some info before
     //  we do anything else
     request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/server-info"
@@ -150,6 +152,8 @@ const NSUInteger    kAHVideo = 0,
     connection = [NSURLConnection connectionWithRequest:request delegate:self];
     [connection start];
     m_currentRequest = @"/server-info";
+    
+    m_socket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:dispatch_get_main_queue()];
 }
 
 - (void)togglePaused
@@ -174,44 +178,44 @@ const NSUInteger    kAHVideo = 0,
 - (void)setCommonHeadersForRequest:(NSMutableURLRequest *)request
 {
     [request addValue:@"MediaControl/1.0" forHTTPHeaderField:@"User-Agent"];
-    [request addValue:@"09080524-2e51-457e-9bf5-bef9847f34ff"
-   forHTTPHeaderField:@"X-Apple-Session-ID"];
+    [request addValue:m_sessionID forHTTPHeaderField:@"X-Apple-Session-ID"];
 }
 
 - (void)reverseRequest
 {
     NSLog(@"/reverse");
-    CFStringRef bodyString = CFSTR("");
-    CFURLRef myURL = (__bridge CFURLRef)[m_baseUrl URLByAppendingPathComponent:@"/reverse"];
-    CFStringRef requestMethod = CFSTR("POST");
-    CFHTTPMessageRef myRequest = CFHTTPMessageCreateRequest(kCFAllocatorDefault, requestMethod,
-                                                            myURL, kCFHTTPVersion1_1);
-    CFDataRef bodyDataExt = CFStringCreateExternalRepresentation(kCFAllocatorDefault, bodyString,
-                                                                 kCFStringEncodingUTF8, 0);
+    NSError             *error = nil;
+    CFStringRef         bodyString;
+    CFURLRef            myURL;
+    CFStringRef         requestMethod;
+    CFHTTPMessageRef    myRequest;
+    CFDataRef           bodyDataExt;
+    CFDataRef           mySerializedRequest;
+    
+    bodyString = CFSTR("");
+    requestMethod = CFSTR("POST");
+    myURL = (__bridge CFURLRef)[m_baseUrl URLByAppendingPathComponent:@"reverse"];
+    myRequest = CFHTTPMessageCreateRequest(kCFAllocatorDefault, requestMethod,
+                                           myURL, kCFHTTPVersion1_1);
+    bodyDataExt = CFStringCreateExternalRepresentation(kCFAllocatorDefault, bodyString,
+                                                       kCFStringEncodingUTF8, 0);
     CFHTTPMessageSetBody(myRequest, bodyDataExt);
     CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("Upgrade"), CFSTR("PTTH/1.0"));
     CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("Connection"), CFSTR("Upgrade"));
     CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("X-Apple-Purpose"), CFSTR("event"));
-    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("X-Apple-Session-ID"), CFSTR("09080524-2e51-457e-9bf5-bef9847f34ff"));
+    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("X-Apple-Session-ID"), (__bridge CFStringRef)m_sessionID);
     CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("User-Agent"), CFSTR("MediaControl/1.0"));
-    CFDataRef mySerializedRequest = CFHTTPMessageCopySerializedMessage(myRequest);
+    mySerializedRequest = CFHTTPMessageCopySerializedMessage(myRequest);
     m_data = (__bridge NSMutableData *)mySerializedRequest;
-    m_byteIndex = 0;
-
-    CFReadStreamRef readStream;
-    CFWriteStreamRef writeStream;
     
-    CFStreamCreatePairWithSocketToHost(kCFAllocatorDefault, (__bridge CFStringRef)@"http://192.168.11.140/reverse", 7000, &readStream, &writeStream);
-    m_outputStream = (__bridge NSOutputStream *)writeStream;
-    m_inputStream = (__bridge NSInputStream *)readStream;
-    [m_inputStream setDelegate:self];
-    [m_inputStream open];
-//    m_outputStream = [NSOutputStream outputStreamWithURL:[m_baseUrl URLByAppendingPathComponent:@"/reverse"]
-//                                                  append:NO];
-    [m_outputStream setDelegate:self];
-    [m_outputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-    [m_outputStream open];
-    [m_outputStream write:[m_data bytes] maxLength:[m_data length]];
+    NSLog(@"Request: %@", [[NSString alloc] initWithData:m_data encoding:NSUTF8StringEncoding]);
+    [m_socket connectToAddress:[[m_targetService addresses] objectAtIndex:0] error:&error];
+    
+    if (error != nil) {
+        NSLog(@"Error connecting socket to address, %@", error);
+    } else {
+        [m_socket writeData:m_data withTimeout:1.0f tag:1];
+    }
 }
 
 - (void)playRequest
@@ -450,51 +454,16 @@ const NSUInteger    kAHVideo = 0,
 }
 
 #pragma mark -
-#pragma mark NSStreamDelegate methods
+#pragma mark GCDAsyncSocket methods
 
-- (void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode
+- (void)socket:(GCDAsyncSocket *)sock didConnectToHost:(NSString *)host port:(uint16_t)port
 {
-    NSLog(@"stream:handleEvent: called");
-    switch(eventCode) {
-        case NSStreamEventOpenCompleted:
-        {
-            break;
-        }
-        case NSStreamEventHasSpaceAvailable:
-        {
-            uint8_t *readBytes = (uint8_t *)[m_data mutableBytes];
-            readBytes += m_byteIndex; // instance variable to move pointer
-            unsigned int data_len = (unsigned int)[m_data length];
-            unsigned int len = ((data_len - m_byteIndex >= 1024) ?
-                                1024 : (data_len-m_byteIndex));
-            uint8_t buf[len];
-            (void)memcpy(buf, readBytes, len);
-            len = (unsigned int)[(NSOutputStream *)aStream write:(const uint8_t *)buf maxLength:len];
-            m_byteIndex += len;
-            break;
-        }
-        case NSStreamEventEndEncountered:
-        {
-            [aStream close];
-            [aStream removeFromRunLoop:[NSRunLoop currentRunLoop]
-                              forMode:NSDefaultRunLoopMode];
-            m_outputStream = nil;
-            break;
-        }
-        case NSStreamEventErrorOccurred:
-        {
-            NSError *theError = [aStream streamError];
-            NSAlert *theAlert = [[NSAlert alloc] init]; // modal delegate releases
-            [theAlert setMessageText:@"Error reading stream!"];
-            [theAlert setInformativeText:[NSString stringWithFormat:@"Error %i: %@",
-                                          [theError code], [theError localizedDescription]]];
-            [aStream close];
-            break;
-        }
-        default:
-            break;
-            // continued ...
-    }
+    NSLog(@"socket:didConnectToHost:port: called");
+}
+
+- (void)socket:(GCDAsyncSocket *)sock didWritePartialDataOfLength:(NSUInteger)partialLength tag:(long)tag
+{
+    NSLog(@"socket:didWritePartialDataOfLength:tag: called");
 }
 
 @end
