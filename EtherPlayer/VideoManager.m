@@ -28,12 +28,12 @@ const NSUInteger    kOVCSegmentDuration = 10;
 
 @property (strong, nonatomic) VLCMedia          *m_inputMedia;
 @property (strong, nonatomic) VLCStreamSession  *m_session;
-@property (strong, nonatomic) NSString          *m_baseOutputPath;
+@property (strong, nonatomic) NSString          *m_baseFilePath;
 @property (strong, nonatomic) NSString          *m_httpAddress;
 @property (strong, nonatomic) NSString          *m_httpFilePath;
-@property (strong, nonatomic) NSString          *m_outputStreamFile;
+@property (strong, nonatomic) NSString          *m_outputStreamPath;
 @property (strong, nonatomic) NSString          *m_outputStreamFilename;
-@property (strong, nonatomic) NSString          *m_outputM3u8Filename;
+@property (strong, nonatomic) NSString          *m_m3u8Filename;
 @property (strong, nonatomic) NSURL             *m_baseUrl;
 @property (strong, nonatomic) HTTPServer        *m_httpServer;
 @property (nonatomic) NSUInteger                m_sessionRandom;
@@ -50,11 +50,11 @@ const NSUInteger    kOVCSegmentDuration = 10;
 //  private properties
 @synthesize m_inputMedia;
 @synthesize m_session;
-@synthesize m_baseOutputPath;
+@synthesize m_baseFilePath;
 @synthesize m_httpAddress;
-@synthesize m_outputStreamFile;
+@synthesize m_outputStreamPath;
 @synthesize m_outputStreamFilename;
-@synthesize m_outputM3u8Filename;
+@synthesize m_m3u8Filename;
 @synthesize m_baseUrl;
 @synthesize m_httpServer;
 @synthesize m_sessionRandom;
@@ -78,15 +78,15 @@ const NSUInteger    kOVCSegmentDuration = 10;
         if (tempDir == nil)
             tempDir = @"/tmp";
         
-        m_baseOutputPath = [tempDir stringByAppendingString:@"com.brendonjustin.EtherPlayer/"];
-        [[NSFileManager defaultManager] createDirectoryAtPath:m_baseOutputPath
+        m_baseFilePath = [tempDir stringByAppendingString:@"com.brendonjustin.EtherPlayer/"];
+        [[NSFileManager defaultManager] createDirectoryAtPath:m_baseFilePath
                                   withIntermediateDirectories:NO 
                                                    attributes:nil 
                                                         error:&error];
         
         //  create our http server and set the port arbitrarily
         m_httpServer = [[HTTPServer alloc] init];
-        m_httpServer.documentRoot = m_baseOutputPath;
+        m_httpServer.documentRoot = m_baseFilePath;
         m_httpServer.port = 6004;
         
         if(![m_httpServer start:&error])
@@ -140,8 +140,8 @@ const NSUInteger    kOVCSegmentDuration = 10;
         m_outputStreamFilename = [NSString stringWithFormat:@"%lu-#####.%@", m_sessionRandom,
                                 kOVCOutputFiletype];
         
-        m_outputM3u8Filename = [NSString stringWithFormat:@"%lu.m3u8", m_sessionRandom];
-        m_httpFilePath = [m_httpAddress stringByAppendingString:m_outputM3u8Filename];
+        m_m3u8Filename = [NSString stringWithFormat:@"%lu.m3u8", m_sessionRandom];
+        m_httpFilePath = [m_httpAddress stringByAppendingString:m_m3u8Filename];
     } else {
         m_outputStreamFilename = [NSString stringWithFormat:@"%lu.%@", m_sessionRandom,
                                   kOVCOutputFiletype];
@@ -164,6 +164,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
     NSString            *width = nil;
     NSString            *subs = nil;
     NSString            *videoFilesPath = nil;
+    NSString            *videoFilesUrl = nil;
     NSString            *mrlString = nil;
     NSMutableDictionary *transcodingOptions = nil;
     NSMutableDictionary *outputOptions = nil;
@@ -263,25 +264,26 @@ const NSUInteger    kOVCSegmentDuration = 10;
                                                        nil]];
     }
     
-    videoFilesPath = [m_httpAddress stringByAppendingString:m_outputStreamFilename];
+    videoFilesPath = [m_baseFilePath stringByAppendingString:m_outputStreamFilename];
+    videoFilesUrl = [m_httpAddress stringByAppendingString:m_outputStreamFilename];
     
     //  use part of an mrl to set our options all at once
     if (m_useHLS) {
-        m_outputStreamFile = [m_baseOutputPath stringByAppendingString:m_outputM3u8Filename];
+        m_outputStreamPath = [m_baseFilePath stringByAppendingString:m_m3u8Filename];
         
         mrlString = @"livehttp{seglen=%u,delsegs=false,index=%@,index-url=%@},mux=%@{use-key-frames},dst=%@";
         outputOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
                          [NSString stringWithFormat:mrlString, kOVCSegmentDuration,
-                          m_outputStreamFile, videoFilesPath, kOVCOutputFiletype,
-                          m_outputStreamFile], @"access",
+                          m_outputStreamPath, videoFilesUrl, kOVCOutputFiletype,
+                          videoFilesPath], @"access",
                          nil];
     } else {
-        m_outputStreamFile = [m_baseOutputPath stringByAppendingString:m_outputStreamFilename];
+        m_outputStreamPath = videoFilesPath;
         
         mrlString = @"file,mux=%@{use-key-frames},dst=%@";
         outputOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
                          [NSString stringWithFormat:mrlString, kOVCOutputFiletype,
-                          m_outputStreamFile], @"access",
+                          m_outputStreamPath], @"access",
                          nil];
     }
     
@@ -308,7 +310,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
 //  been created for the input video
 - (void)waitForOutputStream
 {
-    if ([[NSFileManager defaultManager] fileExistsAtPath:m_outputStreamFile]) {
+    if ([[NSFileManager defaultManager] fileExistsAtPath:m_outputStreamPath]) {
         [delegate outputReady:self];
     } else {
         [NSTimer scheduledTimerWithTimeInterval:2.0
@@ -327,13 +329,13 @@ const NSUInteger    kOVCSegmentDuration = 10;
 - (void)cleanup
 {
     NSFileManager           *fileManager = [NSFileManager defaultManager];
-    NSDirectoryEnumerator   *directoryEnum = [fileManager enumeratorAtPath:m_baseOutputPath];    
+    NSDirectoryEnumerator   *directoryEnum = [fileManager enumeratorAtPath:m_baseFilePath];    
     NSError                 *error = nil;
     NSString                *currentFile = nil;
     BOOL                    success;
     
     while (currentFile = [directoryEnum nextObject]) {
-        success = [fileManager removeItemAtPath:[m_baseOutputPath stringByAppendingPathComponent:currentFile]
+        success = [fileManager removeItemAtPath:[m_baseFilePath stringByAppendingPathComponent:currentFile]
                                           error:&error];
         if (!success && error != nil) {
             NSLog(@"Error deleting temporary file: %@: %@", currentFile, error);
