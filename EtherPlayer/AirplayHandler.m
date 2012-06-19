@@ -45,7 +45,6 @@ const NSUInteger    kAHRequestTagReverse = 1,
 - (void)setStopped;
 
 @property (strong, nonatomic) NSURL                 *m_baseUrl;
-@property (strong, nonatomic) NSString              *m_currentRequest;
 @property (strong, nonatomic) NSString              *m_sessionID;
 @property (strong, nonatomic) NSMutableData         *m_responseData;
 @property (strong, nonatomic) NSMutableData         *m_data;
@@ -68,7 +67,6 @@ const NSUInteger    kAHRequestTagReverse = 1,
 @synthesize videoManager = m_videoManager;
 
 //  private properties
-@synthesize m_currentRequest;
 @synthesize m_baseUrl;
 @synthesize m_sessionID;
 @synthesize m_responseData;
@@ -156,7 +154,6 @@ const NSUInteger    kAHRequestTagReverse = 1,
     [self setCommonHeadersForRequest:request];
     connection = [NSURLConnection connectionWithRequest:request delegate:self];
     [connection start];
-    m_currentRequest = @"/server-info";
 }
 
 - (void)togglePaused
@@ -301,22 +298,23 @@ const NSUInteger    kAHRequestTagReverse = 1,
 //  alternates /scrub and /playback-info
 - (void)infoRequest
 {
-    NSString                *nextRequest = nil;
+    NSString                *nextRequest = @"/playback-info";
     NSMutableURLRequest     *request = nil;
     NSURLConnection         *nextConnection = nil;
 
-    if ([m_currentRequest isEqualToString:@"/playback-info"]) {
-        nextRequest = @"/scrub";
-    } else {
-        nextRequest = @"/playback-info";
-    }
+//    if ([m_previousInfoRequest isEqualToString:@"/playback-info"]) {
+//        nextRequest = @"/scrub";
+//    } else {
+//        nextRequest = @"/playback-info";
+//    }
 
-    request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:nextRequest
-                                                         relativeToURL:m_baseUrl]];
-    [self setCommonHeadersForRequest:request];
-    nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
-    [nextConnection start];
-    m_currentRequest = nextRequest;
+    if (m_airplaying) {
+        request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:nextRequest
+                                                             relativeToURL:m_baseUrl]];
+        [self setCommonHeadersForRequest:request];
+        nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
+        [nextConnection start];
+    }
 }
 
 - (void)stopRequest
@@ -330,7 +328,6 @@ const NSUInteger    kAHRequestTagReverse = 1,
     [self setCommonHeadersForRequest:request];
     nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
     [nextConnection start];
-    m_currentRequest = @"/stop";
 }
 
 - (void)stopPlayback
@@ -357,7 +354,6 @@ const NSUInteger    kAHRequestTagReverse = 1,
     
     nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
     [nextConnection start];
-    m_currentRequest = @"/rate";
 }
 
 - (void)setStopped
@@ -427,13 +423,13 @@ const NSUInteger    kAHRequestTagReverse = 1,
     
     if (kAHEnableDebugOutput) {
         if ([response isEqualToString:@""]) {
-            NSLog(@"current request: %@, empty response body", m_currentRequest);
+            NSLog(@"connectionDidFinishLoading: called; empty response body");
         } else {
-            NSLog(@"current request: %@, response body: %@", m_currentRequest, response);
+            NSLog(@"connectionDidFinishLoading: called; response body: %@", response);
         }
     }
     
-    if ([m_currentRequest isEqualToString:@"/server-info"]) {
+    if (([description rangeOfString:@"/server-info"]).location != NSNotFound) {
         NSString                *errDesc = nil;
         NSPropertyListFormat    format;
         BOOL                    useHLS = NO;
@@ -448,10 +444,10 @@ const NSUInteger    kAHRequestTagReverse = 1,
         m_videoManager.useHttpLiveStreaming = useHLS;
         
         m_serverCapabilities = [[m_serverInfo objectForKey:@"features"] integerValue];
-    } else if ([m_currentRequest isEqualToString:@"/rate"]) {
+    } else if (([description rangeOfString:@"/rate"]).location != NSNotFound) {
         //  nothing to do for /rate
         //  no set next request
-    } else if ([m_currentRequest isEqualToString:@"/scrub"]) {
+    } else if (([description rangeOfString:@"/scrub"]).location != NSNotFound) {
         //  update our position in the file after /scrub
         NSRange     cachedDurationRange = [response rangeOfString:@"position: "];
         NSUInteger  cachedDurationEnd;
@@ -463,7 +459,7 @@ const NSUInteger    kAHRequestTagReverse = 1,
         }
         
         //  nothing else to do
-    } else if ([m_currentRequest isEqualToString:@"/playback-info"]) {
+    } else if (([description rangeOfString:@"/playback-info"]).location != NSNotFound) {
         //  update our playback status and position after /playback-info
         NSDictionary            *playbackInfo = nil;
         NSString                *errDesc = nil;
@@ -485,7 +481,7 @@ const NSUInteger    kAHRequestTagReverse = 1,
         [delegate positionUpdated:m_playbackPosition];
         
         //  nothing else to do
-    } else if ([m_currentRequest isEqualToString:@"/stop"]) {
+    } else if (([description rangeOfString:@"/stop"]).location != NSNotFound) {
         //  no next request
         
         [self setStopped];
@@ -526,10 +522,20 @@ const NSUInteger    kAHRequestTagReverse = 1,
         //  /reverse request reply received and read
         range = [replyString rangeOfString:@"HTTP/1.1 101 Switching Protocols"];
         
-        if (range.location != NSNotFound) {
+        if (range.location == NSNotFound) {
+            //  a /reverse reply after we started playback, this should contain
+            //  any playback info that the server wants to send
+            
+            //  TODO
+            NSLog(@"later /reverse data");
+        } else {
+            //  the first /reverse reply, now we should start playback
             [self playRequest];
         }
-    } else if (tag == 2) {
+        
+        [m_reverseSocket readDataToData:[@"\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]
+                            withTimeout:2.0f tag:kAHRequestTagReverse];
+    } else if (tag == kAHRequestTagPlay) {
         //  /play request reply received and read
         range = [replyString rangeOfString:@"HTTP/1.1 200 OK"];
         
@@ -538,6 +544,12 @@ const NSUInteger    kAHRequestTagReverse = 1,
             m_paused = NO;
             [delegate isStopped:NO orPaused:m_paused];
             [delegate durationUpdated:m_videoManager.duration];
+            
+            m_infoTimer = [NSTimer scheduledTimerWithTimeInterval:3.0f
+                                                           target:self
+                                                         selector:@selector(infoRequest)
+                                                         userInfo:nil
+                                                          repeats:YES];
         }
     }
 }
