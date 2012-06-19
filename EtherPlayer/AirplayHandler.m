@@ -137,7 +137,8 @@ const NSUInteger    kAHRequestTagReverse = 1,
                                            sizeof(addressBuffer));
         int port = ntohs(sockAddress->sin_port);
         if (addressStr && port) {
-            NSString *address = [NSString stringWithFormat:@"http://%s:%d", addressStr, port];
+            NSString *address = [NSString stringWithFormat:@"http://%s:%d",
+                addressStr, port];
             
             if (kAHEnableDebugOutput) {
                 NSLog(@"Found service at %@", address);
@@ -204,39 +205,51 @@ const NSUInteger    kAHRequestTagReverse = 1,
     bodyDataExt = CFStringCreateExternalRepresentation(kCFAllocatorDefault, bodyString,
                                                        kCFStringEncodingUTF8, 0);
     CFHTTPMessageSetBody(myRequest, bodyDataExt);
-    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("Upgrade"), CFSTR("PTTH/1.0"));
-    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("Connection"), CFSTR("Upgrade"));
-    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("X-Apple-Purpose"), CFSTR("event"));
-    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("User-Agent"), CFSTR("MediaControl/1.0"));
-    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("X-Apple-Session-ID"), (__bridge CFStringRef)m_sessionID);
+    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("Upgrade"),
+                                     CFSTR("PTTH/1.0"));
+    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("Connection"),
+                                     CFSTR("Upgrade"));
+    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("X-Apple-Purpose"),
+                                     CFSTR("event"));
+    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("User-Agent"),
+                                     CFSTR("MediaControl/1.0"));
+    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("X-Apple-Session-ID"),
+                                     (__bridge CFStringRef)m_sessionID);
     mySerializedRequest = CFHTTPMessageCopySerializedMessage(myRequest);
     data = (__bridge NSData *)mySerializedRequest;
     
-    NSLog(@"Request:\r\n%@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
-    m_reverseSocket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:dispatch_get_main_queue()];
-    [m_reverseSocket connectToAddress:[[m_targetService addresses] objectAtIndex:0] error:&error];
+    NSLog(@"Request:\r\n%@", [[NSString alloc] initWithData:data
+                                                   encoding:NSUTF8StringEncoding]);
+    m_reverseSocket = [[GCDAsyncSocket alloc] initWithDelegate:self
+                                                 delegateQueue:dispatch_get_main_queue()];
+    [m_reverseSocket connectToAddress:[[m_targetService addresses] objectAtIndex:0]
+                                error:&error];
     
     if (error != nil) {
         NSLog(@"Error connecting socket for /reverse: %@", error);
     } else {
-        [m_reverseSocket writeData:data withTimeout:1.0f tag:kAHRequestTagReverse];
+        [m_reverseSocket writeData:data
+                       withTimeout:1.0f
+                               tag:kAHRequestTagReverse];
         [m_reverseSocket readDataToData:[@"\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]
-                            withTimeout:2.0f tag:kAHRequestTagReverse];
+                            withTimeout:2.0f
+                                    tag:kAHRequestTagReverse];
     }
 }
 
 - (void)playRequest
 {
+    NSDictionary        *plist = nil;
     NSString            *httpFilePath = nil;
     NSString            *errDesc = nil;
     NSError             *error = nil;
+    NSData              *outData = nil;
+    NSString            *dataLength = nil;
     CFURLRef            myURL;
     CFStringRef         bodyString;
     CFStringRef         requestMethod;
     CFHTTPMessageRef    myRequest;
     CFDataRef           mySerializedRequest;
-    NSData              *outData = nil;
-    NSDictionary        *plist = nil;
     
     NSLog(@"/play");
     
@@ -248,6 +261,7 @@ const NSUInteger    kAHRequestTagReverse = 1,
     outData = [NSPropertyListSerialization dataFromPropertyList:plist
                                                          format:NSPropertyListBinaryFormat_v1_0
                                                errorDescription:&errDesc];
+    dataLength = [NSString stringWithFormat:@"%lu", [outData length]];
 
     bodyString = CFSTR("");
     requestMethod = CFSTR("POST");
@@ -255,25 +269,32 @@ const NSUInteger    kAHRequestTagReverse = 1,
     myRequest = CFHTTPMessageCreateRequest(kCFAllocatorDefault, requestMethod,
                                            myURL, kCFHTTPVersion1_1);
 
-    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("User-Agent"), CFSTR("EtherPlayer"));
+    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("User-Agent"),
+                                     CFSTR("EtherPlayer"));
     CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("Content-Length"),
-                                     (__bridge CFStringRef)[NSString stringWithFormat:@"%lu",
-                                                            [outData length]]);
-    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("Content-Type"), CFSTR("application/x-apple-binary-plist"));
-    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("X-Apple-Session-ID"), (__bridge CFStringRef)m_sessionID);
+                                     (__bridge CFStringRef)dataLength);
+    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("Content-Type"),
+                                     CFSTR("application/x-apple-binary-plist"));
+    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("X-Apple-Session-ID"),
+                                     (__bridge CFStringRef)m_sessionID);
     mySerializedRequest = CFHTTPMessageCopySerializedMessage(myRequest);
     m_data = [(__bridge NSData *)mySerializedRequest mutableCopy];
     [m_data appendData:outData];
 
-    m_mainSocket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:dispatch_get_main_queue()];
-    [m_mainSocket connectToAddress:[[m_targetService addresses] objectAtIndex:0] error:&error];
+    m_mainSocket = [[GCDAsyncSocket alloc] initWithDelegate:self
+                                              delegateQueue:dispatch_get_main_queue()];
+    [m_mainSocket connectToAddress:[[m_targetService addresses] objectAtIndex:0]
+                             error:&error];
     
     if (error != nil) {
         NSLog(@"Error connecting socket for /play: %@", error);
     } else {
-        [m_mainSocket writeData:m_data withTimeout:1.0f tag:kAHRequestTagPlay];
+        [m_mainSocket writeData:m_data
+                    withTimeout:1.0f
+                            tag:kAHRequestTagPlay];
         [m_mainSocket readDataToData:[@"\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]
-                         withTimeout:2.0f tag:kAHRequestTagPlay];
+                         withTimeout:2.0f
+                                 tag:kAHRequestTagPlay];
     }
 }
 
@@ -400,8 +421,9 @@ const NSUInteger    kAHRequestTagReverse = 1,
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
-    NSString            *response = [[NSString alloc] initWithData:m_responseData
-                                                          encoding:NSASCIIStringEncoding];
+    NSString    *response = [[NSString alloc] initWithData:m_responseData
+                                                  encoding:NSASCIIStringEncoding];
+    NSString    *description = [connection description];
     
     if (kAHEnableDebugOutput) {
         if ([response isEqualToString:@""]) {
@@ -485,9 +507,9 @@ const NSUInteger    kAHRequestTagReverse = 1,
 
 - (void)socket:(GCDAsyncSocket *)sock didWriteDataWithTag:(long)tag
 {
-    if (tag == 1) {
+    if (tag == kAHRequestTagReverse) {
         //  /reverse request data written
-    } else if (tag == 2) {
+    } else if (tag == kAHRequestTagPlay) {
         //  /play request data written
     }
 }
@@ -500,7 +522,7 @@ const NSUInteger    kAHRequestTagReverse = 1,
     replyString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     NSLog(@"socket:didReadData:withTag: data:\r\n%@", replyString);
     
-    if (tag == 1) {
+    if (tag == kAHRequestTagReverse) {
         //  /reverse request reply received and read
         range = [replyString rangeOfString:@"HTTP/1.1 101 Switching Protocols"];
         
