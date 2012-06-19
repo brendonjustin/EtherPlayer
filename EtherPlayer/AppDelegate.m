@@ -13,7 +13,6 @@
 
 @interface AppDelegate () <AirplayHandlerDelegate, VideoManagerDelegate>
 
-- (void)targetChanged;
 - (void)airplayTargetsNotificationReceived:(NSNotification *)notification;
 
 @property (strong, nonatomic) AirplayHandler    *m_handler;
@@ -76,19 +75,6 @@
     }];
 }
 
-//  set the target device to airplay to
-- (void)targetChanged
-{
-    NSNetService *selectedService = nil;
-    for (NSNetService *service in m_services) {
-        if ([service.hostName isEqualToString:[[m_targetSelector selectedItem] title]]) {
-            selectedService = service;
-        }
-    }
-    
-    [m_handler setTargetService:selectedService];
-}
-
 - (BOOL)application:(NSApplication *)sender openFile:(NSString *)filename
 {
     [[NSDocumentController sharedDocumentController] noteNewRecentDocumentURL:[NSURL URLWithString:filename]];
@@ -107,12 +93,10 @@
         if (![m_services containsObject:service]) {
             [m_services addObject:service];
             [m_targetSelector addItemWithTitle:service.hostName];
-            [[m_targetSelector lastItem] setTarget:self];
-            [[m_targetSelector lastItem] setAction:@selector(targetChanged)];
             
             if ([[m_targetSelector itemArray] count] == 1) {
                 [m_targetSelector selectItem:[m_targetSelector lastItem]];
-                [self targetChanged];
+                [self updateTarget:self];
             }
         }
     }
@@ -140,7 +124,20 @@
     [m_playButton setImage:[NSImage imageNamed:@"play.png"]];
 }
 
-#pragma mark - 
+- (IBAction)updateTarget:(id)sender
+{
+    NSString *newHostName = [[m_targetSelector selectedItem] title];
+    NSNetService *selectedService = nil;
+    for (NSNetService *service in m_services) {
+        if ([service.hostName isEqualToString:newHostName]) {
+            selectedService = service;
+        }
+    }
+    
+    [m_handler setTargetService:selectedService];
+}
+
+#pragma mark -
 #pragma mark AirplayHandlerDelegate functions
 
 - (void)isPaused:(BOOL)paused
