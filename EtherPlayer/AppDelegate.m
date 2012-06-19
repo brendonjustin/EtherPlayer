@@ -140,9 +140,8 @@
 #pragma mark -
 #pragma mark AirplayHandlerDelegate functions
 
-- (void)isPaused:(BOOL)paused
 {
-    if (paused) {
+    if (stopped || paused) {
         [m_playButton setImage:[NSImage imageNamed:@"play.png"]];
     } else {
         [m_playButton setImage:[NSImage imageNamed:@"pause.png"]];

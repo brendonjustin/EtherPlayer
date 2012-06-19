@@ -10,7 +10,7 @@
 
 @protocol AirplayHandlerDelegate <NSObject>
 
-- (void)isPaused:(BOOL)paused;
+- (void)isStopped:(BOOL)stopped orPaused:(BOOL)paused;
 - (void)positionUpdated:(float)position;
 - (void)durationUpdated:(float)duration;
 

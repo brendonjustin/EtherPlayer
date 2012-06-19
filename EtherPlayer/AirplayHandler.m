@@ -161,7 +161,7 @@ const NSUInteger    kAHVideo = 0,
     if (m_airplaying) {
         m_paused = !m_paused;
         [self changePlaybackStatus];
-        [delegate isPaused:m_paused];
+        [delegate isStopped:NO orPaused:m_paused];
     }
 }
 
@@ -308,8 +308,6 @@ const NSUInteger    kAHVideo = 0,
     nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
     [nextConnection start];
     m_currentRequest = @"/stop";
-    m_airplaying = NO;
-    [delegate isPaused:NO];
 }
 
 - (void)stopPlayback
@@ -347,6 +345,7 @@ const NSUInteger    kAHVideo = 0,
     
     m_playbackPosition = 0;
     [delegate isPaused:m_paused];
+    [delegate isStopped:YES orPaused:m_paused];
     [delegate positionUpdated:m_playbackPosition];
     [delegate durationUpdated:0];
 }
@@ -460,6 +459,7 @@ const NSUInteger    kAHVideo = 0,
         m_paused = [[playbackInfo objectForKey:@"rate"] doubleValue] < 0.5f ? YES : NO;
         
         [delegate isPaused:m_paused];
+        [delegate isStopped:NO orPaused:m_paused];
         [delegate positionUpdated:m_playbackPosition];
         
         //  nothing else to do
