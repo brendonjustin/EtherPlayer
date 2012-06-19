@@ -31,6 +31,8 @@ const NSUInteger    kAHVideo = 0,
                     kAHAudioRedundant = 11,
                     kAHFPSAPv2pt5_AES_GCM = 12,
                     kAHPhotoCaching = 13;
+const NSUInteger    kAHRequestTagReverse = 1,
+                    kAHRequestTagPlay = 2;
 
 @interface AirplayHandler () <GCDAsyncSocketDelegate>
 
@@ -217,7 +219,9 @@ const NSUInteger    kAHVideo = 0,
     if (error != nil) {
         NSLog(@"Error connecting socket for /reverse: %@", error);
     } else {
-        [m_reverseSocket writeData:data withTimeout:1.0f tag:1];
+        [m_reverseSocket writeData:data withTimeout:1.0f tag:kAHRequestTagReverse];
+        [m_reverseSocket readDataToData:[@"\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]
+                            withTimeout:2.0f tag:kAHRequestTagReverse];
     }
 }
 
@@ -239,7 +243,7 @@ const NSUInteger    kAHVideo = 0,
     httpFilePath = m_videoManager.httpFilePath;
 
     plist = [NSDictionary dictionaryWithObjectsAndKeys:httpFilePath, @"Content-Location",
-             [NSNumber numberWithFloat:1.0f], @"Start-Position", nil];
+             [NSNumber numberWithFloat:0.0f], @"Start-Position", nil];
     
     outData = [NSPropertyListSerialization dataFromPropertyList:plist
                                                          format:NSPropertyListBinaryFormat_v1_0
@@ -267,11 +271,9 @@ const NSUInteger    kAHVideo = 0,
     if (error != nil) {
         NSLog(@"Error connecting socket for /play: %@", error);
     } else {
-        [m_mainSocket writeData:m_data withTimeout:1.0f tag:2];
-        m_airplaying = YES;
-        m_paused = NO;
-        [delegate isPaused:m_paused];
-        [delegate durationUpdated:m_videoManager.duration];
+        [m_mainSocket writeData:m_data withTimeout:1.0f tag:kAHRequestTagPlay];
+        [m_mainSocket readDataToData:[@"\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]
+                         withTimeout:2.0f tag:kAHRequestTagPlay];
     }
 }
 
@@ -344,7 +346,6 @@ const NSUInteger    kAHVideo = 0,
     [m_infoTimer invalidate];
     
     m_playbackPosition = 0;
-    [delegate isPaused:m_paused];
     [delegate isStopped:YES orPaused:m_paused];
     [delegate positionUpdated:m_playbackPosition];
     [delegate durationUpdated:0];
@@ -458,7 +459,6 @@ const NSUInteger    kAHVideo = 0,
         m_playbackPosition = [[playbackInfo objectForKey:@"position"] doubleValue];
         m_paused = [[playbackInfo objectForKey:@"rate"] doubleValue] < 0.5f ? YES : NO;
         
-        [delegate isPaused:m_paused];
         [delegate isStopped:NO orPaused:m_paused];
         [delegate positionUpdated:m_playbackPosition];
         
@@ -487,8 +487,6 @@ const NSUInteger    kAHVideo = 0,
 {
     if (tag == 1) {
         //  /reverse request data written
-        [m_reverseSocket readDataToData:[@"\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]
-                            withTimeout:2.0f tag:1];
     } else if (tag == 2) {
         //  /play request data written
     }
@@ -496,9 +494,29 @@ const NSUInteger    kAHVideo = 0,
 
 - (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag
 {
+    NSString    *replyString = nil;
+    NSRange     range;
+    
+    replyString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    NSLog(@"socket:didReadData:withTag: data:\r\n%@", replyString);
+    
     if (tag == 1) {
         //  /reverse request reply received and read
-        [self playRequest];
+        range = [replyString rangeOfString:@"HTTP/1.1 101 Switching Protocols"];
+        
+        if (range.location != NSNotFound) {
+            [self playRequest];
+        }
+    } else if (tag == 2) {
+        //  /play request reply received and read
+        range = [replyString rangeOfString:@"HTTP/1.1 200 OK"];
+        
+        if (range.location != NSNotFound) {
+            m_airplaying = YES;
+            m_paused = NO;
+            [delegate isStopped:NO orPaused:m_paused];
+            [delegate durationUpdated:m_videoManager.duration];
+        }
     }
 }
 
