@@ -310,6 +310,22 @@ const NSUInteger    kOVCSegmentDuration = 10;
 //  been created for the input video
 - (void)waitForOutputStream
 {
+    //  temporary kludge to workaround VLCKit supporting only
+    //  HLS for 'live' streams
+    if (m_useHLS && ![m_session isComplete]) {
+        [NSTimer scheduledTimerWithTimeInterval:2.0
+                                         target:self
+                                       selector:@selector(waitForOutputStream)
+                                       userInfo:nil
+                                        repeats:NO];
+        return;
+    } else if (m_useHLS) {
+        NSData *fileContents = nil;
+
+        fileContents = [[NSFileManager defaultManager] contentsAtPath:m_outputStreamPath];
+        //  TODO: add #EXT-X-PLAYLIST-TYPE:VOD near the top of the m3u8 file
+    }
+
     if ([[NSFileManager defaultManager] fileExistsAtPath:m_outputStreamPath]) {
         [delegate outputReady:self];
     } else {
