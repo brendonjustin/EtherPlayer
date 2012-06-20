@@ -10,9 +10,10 @@
 
 @protocol AirplayHandlerDelegate <NSObject>
 
-- (void)isStopped:(BOOL)stopped orPaused:(BOOL)paused;
+- (void)setPaused:(BOOL)paused;
 - (void)positionUpdated:(float)position;
 - (void)durationUpdated:(float)duration;
+- (void)airplayStoppedWithError:(NSError *)error;
 
 @end
 

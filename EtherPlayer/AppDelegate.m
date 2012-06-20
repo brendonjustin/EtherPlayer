@@ -140,9 +140,9 @@
 #pragma mark -
 #pragma mark AirplayHandlerDelegate functions
 
-- (void)isStopped:(BOOL)stopped orPaused:(BOOL)paused
+- (void)setPaused:(BOOL)paused
 {
-    if (stopped || paused) {
+    if (paused) {
         [m_playButton setImage:[NSImage imageNamed:@"play.png"]];
     } else {
         [m_playButton setImage:[NSImage imageNamed:@"pause.png"]];
@@ -163,8 +163,17 @@
                                     (int)duration % 60];
 }
 
+- (void)airplayStoppedWithError:(NSError *)error
+{
+    if (error != nil) {
+        NSAlert *alert = [NSAlert alertWithError:error];
+        [alert runModal];
+    }
+    
+    [m_playButton setImage:[NSImage imageNamed:@"play.png"]];
+}
 
-#pragma mark - 
+#pragma mark -
 #pragma mark VideoManagerDelegate functions
 
 - (void)outputReady:(id)sender
