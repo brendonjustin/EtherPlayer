@@ -43,5 +43,15 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>VLCParams</key>
+	<array>
+		<string>--no-color</string>
+		<string>--no-video-title-show</string>
+		<string>--verbose=4</string>
+		<string>--no-sout-keep</string>
+		<string>--vout=macosx</string>
+		<string>--text-renderer=quartztext</string>
+		<string>--extraintf=macosx_dialog_provider</string>
+	</array>
 </dict>
 </plist>
