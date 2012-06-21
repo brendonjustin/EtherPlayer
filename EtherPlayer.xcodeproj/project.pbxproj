@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5C01929E157BC43500418213 /* VLCKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5C1F508D15792CE5006C8B5B /* VLCKit.framework */; };
 		5C01940F157BC93900418213 /* DDData.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0192DF157BC93800418213 /* DDData.m */; };
 		5C019410157BC93900418213 /* DDNumber.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0192E1157BC93800418213 /* DDNumber.m */; };
 		5C019411157BC93900418213 /* DDRange.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0192E3157BC93800418213 /* DDRange.m */; };
@@ -42,10 +41,11 @@
 		5C0A32F215786C9400D3A49F /* BonjourSearcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32F115786C9400D3A49F /* BonjourSearcher.m */; };
 		5C0A32F515786D1000D3A49F /* AirplayHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32F415786D1000D3A49F /* AirplayHandler.m */; };
 		5C0DD8C6157FF566005C8FF8 /* VideoManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0DD8C5157FF566005C8FF8 /* VideoManager.m */; };
-		5C1F508E15792CE5006C8B5B /* VLCKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5C1F508D15792CE5006C8B5B /* VLCKit.framework */; };
 		5C4D440D15804915007B94F2 /* pause.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C4D440A15804915007B94F2 /* pause.png */; };
 		5C4D440E15804915007B94F2 /* play.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C4D440B15804915007B94F2 /* play.png */; };
 		5C4D440F15804915007B94F2 /* stop.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C4D440C15804915007B94F2 /* stop.png */; };
+		5CADC0A61593CCCB005476FB /* VLCKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CADC0A51593CCCB005476FB /* VLCKit.framework */; };
+		5CADC0A71593CCE0005476FB /* VLCKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5CADC0A51593CCCB005476FB /* VLCKit.framework */; };
 		5CBB2C0C158E9301008EF412 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CBB2C0B158E9301008EF412 /* CFNetwork.framework */; };
 /* End PBXBuildFile section */
 
@@ -56,7 +56,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				5C1F508E15792CE5006C8B5B /* VLCKit.framework in CopyFiles */,
+				5CADC0A71593CCE0005476FB /* VLCKit.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -138,10 +138,10 @@
 		5C0A32F415786D1000D3A49F /* AirplayHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AirplayHandler.m; sourceTree = "<group>"; };
 		5C0DD8C4157FF566005C8FF8 /* VideoManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoManager.h; sourceTree = "<group>"; };
 		5C0DD8C5157FF566005C8FF8 /* VideoManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VideoManager.m; sourceTree = "<group>"; };
-		5C1F508D15792CE5006C8B5B /* VLCKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = VLCKit.framework; sourceTree = "<group>"; };
 		5C4D440A15804915007B94F2 /* pause.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pause.png; sourceTree = "<group>"; };
 		5C4D440B15804915007B94F2 /* play.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = play.png; sourceTree = "<group>"; };
 		5C4D440C15804915007B94F2 /* stop.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = stop.png; sourceTree = "<group>"; };
+		5CADC0A51593CCCB005476FB /* VLCKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = VLCKit.framework; sourceTree = "<group>"; };
 		5CBB2C0B158E9301008EF412 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -153,7 +153,7 @@
 				5CBB2C0C158E9301008EF412 /* CFNetwork.framework in Frameworks */,
 				5C0194A8157BC9EB00418213 /* Security.framework in Frameworks */,
 				5C0A32D015786B2600D3A49F /* Cocoa.framework in Frameworks */,
-				5C01929E157BC43500418213 /* VLCKit.framework in Frameworks */,
+				5CADC0A61593CCCB005476FB /* VLCKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -307,8 +307,8 @@
 		5C0A32CE15786B2600D3A49F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				5CADC0A51593CCCB005476FB /* VLCKit.framework */,
 				5CBB2C0B158E9301008EF412 /* CFNetwork.framework */,
-				5C1F508D15792CE5006C8B5B /* VLCKit.framework */,
 				5C0A32CF15786B2600D3A49F /* Cocoa.framework */,
 				5C0194A7157BC9EB00418213 /* Security.framework */,
 				5C0A32D115786B2600D3A49F /* Other Frameworks */,

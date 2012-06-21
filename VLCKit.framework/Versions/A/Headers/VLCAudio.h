@@ -3,7 +3,7 @@
  *****************************************************************************
  * Copyright (C) 2007 Faustino E. Osuna
  * Copyright (C) 2007 VLC authors and VideoLAN
- * $Id: 4bf8c5d41d67a357d891e997665b8c42436c1388 $
+ * $Id$
  *
  * Authors: Faustino E. Osuna <enrique.osuna # gmail.com>
  *

@@ -4,7 +4,7 @@
  * Copyright (C) 2007-2009 Pierre d'Herbemont
  * Copyright (C) 2007-2009 VLC authors and VideoLAN
  * Partial Copyright (C) 2009 Felix Paul Kühne
- * $Id: 8f04686a5ed84c7dd8fd3476eea43f4596e198ea $
+ * $Id$
  *
  * Authors: Pierre d'Herbemont <pdherbemont # videolan.org>
  *          Felix Paul Kühne <fkuehne # videolan.org>
