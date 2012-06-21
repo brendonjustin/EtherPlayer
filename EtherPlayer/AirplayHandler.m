@@ -242,6 +242,7 @@ const NSUInteger    kAHRequestTagReverse = 1,
     NSDictionary        *plist = nil;
     NSString            *httpFilePath = nil;
     NSString            *errDesc = nil;
+    NSString            *appName = nil;
     NSError             *error = nil;
     NSData              *outData = nil;
     NSString            *dataLength = nil;
@@ -254,6 +255,7 @@ const NSUInteger    kAHRequestTagReverse = 1,
     NSLog(@"/play");
     
     httpFilePath = m_videoManager.httpFilePath;
+    appName = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"];
 
     plist = [NSDictionary dictionaryWithObjectsAndKeys:httpFilePath, @"Content-Location",
              [NSNumber numberWithFloat:0.0f], @"Start-Position", nil];
@@ -276,7 +278,7 @@ const NSUInteger    kAHRequestTagReverse = 1,
                                            myURL, kCFHTTPVersion1_1);
 
     CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("User-Agent"),
-                                     CFSTR("EtherPlayer"));
+                                     (__bridge CFStringRef)appName);
     CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("Content-Length"),
                                      (__bridge CFStringRef)dataLength);
     CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("Content-Type"),
@@ -489,13 +491,16 @@ const NSUInteger    kAHRequestTagReverse = 1,
         if ((readyToPlay = [playbackInfo objectForKey:@"readyToPlay"])
             && ([readyToPlay boolValue] == NO)) {
             NSDictionary    *userInfo = nil;
+            NSString        *bundleIdentifier = nil;
             NSError         *error = nil;
 
             userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
                         @"Error: Target AirPlay server not ready.  "
                         "Check if it is on and idle.",
                         NSLocalizedDescriptionKey, nil];
-            error = [NSError errorWithDomain:@"com.brendonjustin.etherplayer"
+            
+            bundleIdentifier = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleIdentifier"];
+            error = [NSError errorWithDomain:bundleIdentifier
                                         code:100
                                     userInfo:userInfo];
             [self stoppedWithError:error];

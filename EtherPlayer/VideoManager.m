@@ -66,6 +66,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
 - (id)init
 {
     if ((self = [super init])) {
+        NSString        *bundleIdentifier = nil;
         NSString        *tempDir = nil;
         NSError         *error = nil;
         struct ifaddrs  *ifap;
@@ -78,7 +79,9 @@ const NSUInteger    kOVCSegmentDuration = 10;
         if (tempDir == nil)
             tempDir = @"/tmp";
         
-        m_baseFilePath = [tempDir stringByAppendingString:@"com.brendonjustin.EtherPlayer/"];
+        bundleIdentifier = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleIdentifier"];
+        m_baseFilePath = [tempDir stringByAppendingString:bundleIdentifier];
+        m_baseFilePath = [m_baseFilePath stringByAppendingString:@"/"];
         [[NSFileManager defaultManager] createDirectoryAtPath:m_baseFilePath
                                   withIntermediateDirectories:NO 
                                                    attributes:nil 
@@ -312,40 +315,40 @@ const NSUInteger    kOVCSegmentDuration = 10;
 {
     //  temporary kludge to workaround VLCKit supporting only
     //  HLS for 'live' streams
-//    BOOL isComplete = [m_session isComplete];
-//
-//    if (m_useHLS && !isComplete) {
-//        [NSTimer scheduledTimerWithTimeInterval:2.0
-//                                         target:self
-//                                       selector:@selector(waitForOutputStream)
-//                                       userInfo:nil
-//                                        repeats:NO];
-//        return;
-//    } else if (m_useHLS) {
-//        NSData          *data = nil;
-//        NSString        *fileContents = nil;
-//        NSString        *findString = @"#EXTM3U\n#EXT-X-TARGETDURATION";
-//        NSString        *replaceString = @"#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION";
-//        NSFileHandle    *file = nil;
-//        
-//        file = [NSFileHandle fileHandleForUpdatingAtPath:m_outputStreamPath];
-//        
-//        if (file != nil) {
-//            data = [file readDataToEndOfFile];
-//            
-//            fileContents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-//            
-//            //  add #EXT-X-PLAYLIST-TYPE:VOD near the top of the m3u8 file
-//            fileContents = [fileContents stringByReplacingOccurrencesOfString:findString
-//                                                                   withString:replaceString];
-//
-//            [file seekToFileOffset:0];
-//            [file writeData:[fileContents dataUsingEncoding:NSUTF8StringEncoding]];
-//            [file closeFile];
-//        } else {
-//            NSLog(@"Error opening file %@ to insert VOD header", m_outputStreamPath);
-//        }
-//    }
+    BOOL isComplete = [m_session isComplete];
+
+    if (m_useHLS && !isComplete) {
+        [NSTimer scheduledTimerWithTimeInterval:2.0
+                                         target:self
+                                       selector:@selector(waitForOutputStream)
+                                       userInfo:nil
+                                        repeats:NO];
+        return;
+    } else if (m_useHLS) {
+        NSData          *data = nil;
+        NSString        *fileContents = nil;
+        NSString        *findString = @"#EXTM3U\n#EXT-X-TARGETDURATION";
+        NSString        *replaceString = @"#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION";
+        NSFileHandle    *file = nil;
+        
+        file = [NSFileHandle fileHandleForUpdatingAtPath:m_outputStreamPath];
+        
+        if (file != nil) {
+            data = [file readDataToEndOfFile];
+            
+            fileContents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+            
+            //  add #EXT-X-PLAYLIST-TYPE:VOD near the top of the m3u8 file
+            fileContents = [fileContents stringByReplacingOccurrencesOfString:findString
+                                                                   withString:replaceString];
+
+            [file seekToFileOffset:0];
+            [file writeData:[fileContents dataUsingEncoding:NSUTF8StringEncoding]];
+            [file closeFile];
+        } else {
+            NSLog(@"Error opening file %@ to insert VOD header", m_outputStreamPath);
+        }
+    }
 
     if ([[NSFileManager defaultManager] fileExistsAtPath:m_outputStreamPath]) {
         [delegate outputReady:self];
