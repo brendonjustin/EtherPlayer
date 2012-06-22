@@ -337,7 +337,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
     if ([[NSFileManager defaultManager] fileExistsAtPath:m_outputStreamPath]) {
         //  temporary kludge to workaround VLCKit supporting only
         //  HLS for 'live' streams
-        if (m_useHLS) {
+        if (m_useHLS && [m_session isComplete]) {
             NSData          *data = nil;
             NSString        *fileContents = nil;
             NSString        *findString = @"#EXTM3U\n#EXT-X-TARGETDURATION";
@@ -351,7 +351,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
                 
                 fileContents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
                 
-                //  add #EXT-X-PLAYLIST-TYPE:VOD near the top of the m3u8 file
+                //  add #EXT-X-PLAYLIST-TYPE:EVENT near the top of the m3u8 file
                 fileContents = [fileContents stringByReplacingOccurrencesOfString:findString
                                                                        withString:replaceString];
                 
@@ -361,8 +361,15 @@ const NSUInteger    kOVCSegmentDuration = 10;
             } else {
                 NSLog(@"Error opening file %@ to insert VOD header", m_outputStreamPath);
             }
+        } else if (m_useHLS) {
+            [NSTimer scheduledTimerWithTimeInterval:2.0
+                                             target:self
+                                           selector:@selector(waitForOutputStream)
+                                           userInfo:nil
+                                            repeats:NO];
+            return;
         }
-        
+
         [delegate outputReady:self];
     } else {
         [NSTimer scheduledTimerWithTimeInterval:2.0
