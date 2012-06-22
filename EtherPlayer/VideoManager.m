@@ -276,7 +276,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
     
     if (subs != nil) {
         [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
-                                                      subs, @"scodec",
+                                                      subs, @"subtitleCodec",
                                                       nil]];
     }
     

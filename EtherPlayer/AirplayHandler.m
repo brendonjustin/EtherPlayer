@@ -235,6 +235,10 @@ const NSUInteger    kAHRequestTagReverse = 1,
                             withTimeout:2.0f
                                     tag:kAHRequestTagReverse];
     }
+    
+    if (kAHAssumeReverseTimesOut) {
+        [self playRequest];
+    }
 }
 
 - (void)playRequest
