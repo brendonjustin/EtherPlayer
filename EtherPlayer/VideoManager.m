@@ -150,7 +150,13 @@ const NSUInteger    kOVCSegmentDuration = 10;
 
 - (void)transcodeMediaForPath:(NSString *)mediaPath
 {
+    NSLog(@"Path at transcodeMediaForPath: %@", mediaPath);
     m_sessionRandom = arc4random();
+
+    if ([mediaPath rangeOfString:@"file://localhost"].location != NSNotFound) {
+        mediaPath = [mediaPath stringByReplacingOccurrencesOfString:@"file://localhost" withString:@""];
+        mediaPath = [mediaPath stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    }
 
     if (m_useHLS) {
         m_outputStreamFilename = [NSString stringWithFormat:@"%lu-#####.%@", m_sessionRandom,
