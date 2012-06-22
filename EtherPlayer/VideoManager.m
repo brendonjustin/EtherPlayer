@@ -140,6 +140,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
         [defaultParams addObject:@"--vout=macosx"];                             // Select Mac OS X video output
         [defaultParams addObject:@"--text-renderer=quartztext"];                // our CoreText-based renderer
         [defaultParams addObject:@"--extraintf=macosx_dialog_provider"];        // Some extra dialog (login, progress) may come up from here
+        [defaultParams addObject:@"--sub-track=0"];
         
         [[NSUserDefaults standardUserDefaults] setObject:defaultParams forKey:@"VLCParams"];
         [[NSUserDefaults standardUserDefaults] synchronize];
@@ -150,7 +151,6 @@ const NSUInteger    kOVCSegmentDuration = 10;
 
 - (void)transcodeMediaForPath:(NSString *)mediaPath
 {
-    NSLog(@"Path at transcodeMediaForPath: %@", mediaPath);
     m_sessionRandom = arc4random();
 
     if ([mediaPath rangeOfString:@"file://localhost"].location != NSNotFound) {
@@ -245,18 +245,26 @@ const NSUInteger    kOVCSegmentDuration = 10;
         }
         if ([[properties objectForKey:@"type"] isEqualToString:@"text"]) {
             if (subs == nil) {
-                if (m_useHLS) {
-                    subs = @"tx3g";
-                }
+                subs = @"tx3g";
             }
         }
     }
     
-    videoBitrate = [NSString stringWithFormat:@"%lu", [width integerValue] * 5];
+    videoBitrate = [NSString stringWithFormat:@"%lu", [width integerValue] * 3];
     audioBitrate = [NSString stringWithFormat:@"%lu", [audioChannels integerValue] * 128];
     
     transcodingOptions = [NSMutableDictionary dictionary];
-    
+
+    if (subs != nil) {
+//        [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
+//                                                      subs, @"subtitleCodec",
+//                                                      nil]];
+        [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
+                                                      [NSNumber numberWithBool:YES], @"subtitleOverlay",
+                                                      nil]];
+        videoNeedsTranscode = YES;
+    }
+
     if (videoNeedsTranscode) {
         [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
                                                       videoCodec, @"videoCodec",
@@ -273,14 +281,8 @@ const NSUInteger    kOVCSegmentDuration = 10;
                                                       @"Yes", @"audio-sync",
                                                       nil]];
     }
-    
-    if (subs != nil) {
-        [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
-                                                      subs, @"subtitleCodec",
-                                                      nil]];
-    }
-    
-    if (transcodingOptions != nil) {
+
+    if ([transcodingOptions count] > 0) {
         [streamOutputOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
                                                        transcodingOptions, @"transcodingOptions",
                                                        nil]];
@@ -332,44 +334,35 @@ const NSUInteger    kOVCSegmentDuration = 10;
 //  been created for the input video
 - (void)waitForOutputStream
 {
-    //  temporary kludge to workaround VLCKit supporting only
-    //  HLS for 'live' streams
-    BOOL isComplete = [m_session isComplete];
-
-    if (m_useHLS && !isComplete) {
-        [NSTimer scheduledTimerWithTimeInterval:2.0
-                                         target:self
-                                       selector:@selector(waitForOutputStream)
-                                       userInfo:nil
-                                        repeats:NO];
-        return;
-    } else if (m_useHLS) {
-        NSData          *data = nil;
-        NSString        *fileContents = nil;
-        NSString        *findString = @"#EXTM3U\n#EXT-X-TARGETDURATION";
-        NSString        *replaceString = @"#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION";
-        NSFileHandle    *file = nil;
-        
-        file = [NSFileHandle fileHandleForUpdatingAtPath:m_outputStreamPath];
-        
-        if (file != nil) {
-            data = [file readDataToEndOfFile];
-            
-            fileContents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-            
-            //  add #EXT-X-PLAYLIST-TYPE:VOD near the top of the m3u8 file
-            fileContents = [fileContents stringByReplacingOccurrencesOfString:findString
-                                                                   withString:replaceString];
-
-            [file seekToFileOffset:0];
-            [file writeData:[fileContents dataUsingEncoding:NSUTF8StringEncoding]];
-            [file closeFile];
-        } else {
-            NSLog(@"Error opening file %@ to insert VOD header", m_outputStreamPath);
-        }
-    }
-
     if ([[NSFileManager defaultManager] fileExistsAtPath:m_outputStreamPath]) {
+        //  temporary kludge to workaround VLCKit supporting only
+        //  HLS for 'live' streams
+        if (m_useHLS) {
+            NSData          *data = nil;
+            NSString        *fileContents = nil;
+            NSString        *findString = @"#EXTM3U\n#EXT-X-TARGETDURATION";
+            NSString        *replaceString = @"#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION";
+            NSFileHandle    *file = nil;
+            
+            file = [NSFileHandle fileHandleForUpdatingAtPath:m_outputStreamPath];
+            
+            if (file != nil) {
+                data = [file readDataToEndOfFile];
+                
+                fileContents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+                
+                //  add #EXT-X-PLAYLIST-TYPE:VOD near the top of the m3u8 file
+                fileContents = [fileContents stringByReplacingOccurrencesOfString:findString
+                                                                       withString:replaceString];
+                
+                [file seekToFileOffset:0];
+                [file writeData:[fileContents dataUsingEncoding:NSUTF8StringEncoding]];
+                [file closeFile];
+            } else {
+                NSLog(@"Error opening file %@ to insert VOD header", m_outputStreamPath);
+            }
+        }
+        
         [delegate outputReady:self];
     } else {
         [NSTimer scheduledTimerWithTimeInterval:2.0
