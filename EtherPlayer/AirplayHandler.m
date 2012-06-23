@@ -349,6 +349,7 @@ const NSUInteger    kAHRequestTagReverse = 1,
 {
     if (m_airplaying) {
         [self stopRequest];
+        [m_videoManager stop];
     }
 }
 

@@ -18,6 +18,7 @@
 
 - (void)transcodeMediaForPath:(NSString *)mediaPath;
 - (void)cleanup;
+- (void)stop;
 
 @property (strong, nonatomic) id<VideoManagerDelegate>    delegate;
 @property (strong, nonatomic) NSString  *httpFilePath;

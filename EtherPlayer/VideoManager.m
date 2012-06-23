@@ -23,7 +23,6 @@ const NSUInteger    kOVCSegmentDuration = 10;
 @interface VideoManager () <VLCMediaDelegate>
 
 - (void)transcodeMedia:(VLCMedia *)inputMedia;
-- (void)stop;
 - (void)waitForOutputStream;
 
 @property (strong, nonatomic) VLCMedia          *m_inputMedia;
@@ -321,7 +320,6 @@ const NSUInteger    kOVCSegmentDuration = 10;
     [m_session startStreaming];
 }
 
-//  TODO: consider doing more in this function
 - (void)stop
 {
     //  if m_session exists, it must be stopped
