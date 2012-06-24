@@ -20,6 +20,7 @@
 const NSString      *kOVCNormalOutputFiletype = @"mp4";
 const NSString      *kOVCHLSOutputFiletype = @"ts";
 const NSUInteger    kOVCSegmentDuration = 10;
+const BOOL          kOVCIncludeSubs = NO;
 
 @interface VideoManager () <VLCMediaDelegate>
 
@@ -255,6 +256,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
         if ([[properties objectForKey:@"type"] isEqualToString:@"text"]) {
             if (subs == nil) {
                 subs = @"tx3g";
+//                subs = @"subt";
             }
         }
     }
@@ -264,14 +266,19 @@ const NSUInteger    kOVCSegmentDuration = 10;
     
     transcodingOptions = [NSMutableDictionary dictionary];
 
-    if (subs != nil) {
-        [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
-                                                      subs, @"subtitleCodec",
-                                                      nil]];
-//        [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
-//                                                      [NSNumber numberWithBool:YES], @"subtitleOverlay",
-//                                                      nil]];
-//        videoNeedsTranscode = YES;
+    if (kOVCIncludeSubs && subs != nil) {
+        //  VLCKit can't encode subs for MP4, so if we are using HLS then we have
+        //  to burn the subs into the video
+        if (m_useHLS) {
+            [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
+                                                          [NSNumber numberWithBool:YES], @"subtitleOverlay",
+                                                          nil]];
+            videoNeedsTranscode = YES;
+        } else {
+            [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys: 
+                                                         @"dvbsub", @"subtitleEncoder",
+                                                          nil]];
+        }
     }
 
     if (videoNeedsTranscode) {
