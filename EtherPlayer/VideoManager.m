@@ -247,6 +247,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
 
                 //  transcode if the audio codec is supported by the intended container
                 if (![audioCodecs containsObject:[properties objectForKey:@"codec"]]) {
+                    audioChannels = @"2";
                     audioNeedsTranscode = YES;
                 }
             }
