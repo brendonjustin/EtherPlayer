@@ -341,10 +341,10 @@ const NSUInteger    kOVCSegmentDuration = 10;
 //  been created for the input video
 - (void)waitForOutputStream
 {
-    if ([[NSFileManager defaultManager] fileExistsAtPath:m_outputStreamPath]) {
+    if ([m_session isComplete]) {
         //  temporary kludge to workaround VLCKit supporting only
         //  HLS for 'live' streams
-        if (m_useHLS && [m_session isComplete]) {
+        if (m_useHLS && [[NSFileManager defaultManager] fileExistsAtPath:m_outputStreamPath]) {
             NSData          *data = nil;
             NSString        *fileContents = nil;
             NSString        *findString = @"#EXTM3U\n#EXT-X-TARGETDURATION";
@@ -368,15 +368,9 @@ const NSUInteger    kOVCSegmentDuration = 10;
             } else {
                 NSLog(@"Error opening file %@ to insert VOD header", m_outputStreamPath);
             }
-        } else if (m_useHLS) {
-            [NSTimer scheduledTimerWithTimeInterval:2.0
-                                             target:self
-                                           selector:@selector(waitForOutputStream)
-                                           userInfo:nil
-                                            repeats:NO];
-            return;
         }
 
+        [m_session stopStreaming];
         [delegate outputReady:self];
     } else {
         [NSTimer scheduledTimerWithTimeInterval:2.0

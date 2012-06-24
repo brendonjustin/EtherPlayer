@@ -458,7 +458,7 @@ const NSUInteger    kAHRequestTagReverse = 1,
         if (m_serverInfo != nil) {
             useHLS = ([[m_serverInfo objectForKey:@"features"] integerValue]
                       & kAHVideoHTTPLiveStreams) != 0;
-//            useHLS = NO;
+            useHLS = NO;
             m_videoManager.useHttpLiveStreaming = useHLS;
             
             m_serverCapabilities = [[m_serverInfo objectForKey:@"features"] integerValue];
