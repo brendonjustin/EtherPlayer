@@ -201,6 +201,18 @@ const NSUInteger    kOVCSegmentDuration = 10;
     m_session = [VLCStreamSession streamSession];
     m_session.media = inputMedia;
     
+    //  AAC is 1630826605
+    //  MP3 is 1634168941
+    //  AC3 is 540161377
+    //  AirPlay devices need not support AC3 audio, so this may need adjusting
+    //  VLCKit doesn't support AC3 in MP4, so don't allow it unless we are
+    //  using TS, i.e. we are using HTTP Live Streaming
+    audioCodecs = [NSMutableArray arrayWithObjects:@"1630826605", @"1634168941", nil];
+
+    if (m_useHLS) {
+        [audioCodecs addObject:@"540161377"];
+    }
+    
     streamOutputOptions = [NSMutableDictionary dictionary];
     
     for (NSDictionary *properties in [inputMedia tracksInformation]) {
@@ -232,14 +244,9 @@ const NSUInteger    kOVCSegmentDuration = 10;
                     audioChannels = @"6";
                     audioNeedsTranscode = YES;
                 }
-                
-                //  AAC is 1630826605
-                //  MP3 is 1634168941
-                //  AC3 is 540161377
-                //  AirPlay devices need not support AC3 audio, so this may need adjusting
-                if ([[properties objectForKey:@"codec"] integerValue] != 1630826605 &&
-                    [[properties objectForKey:@"codec"] integerValue] != 1634168941 &&
-                    [[properties objectForKey:@"codec"] integerValue] != 540161377) {
+
+                //  transcode if the audio codec is supported by the intended container
+                if (![audioCodecs containsObject:[properties objectForKey:@"codec"]]) {
                     audioNeedsTranscode = YES;
                 }
             }
