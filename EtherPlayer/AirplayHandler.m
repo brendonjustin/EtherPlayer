@@ -500,7 +500,7 @@ const NSUInteger    kAHRequestTagReverse = 1,
             NSError         *error = nil;
 
             userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
-                        @"Error: Target AirPlay server not ready.  "
+                        @"Target AirPlay server not ready.  "
                         "Check if it is on and idle.",
                         NSLocalizedDescriptionKey, nil];
             
@@ -508,7 +508,9 @@ const NSUInteger    kAHRequestTagReverse = 1,
             error = [NSError errorWithDomain:bundleIdentifier
                                         code:100
                                     userInfo:userInfo];
-            [self stoppedWithError:error];
+
+            NSLog(@"Error: %@", [error description]);
+            //  [self stoppedWithError:error];
         } else if (playbackInfo != nil) {
             m_playbackPosition = [[playbackInfo objectForKey:@"position"] doubleValue];
             m_paused = [[playbackInfo objectForKey:@"rate"] doubleValue] < 0.5f ? YES : NO;
