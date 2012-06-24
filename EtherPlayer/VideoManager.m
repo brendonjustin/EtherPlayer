@@ -17,7 +17,8 @@
 #import <arpa/inet.h>
 #import <ifaddrs.h>
 
-const NSString      *kOVCOutputFiletype = @"ts";
+const NSString      *kOVCNormalOutputFiletype = @"mp4";
+const NSString      *kOVCHLSOutputFiletype = @"ts";
 const NSUInteger    kOVCSegmentDuration = 10;
 
 @interface VideoManager () <VLCMediaDelegate>
@@ -159,13 +160,13 @@ const NSUInteger    kOVCSegmentDuration = 10;
 
     if (m_useHLS) {
         m_outputStreamFilename = [NSString stringWithFormat:@"%lu-#####.%@", m_sessionRandom,
-                                kOVCOutputFiletype];
+                                  kOVCHLSOutputFiletype];
         
         m_m3u8Filename = [NSString stringWithFormat:@"%lu.m3u8", m_sessionRandom];
         m_httpFilePath = [m_httpAddress stringByAppendingString:m_m3u8Filename];
     } else {
         m_outputStreamFilename = [NSString stringWithFormat:@"%lu.%@", m_sessionRandom,
-                                  kOVCOutputFiletype];
+                                  kOVCNormalOutputFiletype];
         m_httpFilePath = [m_httpAddress stringByAppendingString:m_outputStreamFilename];
     }
     
@@ -187,6 +188,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
     NSString            *videoFilesPath = nil;
     NSString            *videoFilesUrl = nil;
     NSString            *mrlString = nil;
+    NSMutableArray      *audioCodecs = nil;
     NSMutableDictionary *transcodingOptions = nil;
     NSMutableDictionary *outputOptions = nil;
     NSMutableDictionary *streamOutputOptions = nil;
@@ -255,13 +257,13 @@ const NSUInteger    kOVCSegmentDuration = 10;
     transcodingOptions = [NSMutableDictionary dictionary];
 
     if (subs != nil) {
-//        [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
-//                                                      subs, @"subtitleCodec",
-//                                                      nil]];
         [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
-                                                      [NSNumber numberWithBool:YES], @"subtitleOverlay",
+                                                      subs, @"subtitleCodec",
                                                       nil]];
-        videoNeedsTranscode = YES;
+//        [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
+//                                                      [NSNumber numberWithBool:YES], @"subtitleOverlay",
+//                                                      nil]];
+//        videoNeedsTranscode = YES;
     }
 
     if (videoNeedsTranscode) {
@@ -297,7 +299,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
         mrlString = @"livehttp{seglen=%u,delsegs=false,index=%@,index-url=%@},mux=%@{use-key-frames},dst=%@";
         outputOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
                          [NSString stringWithFormat:mrlString, kOVCSegmentDuration,
-                          m_outputStreamPath, videoFilesUrl, kOVCOutputFiletype,
+                          m_outputStreamPath, videoFilesUrl, kOVCHLSOutputFiletype,
                           videoFilesPath], @"access",
                          nil];
     } else {
@@ -305,7 +307,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
         
         mrlString = @"file,mux=%@{use-key-frames},dst=%@";
         outputOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                         [NSString stringWithFormat:mrlString, kOVCOutputFiletype,
+                         [NSString stringWithFormat:mrlString, kOVCNormalOutputFiletype,
                           m_outputStreamPath], @"access",
                          nil];
     }
