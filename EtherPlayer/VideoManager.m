@@ -187,7 +187,7 @@ const NSUInteger    kOVCSegmentDuration = 10;
     NSString            *subs = nil;
     NSString            *videoFilesPath = nil;
     NSString            *videoFilesUrl = nil;
-    NSString            *mrlString = nil;
+    NSString            *access = nil;
     NSMutableArray      *audioCodecs = nil;
     NSMutableDictionary *transcodingOptions = nil;
     NSMutableDictionary *outputOptions = nil;
@@ -303,20 +303,23 @@ const NSUInteger    kOVCSegmentDuration = 10;
     //  use part of an mrl to set our options all at once
     if (m_useHLS) {
         m_outputStreamPath = [m_baseFilePath stringByAppendingString:m_m3u8Filename];
-        
-        mrlString = @"livehttp{seglen=%u,delsegs=false,index=%@,index-url=%@},mux=%@{use-key-frames},dst=%@";
+
+        access = @"livehttp{seglen=%u,delsegs=false,index=%@,index-url=%@}";
         outputOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                         [NSString stringWithFormat:mrlString, kOVCSegmentDuration,
-                          m_outputStreamPath, videoFilesUrl, kOVCHLSOutputFiletype,
-                          videoFilesPath], @"access",
+                         [NSString stringWithFormat:access, kOVCSegmentDuration,
+                          m_outputStreamPath, videoFilesUrl], @"access",
+                         [NSString stringWithFormat:@"%@{use-key-frames}",
+                                  kOVCHLSOutputFiletype], @"muxer",
+                         videoFilesPath, @"destination",
                          nil];
     } else {
         m_outputStreamPath = videoFilesPath;
-        
-        mrlString = @"file,mux=%@{use-key-frames},dst=%@";
+
+        access = @"file";
         outputOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                         [NSString stringWithFormat:mrlString, kOVCNormalOutputFiletype,
-                          m_outputStreamPath], @"access",
+                         access, @"access",
+                         kOVCNormalOutputFiletype, @"muxer",
+                         m_outputStreamPath, @"destination",
                          nil];
     }
     
