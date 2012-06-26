@@ -46,6 +46,7 @@ const NSUInteger    kAHRequestTagReverse = 1,
 
 @property (strong, nonatomic) NSURL                 *m_baseUrl;
 @property (strong, nonatomic) NSString              *m_sessionID;
+@property (strong, nonatomic) NSString              *m_prevInfoRequest;
 @property (strong, nonatomic) NSMutableData         *m_responseData;
 @property (strong, nonatomic) NSMutableData         *m_data;
 @property (strong, nonatomic) NSTimer               *m_infoTimer;
@@ -69,6 +70,7 @@ const NSUInteger    kAHRequestTagReverse = 1,
 //  private properties
 @synthesize m_baseUrl;
 @synthesize m_sessionID;
+@synthesize m_prevInfoRequest;
 @synthesize m_responseData;
 @synthesize m_data;
 @synthesize m_infoTimer;
@@ -88,6 +90,7 @@ const NSUInteger    kAHRequestTagReverse = 1,
 - (id)init
 {
     if ((self = [super init])) {
+        m_prevInfoRequest = @"/scrub";
         m_airplaying = NO;
         m_paused = YES;
         m_playbackPosition = 0;
@@ -317,11 +320,13 @@ const NSUInteger    kAHRequestTagReverse = 1,
     NSMutableURLRequest     *request = nil;
     NSURLConnection         *nextConnection = nil;
 
-//    if ([m_previousInfoRequest isEqualToString:@"/playback-info"]) {
-//        nextRequest = @"/scrub";
-//    } else {
-//        nextRequest = @"/playback-info";
-//    }
+    if ([m_prevInfoRequest isEqualToString:@"/playback-info"]) {
+        nextRequest = @"/scrub";
+        m_prevInfoRequest = @"/scrub";
+    } else {
+        nextRequest = @"/playback-info";
+        m_prevInfoRequest = @"/playback-info";
+    }
 
     if (m_airplaying) {
         request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:nextRequest
