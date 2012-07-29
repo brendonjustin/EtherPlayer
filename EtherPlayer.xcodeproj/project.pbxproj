@@ -394,7 +394,7 @@
 			isa = PBXProject;
 			attributes = {
 				CLASSPREFIX = "";
-				LastUpgradeCheck = 0430;
+				LastUpgradeCheck = 0440;
 				ORGANIZATIONNAME = "Brendon Justin";
 			};
 			buildConfigurationList = 5C0A32C515786B2600D3A49F /* Build configuration list for PBXProject "EtherPlayer" */;
@@ -548,6 +548,7 @@
 		5C0A32EA15786B2700D3A49F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)\"",
@@ -563,6 +564,7 @@
 		5C0A32EB15786B2700D3A49F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)\"",
