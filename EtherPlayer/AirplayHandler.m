@@ -616,6 +616,11 @@ const NSUInteger    kAHPropertyRequestPlaybackAccess = 1,
             //  the first /reverse reply, now we should start playback
             [self playRequest];
             [m_reverseSocket readDataWithTimeout:100.0f tag:kAHRequestTagReverse];
+            [NSTimer scheduledTimerWithTimeInterval:10.0f
+                                             target:self
+                                           selector:@selector(writestuff)
+                                           userInfo:nil
+                                            repeats:YES];
         }
         
     } else if (tag == kAHRequestTagPlay) {
@@ -635,6 +640,38 @@ const NSUInteger    kAHPropertyRequestPlaybackAccess = 1,
                                                           repeats:YES];
         }
     }
+}
+
+- (void)writestuff {
+    NSData              *data = nil;
+    CFURLRef            myURL;
+    CFStringRef         bodyString;
+    CFStringRef         requestMethod;
+    CFHTTPMessageRef    myRequest;
+    CFDataRef           bodyDataExt;
+    CFDataRef           mySerializedRequest;
+    
+    bodyString = CFSTR("");
+    requestMethod = CFSTR("POST");
+    myURL = (__bridge CFURLRef)[m_baseUrl URLByAppendingPathComponent:@"stuff"];
+    myRequest = CFHTTPMessageCreateRequest(kCFAllocatorDefault, requestMethod,
+                                           myURL, kCFHTTPVersion1_1);
+    bodyDataExt = CFStringCreateExternalRepresentation(kCFAllocatorDefault,
+                                                       bodyString,
+                                                       kCFStringEncodingUTF8,
+                                                       0);
+    CFHTTPMessageSetBody(myRequest, bodyDataExt);
+    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("X-Apple-Purpose"),
+                                     CFSTR("event"));
+    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("User-Agent"),
+                                     CFSTR("MediaControl/1.0"));
+    CFHTTPMessageSetHeaderFieldValue(myRequest, CFSTR("X-Apple-Session-ID"),
+                                     (__bridge CFStringRef)m_sessionID);
+    mySerializedRequest = CFHTTPMessageCopySerializedMessage(myRequest);
+    data = (__bridge NSData *)mySerializedRequest;
+    [m_reverseSocket writeData:data
+                   withTimeout:1.0f
+                           tag:kAHRequestTagReverse];
 }
 
 @end
