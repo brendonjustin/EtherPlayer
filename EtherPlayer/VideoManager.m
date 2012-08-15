@@ -19,7 +19,7 @@
 
 const NSString      *kOVCNormalOutputFiletype = @"mp4";
 const NSString      *kOVCHLSOutputFiletype = @"ts";
-const NSUInteger    kOVCSegmentDuration = 10;
+const NSUInteger    kOVCSegmentDuration = 15;
 const BOOL          kOVCIncludeSubs = NO;
 
 @interface VideoManager () <VLCMediaDelegate>
