@@ -57,6 +57,7 @@ const NSUInteger    kAHPropertyRequestPlaybackAccess = 1,
 @property (strong, nonatomic) NSDictionary          *m_serverInfo;
 @property (strong, nonatomic) GCDAsyncSocket        *m_reverseSocket;
 @property (strong, nonatomic) GCDAsyncSocket        *m_mainSocket;
+@property (strong, nonatomic) NSOperationQueue      *m_operationQueue;
 @property (nonatomic) BOOL                          m_airplaying;
 @property (nonatomic) BOOL                          m_paused;
 @property (nonatomic) double                        m_playbackPosition;
@@ -80,6 +81,7 @@ const NSUInteger    kAHPropertyRequestPlaybackAccess = 1,
 @synthesize m_targetService;
 @synthesize m_reverseSocket;
 @synthesize m_mainSocket;
+@synthesize m_operationQueue;
 @synthesize m_airplaying;
 @synthesize m_paused;
 @synthesize m_playbackPosition;
@@ -94,6 +96,8 @@ const NSUInteger    kAHPropertyRequestPlaybackAccess = 1,
 {
     if ((self = [super init])) {
         m_prevInfoRequest = @"/scrub";
+        m_operationQueue = [NSOperationQueue mainQueue];
+        m_operationQueue.name = @"Connection Queue";
         m_airplaying = NO;
         m_paused = YES;
         m_playbackPosition = 0;
@@ -105,7 +109,6 @@ const NSUInteger    kAHPropertyRequestPlaybackAccess = 1,
 - (void)setTargetService:(NSNetService *)targetService
 {
     NSMutableURLRequest *request = nil;
-    NSURLConnection     *connection = nil;
     NSArray             *sockArray = nil;
     NSData              *sockData = nil;
     char                addressBuffer[100];
@@ -159,8 +162,34 @@ const NSUInteger    kAHPropertyRequestPlaybackAccess = 1,
     request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/server-info"
                                                          relativeToURL:m_baseUrl]];
     [self setCommonHeadersForRequest:request];
-    connection = [NSURLConnection connectionWithRequest:request delegate:self];
-    [connection start];
+    [NSURLConnection sendAsynchronousRequest:request
+                                       queue:m_operationQueue
+                           completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+                               NSString                *errDesc = nil;
+                               NSPropertyListFormat    format;
+                               BOOL                    useHLS = NO;
+                               
+                               if (error != nil) {
+                                   NSLog(@"Error getting /server-info");
+                                   return;
+                               }
+                               
+                               m_serverInfo = [NSPropertyListSerialization propertyListFromData:data
+                                                                               mutabilityOption:NSPropertyListImmutable
+                                                                                         format:&format
+                                                                               errorDescription:&errDesc];
+                               
+                               if (m_serverInfo != nil) {
+                                   useHLS = ([[m_serverInfo objectForKey:@"features"] integerValue]
+                                             & kAHVideoHTTPLiveStreams) != 0;
+//                                   useHLS = NO;
+                                   m_videoManager.useHttpLiveStreaming = useHLS;
+                                   
+                                   m_serverCapabilities = [[m_serverInfo objectForKey:@"features"] integerValue];
+                               } else {
+                                   NSLog(@"Error parsing /server-info response: %@", errDesc);
+                               }
+                           }];
 }
 
 - (void)togglePaused
@@ -321,30 +350,91 @@ const NSUInteger    kAHPropertyRequestPlaybackAccess = 1,
 {
     NSString                *nextRequest = @"/playback-info";
     NSMutableURLRequest     *request = nil;
-    NSURLConnection         *nextConnection = nil;
-
-    if ([m_prevInfoRequest isEqualToString:@"/playback-info"]) {
-        nextRequest = @"/scrub";
-        m_prevInfoRequest = @"/scrub";
-    } else {
-        nextRequest = @"/playback-info";
-        m_prevInfoRequest = @"/playback-info";
-    }
-
+    
     if (m_airplaying) {
-        request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:nextRequest
-                                                             relativeToURL:m_baseUrl]];
-        [self setCommonHeadersForRequest:request];
-        nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
-        [nextConnection start];
+        if ([m_prevInfoRequest isEqualToString:@"/playback-info"]) {
+            nextRequest = @"/scrub";
+            m_prevInfoRequest = @"/scrub";
+            
+            request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:nextRequest
+                                                                 relativeToURL:m_baseUrl]];
+            [self setCommonHeadersForRequest:request];
+            [NSURLConnection sendAsynchronousRequest:request
+                                               queue:m_operationQueue
+                                   completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+                                       //  update our position in the file after /scrub
+                                       NSString    *responseString = [NSString stringWithUTF8String:[data bytes]];
+                                       NSRange     cachedDurationRange = [responseString rangeOfString:@"position: "];
+                                       NSUInteger  cachedDurationEnd;
+                                       
+                                       if (cachedDurationRange.location != NSNotFound) {
+                                           cachedDurationEnd = cachedDurationRange.location + cachedDurationRange.length;
+                                           m_playbackPosition = [[responseString substringFromIndex:cachedDurationEnd] doubleValue];
+                                           [delegate positionUpdated:m_playbackPosition];
+                                       }
+                                   }];
+        } else {
+            nextRequest = @"/playback-info";
+            m_prevInfoRequest = @"/playback-info";
+            
+            request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:nextRequest
+                                                                 relativeToURL:m_baseUrl]];
+            [self setCommonHeadersForRequest:request];
+            [NSURLConnection sendAsynchronousRequest:request
+                                               queue:m_operationQueue
+                                   completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+                                       //  update our playback status and position after /playback-info
+                                       NSDictionary            *playbackInfo = nil;
+                                       NSString                *errDesc = nil;
+                                       NSNumber                *readyToPlay = nil;
+                                       NSPropertyListFormat    format;
+                                       
+                                       if (!m_airplaying) {
+                                           return;
+                                       }
+                                       
+                                       playbackInfo = [NSPropertyListSerialization propertyListFromData:data
+                                                                                       mutabilityOption:NSPropertyListImmutable
+                                                                                                 format:&format
+                                                                                       errorDescription:&errDesc];
+                                       
+                                       if ((readyToPlay = [playbackInfo objectForKey:@"readyToPlay"])
+                                           && ([readyToPlay boolValue] == NO)) {
+                                           NSDictionary    *userInfo = nil;
+                                           NSString        *bundleIdentifier = nil;
+                                           NSError         *error = nil;
+                                           
+                                           userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+                                                       @"Target AirPlay server not ready.  "
+                                                       "Check if it is on and idle.",
+                                                       NSLocalizedDescriptionKey, nil];
+                                           
+                                           bundleIdentifier = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleIdentifier"];
+                                           error = [NSError errorWithDomain:bundleIdentifier
+                                                                       code:100
+                                                                   userInfo:userInfo];
+                                           
+                                           NSLog(@"Error: %@", [error description]);
+                                           //  [self stoppedWithError:error];
+                                       } else if ([playbackInfo objectForKey:@"position"]) {
+                                           m_playbackPosition = [[playbackInfo objectForKey:@"position"] doubleValue];
+                                           m_paused = [[playbackInfo objectForKey:@"rate"] doubleValue] < 0.5f ? YES : NO;
+                                           
+                                           [delegate setPaused:m_paused];
+                                           [delegate positionUpdated:m_playbackPosition];
+                                       } else if (playbackInfo != nil) {
+                                           [self getPropertyRequest:kAHPropertyRequestPlaybackError];
+                                       } else {
+                                           NSLog(@"Error parsing /playback-info response: %@", errDesc);
+                                       }
+                                   }];
+        }
     }
 }
 
 - (void)getPropertyRequest:(NSUInteger)property
 {
     NSMutableURLRequest *request = nil;
-    NSURLConnection     *nextConnection = nil;
-
     if (property == kAHPropertyRequestPlaybackAccess) {
         request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/getProperty?playbackAccessLog"
                                                              relativeToURL:m_baseUrl]];
@@ -356,21 +446,37 @@ const NSUInteger    kAHPropertyRequestPlaybackAccess = 1,
     [self setCommonHeadersForRequest:request];
     [request setValue:@"application/x-apple-binary-plist" forHTTPHeaderField:@"Content-Type"];
 
-    nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
-    [nextConnection start];
+    [NSURLConnection sendAsynchronousRequest:request
+                                       queue:m_operationQueue
+                           completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+                               //  update our playback status and position after /playback-info
+                               NSDictionary            *propertyPlist = nil;
+                               NSString                *errDesc = nil;
+                               NSPropertyListFormat    format;
+                               
+                               if (!m_airplaying) {
+                                   return;
+                               }
+                               
+                               propertyPlist = [NSPropertyListSerialization propertyListFromData:data
+                                                                                mutabilityOption:NSPropertyListImmutable
+                                                                                          format:&format
+                                                                                errorDescription:&errDesc];
+                           }];
 }
 
 - (void)stopRequest
 {
     NSMutableURLRequest *request = nil;
-    NSURLConnection     *nextConnection = nil;
-
     request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/stop"
                                                          relativeToURL:m_baseUrl]];
     
     [self setCommonHeadersForRequest:request];
-    nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
-    [nextConnection start];
+    [NSURLConnection sendAsynchronousRequest:request
+                                       queue:m_operationQueue
+                           completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+                               [self stoppedWithError:nil];
+                           }];
 }
 
 - (void)stopPlayback
@@ -384,7 +490,6 @@ const NSUInteger    kAHPropertyRequestPlaybackAccess = 1,
 - (void)changePlaybackStatus
 {
     NSMutableURLRequest *request = nil;
-    NSURLConnection     *nextConnection = nil;
     NSString            *rateString = @"/rate?value=1.00000";
     
     if (m_paused) {
@@ -396,8 +501,11 @@ const NSUInteger    kAHPropertyRequestPlaybackAccess = 1,
     request.HTTPMethod = @"POST";
     [self setCommonHeadersForRequest:request];
     
-    nextConnection = [NSURLConnection connectionWithRequest:request delegate:self];
-    [nextConnection start];
+    [NSURLConnection sendAsynchronousRequest:request
+                                       queue:m_operationQueue
+                           completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+                               //   Do nothing on completion
+                           }];
 }
 
 - (void)stoppedWithError:(NSError *)error
@@ -410,165 +518,6 @@ const NSUInteger    kAHPropertyRequestPlaybackAccess = 1,
     [delegate positionUpdated:m_playbackPosition];
     [delegate durationUpdated:0];
     [delegate airplayStoppedWithError:error];
-}
-
-#pragma mark -
-#pragma mark NSURLConnectionDelegate methods
-
-- (NSCachedURLResponse *)connection:(NSURLConnection *)connection
-                  willCacheResponse:(NSCachedURLResponse *)cachedResponse
-{
-    return cachedResponse;
-}
-
-- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
-{
-    if (kAHEnableDebugOutput) {
-        if ([response isKindOfClass: [NSHTTPURLResponse class]])
-            NSLog(@"Response code: %ld %@; connection: %@",
-                  [(NSHTTPURLResponse *)response statusCode],
-                  [NSHTTPURLResponse localizedStringForStatusCode:[(NSHTTPURLResponse *)response statusCode]],
-                  connection);
-    }
-    
-    m_responseData = [[NSMutableData alloc] init];
-}
-
-- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
-{
-    [m_responseData appendData:data];
-}
-
-- (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten
- totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite
-{
-    return;
-}
-
-- (NSURLRequest *)connection:(NSURLConnection *)connection 
-             willSendRequest:(NSURLRequest *)request 
-            redirectResponse:(NSURLResponse *)response
-{
-    return  request;
-}
-
-- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
-{
-    NSLog(@"Connection failed with error code %ld", error.code);
-
-    [self stoppedWithError:error];
-}
-
-- (void)connectionDidFinishLoading:(NSURLConnection *)connection
-{
-    NSString    *response = [[NSString alloc] initWithData:m_responseData
-                                                  encoding:NSASCIIStringEncoding];
-    NSString    *description = [connection description];
-    
-    if (kAHEnableDebugOutput) {
-        if ([response isEqualToString:@""]) {
-            NSLog(@"connectionDidFinishLoading: called; empty response body");
-        } else {
-            NSLog(@"connectionDidFinishLoading: called; response body: %@", response);
-        }
-    }
-    
-    if (([description rangeOfString:@"/server-info"]).location != NSNotFound) {
-        NSString                *errDesc = nil;
-        NSPropertyListFormat    format;
-        BOOL                    useHLS = NO;
-        
-        m_serverInfo = [NSPropertyListSerialization propertyListFromData:m_responseData
-                                                        mutabilityOption:NSPropertyListImmutable
-                                                                  format:&format
-                                                        errorDescription:&errDesc];
-        
-        if (m_serverInfo != nil) {
-            useHLS = ([[m_serverInfo objectForKey:@"features"] integerValue]
-                      & kAHVideoHTTPLiveStreams) != 0;
-//            useHLS = NO;
-            m_videoManager.useHttpLiveStreaming = useHLS;
-            
-            m_serverCapabilities = [[m_serverInfo objectForKey:@"features"] integerValue];
-        } else {
-            NSLog(@"Error parsing /server-info response: %@", errDesc);
-        }
-    } else if (([description rangeOfString:@"/rate"]).location != NSNotFound) {
-        //  nothing to do for /rate
-    } else if (([description rangeOfString:@"/scrub"]).location != NSNotFound) {
-        //  update our position in the file after /scrub
-        NSRange     cachedDurationRange = [response rangeOfString:@"position: "];
-        NSUInteger  cachedDurationEnd;
-        
-        if (cachedDurationRange.location != NSNotFound) {
-            cachedDurationEnd = cachedDurationRange.location + cachedDurationRange.length;
-            m_playbackPosition = [[response substringFromIndex:cachedDurationEnd] doubleValue];
-            [delegate positionUpdated:m_playbackPosition];
-        }
-    } else if (([description rangeOfString:@"/playback-info"]).location != NSNotFound) {
-        //  update our playback status and position after /playback-info
-        NSDictionary            *playbackInfo = nil;
-        NSString                *errDesc = nil;
-        NSNumber                *readyToPlay = nil;
-        NSPropertyListFormat    format;
-        
-        if (!m_airplaying) {
-            return;
-        }
-        
-        playbackInfo = [NSPropertyListSerialization propertyListFromData:m_responseData
-                                                        mutabilityOption:NSPropertyListImmutable
-                                                                  format:&format
-                                                        errorDescription:&errDesc];
-        
-        if ((readyToPlay = [playbackInfo objectForKey:@"readyToPlay"])
-            && ([readyToPlay boolValue] == NO)) {
-            NSDictionary    *userInfo = nil;
-            NSString        *bundleIdentifier = nil;
-            NSError         *error = nil;
-
-            userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
-                        @"Target AirPlay server not ready.  "
-                        "Check if it is on and idle.",
-                        NSLocalizedDescriptionKey, nil];
-            
-            bundleIdentifier = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleIdentifier"];
-            error = [NSError errorWithDomain:bundleIdentifier
-                                        code:100
-                                    userInfo:userInfo];
-
-            NSLog(@"Error: %@", [error description]);
-            //  [self stoppedWithError:error];
-        } else if ([playbackInfo objectForKey:@"position"]) {
-            m_playbackPosition = [[playbackInfo objectForKey:@"position"] doubleValue];
-            m_paused = [[playbackInfo objectForKey:@"rate"] doubleValue] < 0.5f ? YES : NO;
-            
-            [delegate setPaused:m_paused];
-            [delegate positionUpdated:m_playbackPosition];
-        } else if (playbackInfo != nil) {
-            [self getPropertyRequest:kAHPropertyRequestPlaybackError];
-        } else {
-            NSLog(@"Error parsing /playback-info response: %@", errDesc);
-        }
-    } else if (([description rangeOfString:@"/getProperty"]).location != NSNotFound) {
-        //  update our playback status and position after /playback-info
-        NSDictionary            *propertyPlist = nil;
-        NSString                *errDesc = nil;
-        NSPropertyListFormat    format;
-        
-        if (!m_airplaying) {
-            return;
-        }
-        
-        propertyPlist = [NSPropertyListSerialization propertyListFromData:m_responseData
-                                                         mutabilityOption:NSPropertyListImmutable
-                                                                   format:&format
-                                                         errorDescription:&errDesc];
-    
-        NSLog(@"NRRRRR");
-    } else if (([description rangeOfString:@"/stop"]).location != NSNotFound) {
-        [self stoppedWithError:nil];
-    }
 }
 
 #pragma mark -

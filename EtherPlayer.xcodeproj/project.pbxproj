@@ -573,6 +573,7 @@
 				GCC_PREFIX_HEADER = "EtherPlayer/EtherPlayer-Prefix.pch";
 				INFOPLIST_FILE = "EtherPlayer/EtherPlayer-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

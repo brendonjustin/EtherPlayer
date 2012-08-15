@@ -19,7 +19,7 @@
 
 @class VideoManager;
 
-@interface AirplayHandler : NSObject <NSURLConnectionDelegate>
+@interface AirplayHandler : NSObject
 
 - (void)setTargetService:(NSNetService *)targetService;
 - (void)startAirplay;
