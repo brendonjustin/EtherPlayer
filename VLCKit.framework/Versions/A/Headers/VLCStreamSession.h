@@ -3,7 +3,7 @@
  *****************************************************************************
  * Copyright (C) 2008 Pierre d'Herbemont
  * Copyright (C) 2008 VLC authors and VideoLAN
- * $Id$
+ * $Id: c9be53e4c7225a6c279607b720aaac065eb80acc $
  *
  * Authors: Pierre d'Herbemont <pdherbemont # videolan.org>
  *
