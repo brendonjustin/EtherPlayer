@@ -352,7 +352,8 @@ const BOOL          kOVCIncludeSubs = NO;
 //  been created for the input video
 - (void)waitForOutputStream
 {
-    if ([m_session isComplete]) {
+    BOOL isA = NO;
+    if (isA || [m_session isComplete]) {
         //  temporary kludge to workaround VLCKit supporting only
         //  HLS for 'live' streams
         if (m_useHLS && [[NSFileManager defaultManager] fileExistsAtPath:m_outputStreamPath]) {
