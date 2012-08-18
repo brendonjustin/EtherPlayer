@@ -270,38 +270,28 @@ const BOOL          kOVCIncludeSubs = NO;
         //  VLCKit can't encode subs for MP4, so if we are using HLS then we have
         //  to burn the subs into the video
         if (m_useHLS) {
-            [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
-                                                          [NSNumber numberWithBool:YES], @"subtitleOverlay",
-                                                          nil]];
-            videoNeedsTranscode = YES;
+            [transcodingOptions addEntriesFromDictionary:@{ @"subtitleOverlay" : @YES }];
+             videoNeedsTranscode = YES;
         } else {
-            [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys: 
-                                                         @"dvbsub", @"subtitleEncoder",
-                                                          nil]];
+            [transcodingOptions addEntriesFromDictionary:@{ @"subtitleEncoder" : @"dvbsub" }];
         }
     }
 
     if (videoNeedsTranscode) {
-        [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
-                                                      videoCodec, @"videoCodec",
-                                                      videoBitrate, @"videoBitrate",
-                                                      width, @"width",
-                                                      nil]];
+        [transcodingOptions addEntriesFromDictionary:@{ @"videoCodec" : videoCodec,
+                                                        @"videoBitrate" : videoBitrate,
+                                                        @"width" : width }];
     }
     
     if (audioNeedsTranscode) {
-        [transcodingOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
-                                                      audioCodec, @"audioCodec",
-                                                      audioBitrate, @"audioBitrate",
-                                                      audioChannels, @"channels",
-                                                      @"Yes", @"audio-sync",
-                                                      nil]];
+        [transcodingOptions addEntriesFromDictionary:@{ @"audioCodec" : audioCodec,
+                                                        @"audioBitrate" : audioBitrate,
+                                                        @"channels" : audioChannels,
+                                                        @"audio-sync" : @"Yes" }];
     }
 
     if ([transcodingOptions count] > 0) {
-        [streamOutputOptions addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:
-                                                       transcodingOptions, @"transcodingOptions",
-                                                       nil]];
+        [streamOutputOptions addEntriesFromDictionary:@{ @"transcodingOptions" : transcodingOptions }];
     }
     
     videoFilesPath = [m_baseFilePath stringByAppendingString:m_outputStreamFilename];
@@ -312,27 +302,23 @@ const BOOL          kOVCIncludeSubs = NO;
         m_outputStreamPath = [m_baseFilePath stringByAppendingString:m_m3u8Filename];
 
         access = @"livehttp{seglen=%u,delsegs=false,index=%@,index-url=%@}";
-        outputOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                         [NSString stringWithFormat:access, kOVCSegmentDuration,
-                          m_outputStreamPath, videoFilesUrl], @"access",
-                         [NSString stringWithFormat:@"%@{use-key-frames}",
-                                  kOVCHLSOutputFiletype], @"muxer",
-                         videoFilesPath, @"destination",
-                         nil];
+        outputOptions = [NSMutableDictionary dictionaryWithDictionary:
+                         @{ @"access" :  [NSString stringWithFormat:access, kOVCSegmentDuration,
+                          m_outputStreamPath, videoFilesUrl],
+                         @"muxer" : [NSString stringWithFormat:@"%@{use-key-frames}",
+                                     kOVCHLSOutputFiletype],
+                         @"destination" : videoFilesPath }];
     } else {
         m_outputStreamPath = videoFilesPath;
 
         access = @"file";
-        outputOptions = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                         access, @"access",
-                         kOVCNormalOutputFiletype, @"muxer",
-                         m_outputStreamPath, @"destination",
-                         nil];
+        outputOptions = [NSMutableDictionary dictionaryWithDictionary:
+                         @{ @"access" : access,
+                         @"muxer" : kOVCNormalOutputFiletype,
+                         @"destination" : m_outputStreamPath }];
     }
     
-    [streamOutputOptions addEntriesFromDictionary:[NSMutableDictionary dictionaryWithObjectsAndKeys:
-                                                  outputOptions, @"outputOptions",
-                                                  nil]];
+    [streamOutputOptions addEntriesFromDictionary:@{ @"outputOptions" : outputOptions }];
     
     output = [VLCStreamOutput streamOutputWithOptionDictionary:streamOutputOptions];
     

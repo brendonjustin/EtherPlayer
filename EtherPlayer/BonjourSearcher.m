@@ -44,7 +44,7 @@
 - (void)postNotificationWithServices:(NSArray *)services;
 {
     NSNotification  *notification;
-    NSDictionary    *userInfo = [NSDictionary dictionaryWithObject:services forKey:@"targets"];
+    NSDictionary    *userInfo = @{ @"targets" : services };
     notification = [NSNotification notificationWithName:@"AirplayTargets" 
                                                  object:self 
                                                userInfo:userInfo];

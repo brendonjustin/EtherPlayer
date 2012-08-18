@@ -296,8 +296,8 @@ const NSUInteger    kAHPropertyRequestPlaybackAccess = 1,
     httpFilePath = m_videoManager.httpFilePath;
     appName = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"];
 
-    plist = [NSDictionary dictionaryWithObjectsAndKeys:httpFilePath, @"Content-Location",
-             [NSNumber numberWithFloat:0.0f], @"Start-Position", nil];
+    plist = @{ @"Content-Location" : httpFilePath,
+               @"Start-Position" : @0.0f };
     
     outData = [NSPropertyListSerialization dataFromPropertyList:plist
                                                          format:NSPropertyListBinaryFormat_v1_0
@@ -404,10 +404,8 @@ const NSUInteger    kAHPropertyRequestPlaybackAccess = 1,
                                            NSString        *bundleIdentifier = nil;
                                            NSError         *error = nil;
                                            
-                                           userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
-                                                       @"Target AirPlay server not ready.  "
-                                                       "Check if it is on and idle.",
-                                                       NSLocalizedDescriptionKey, nil];
+                                           userInfo = @{ NSLocalizedDescriptionKey : @"Target AirPlay server not ready.  "
+                                                                                      "Check if it is on and idle." };
                                            
                                            bundleIdentifier = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleIdentifier"];
                                            error = [NSError errorWithDomain:bundleIdentifier
