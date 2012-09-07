@@ -21,6 +21,7 @@ const NSString      *kOVCNormalOutputFiletype = @"mp4";
 const NSString      *kOVCHLSOutputFiletype = @"ts";
 const NSUInteger    kOVCSegmentDuration = 15;
 const BOOL          kOVCIncludeSubs = NO;
+const BOOL          kOVCCleanTempDir = NO;
 
 @interface VideoManager () <VLCMediaDelegate>
 
@@ -392,7 +393,7 @@ const BOOL          kOVCIncludeSubs = NO;
     NSString                *currentFile = nil;
     BOOL                    success;
     
-    while (currentFile = [directoryEnum nextObject]) {
+    while (kOVCCleanTempDir && (currentFile = [directoryEnum nextObject])) {
         success = [fileManager removeItemAtPath:[m_baseFilePath stringByAppendingPathComponent:currentFile]
                                           error:&error];
         if (!success && error != nil) {
