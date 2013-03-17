@@ -3,7 +3,7 @@
  *****************************************************************************
  * Copyright (C) 2007-2009 Pierre d'Herbemont
  * Copyright (C) 2007-2009 VLC authors and VideoLAN
- * Partial Copyright (C) 2009 Felix Paul Kühne
+ * Copyright (C) 2009-2013 Felix Paul Kühne
  * $Id$
  *
  * Authors: Pierre d'Herbemont <pdherbemont # videolan.org>
@@ -117,11 +117,36 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
 
 @property (retain) id drawable; /* The videoView or videoLayer */
 
+/**
+ * Set/Get current video aspect ratio.
+ *
+ * \param psz_aspect new video aspect-ratio or NULL to reset to default
+ * \note Invalid aspect ratios are ignored.
+ * \return the video aspect ratio or NULL if unspecified
+ * (the result must be released with free()).
+ */
 - (void)setVideoAspectRatio:(char *)value;
 - (char *)videoAspectRatio;
 
+/**
+ * Set/Get current crop filter geometry.
+ *
+ * \param psz_geometry new crop filter geometry (NULL to unset)
+ * \return the crop filter geometry or NULL if unset
+ */
 - (void)setVideoCropGeometry:(char *)value;
 - (char *)videoCropGeometry;
+
+/**
+ * Set/Get the current video scaling factor.
+ * That is the ratio of the number of pixels on
+ * screen to the number of pixels in the original decoded video in each
+ * dimension. Zero is a special value; it will adjust the video to the output
+ * window/drawable (in windowed mode) or the entire screen.
+ *
+ * \param relative scale factor as float 
+ */
+@property (readwrite) float scaleFactor;
 
 /**
  * Take a snapshot of the current video.
@@ -142,13 +167,73 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  */
 - (void)setDeinterlaceFilter: (NSString *)name;
 
+/**
+ * Enable or disable adjust video filter (contrast, brightness, hue, saturation, gamma)
+ *
+ * \param bool value
+ */
+@property BOOL adjustFilterEnabled;
+/**
+ * Set/Get the adjust filter's contrast value
+ *
+ * \param float value (range: 0-2, default: 1.0)
+ */
+@property float contrast;
+/**
+ * Set/Get the adjust filter's brightness value
+ *
+ * \param float value (range: 0-2, default: 1.0)
+ */
+@property float brightness;
+/**
+ * Set/Get the adjust filter's hue value
+ *
+ * \param integer value (range: 0-360, default: 0)
+ */
+@property NSInteger hue;
+/**
+ * Set/Get the adjust filter's saturation value
+ *
+ * \param float value (range: 0-3, default: 1.0)
+ */
+@property float saturation;
+/**
+ * Set/Get the adjust filter's gamma value
+ *
+ * \param float value (range: 0-10, default: 1.0)
+ */
+@property float gamma;
+
+/**
+ * Get the requested movie play rate.
+ * @warning Depending on the underlying media, the requested rate may be
+ * different from the real playback rate. Due to limitations of some protocols
+ * this option may not be taken into account at all, if set.
+ * \param rate movie play rate to set
+ *
+ * \return movie play rate
+ */
 @property float rate;
 
 @property (readonly) VLCAudio * audio;
 
 /* Video Information */
+/**
+ * Get the current video size
+ * \return video size as CGSize
+ */
 - (CGSize)videoSize;
+/**
+ * Does the current media have a video output?
+ * \note a false return value doesn't mean that the video doesn't have any video
+ * \note tracks. Those might just be disabled.
+ * \return current video output status
+ */
 - (BOOL)hasVideoOut;
+/**
+ * Frames per second
+ * \return current media's frames per second value
+ */
 - (float)framesPerSecond;
 
 /**
@@ -164,10 +249,35 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
 - (VLCTime *)time;
 
 @property (readonly) VLCTime *remainingTime;
-@property (readonly) NSUInteger fps;
+
+/**
+ * Frames per second
+ * \note this property is deprecated. use (float)fps instead.
+ * \return current media's frames per second value
+ */
+@property (readonly) NSUInteger fps __attribute__((deprecated));
+
+/**
+ * Return the current video track index
+ * Note that the handled values do not match the videoTracks array indexes
+ * but refer to VLCMedia's VLCMediaTracksInformationId.
+ * \return 0 if none is set.
+ *
+ * Pass 0 to disable.
+ */
+@property (readwrite) NSUInteger currentVideoTrackIndex;
+
+/**
+ * Return the video tracks
+ *
+ * It includes the disabled fake track at index 0.
+ */
+- (NSArray *)videoTracks;
 
 /**
  * Return the current video subtitle index
+ * Note that the handled values do not match the videoSubTitles array indexes
+ * but refer to VLCMedia's VLCMediaTracksInformationId.
  * \return 0 if none is set.
  *
  * Pass 0 to disable.
@@ -187,6 +297,14 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  * \return if the call succeed..
  */
 - (BOOL)openVideoSubTitlesFromFile:(NSString *)path;
+
+/**
+ * Get the current subtitle delay. Positive values means subtitles are being
+ * displayed later, negative values earlier.
+ *
+ * \return time (in microseconds) the display of subtitles is being delayed
+ */
+@property (readwrite) NSInteger currentVideoSubTitleDelay;
 
 /**
  * Chapter selection and enumeration, it is bound
@@ -215,6 +333,8 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
 
 /**
  * Return the current audio track index
+ * Note that the handled values do not match the audioTracks array indexes
+ * but refer to VLCMedia's VLCMediaTracksInformationId.
  * \return 0 if none is set.
  *
  * Pass 0 to disable.
@@ -230,6 +350,14 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
 
 - (void)setAudioChannel:(NSInteger)value;
 - (NSInteger)audioChannel;
+
+/**
+ * Get the current audio delay. Positive values means audio is delayed further,
+ * negative values less.
+ *
+ * \return time (in microseconds) the audio playback is being delayed
+ */
+@property (readwrite) NSInteger currentAudioPlaybackDelay;
 
 /* Media Options */
 - (void)setMedia:(VLCMedia *)value;
@@ -354,9 +482,13 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
 
 /**
  * Returns the receiver's position in the reading.
- * \return A number between 0 and 1. indicating the position
+ * \return movie position as percentage between 0.0 and 1.0.
  */
 - (float)position;
+/**
+ * Set movie position. This has no effect if playback is not enabled.
+ * \param movie position as percentage between 0.0 and 1.0.
+ */
 - (void)setPosition:(float)newPosition;
 
 - (BOOL)isSeekable;
