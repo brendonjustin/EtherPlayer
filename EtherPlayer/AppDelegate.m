@@ -15,51 +15,41 @@
 
 - (void)airplayTargetsNotificationReceived:(NSNotification *)notification;
 
-@property (strong, nonatomic) AirplayHandler    *m_handler;
-@property (strong, nonatomic) BonjourSearcher   *m_searcher;
-@property (strong, nonatomic) NSMutableArray    *m_services;
-@property (strong, nonatomic) VideoManager      *m_manager;
+@property (strong, nonatomic) AirplayHandler    *handler;
+@property (strong, nonatomic) BonjourSearcher   *searcher;
+@property (strong, nonatomic) NSMutableArray    *services;
+@property (strong, nonatomic) VideoManager      *manager;
 
 @end
 
 @implementation AppDelegate
 
-@synthesize window = _window;
-@synthesize targetSelector = m_targetSelector;
-@synthesize playButton = m_playButton;
-@synthesize positionFieldCell = m_positionFieldCell;
-@synthesize durationFieldCell = m_durationFieldCell;
-@synthesize m_handler;
-@synthesize m_searcher;
-@synthesize m_services;
-@synthesize m_manager;
-
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     // Insert code here to initialize your application
-    m_searcher = [[BonjourSearcher alloc] init];
-    m_services = [NSMutableArray array];
+    self.searcher = [[BonjourSearcher alloc] init];
+    self.services = [NSMutableArray array];
 
-    m_targetSelector.autoenablesItems = YES;
+    self.targetSelector.autoenablesItems = YES;
 
     [[NSNotificationCenter defaultCenter] addObserver:self 
                                              selector:@selector(airplayTargetsNotificationReceived:) 
                                                  name:@"AirplayTargets" 
-                                               object:m_searcher];
+                                               object:self.searcher];
 
-    m_manager =  [[VideoManager alloc] init];
-    m_manager.delegate = self;
+    self.manager =  [[VideoManager alloc] init];
+    self.manager.delegate = self;
     
-    m_handler = [[AirplayHandler alloc] init];
-    m_handler.delegate = self;
-    m_handler.videoManager = m_manager;
+    self.handler = [[AirplayHandler alloc] init];
+    self.handler.delegate = self;
+    self.handler.videoManager = self.manager;
 
-    [m_searcher beginSearching];
+    [self.searcher beginSearching];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification
 {
-    [m_manager cleanup];
+    [self.manager cleanup];
 }
 
 - (IBAction)openFile:(id)sender
@@ -78,7 +68,7 @@
 - (BOOL)application:(NSApplication *)sender openFile:(NSString *)filename
 {
     [[NSDocumentController sharedDocumentController] noteNewRecentDocumentURL:[NSURL URLWithString:filename]];
-    [m_manager transcodeMediaForPath:filename];
+    [self.manager transcodeMediaForPath:filename];
     
     return YES;
 }
@@ -90,51 +80,51 @@
     NSLog(@"Found services: %@", services);
     
     for (NSNetService *service in services) {
-        if (![m_services containsObject:service]) {
-            [m_services addObject:service];
-            [m_targetSelector addItemWithTitle:service.hostName];
+        if (![self.services containsObject:service]) {
+            [self.services addObject:service];
+            [self.targetSelector addItemWithTitle:service.hostName];
             
-            if ([[m_targetSelector itemArray] count] == 1) {
-                [m_targetSelector selectItem:[m_targetSelector lastItem]];
+            if ([[self.targetSelector itemArray] count] == 1) {
+                [self.targetSelector selectItem:[self.targetSelector lastItem]];
                 [self updateTarget:self];
             }
         }
     }
     
-    for (NSNetService *service in m_services) {
+    for (NSNetService *service in self.services) {
         if (![services containsObject:service]) {
             [servicesToRemove addObject:service];
-            [m_targetSelector removeItemWithTitle:service.hostName];
+            [self.targetSelector removeItemWithTitle:service.hostName];
         }
     }
     
     for (NSNetService *service in servicesToRemove) {
-        [m_services removeObject:service];
+        [self.services removeObject:service];
     }
 }
 
 - (IBAction)pausePlayback:(id)sender
 {
-    [m_handler togglePaused];
+    [self.handler togglePaused];
 }
 
 - (IBAction)stopPlaying:(id)sender
 {
-    [m_handler stopPlayback];
-    [m_playButton setImage:[NSImage imageNamed:@"play.png"]];
+    [self.handler stopPlayback];
+    [self.playButton setImage:[NSImage imageNamed:@"play.png"]];
 }
 
 - (IBAction)updateTarget:(id)sender
 {
-    NSString *newHostName = [[m_targetSelector selectedItem] title];
+    NSString *newHostName = [[self.targetSelector selectedItem] title];
     NSNetService *selectedService = nil;
-    for (NSNetService *service in m_services) {
+    for (NSNetService *service in self.services) {
         if ([service.hostName isEqualToString:newHostName]) {
             selectedService = service;
         }
     }
     
-    [m_handler setTargetService:selectedService];
+    [self.handler setTargetService:selectedService];
 }
 
 #pragma mark -
@@ -143,9 +133,9 @@
 - (void)setPaused:(BOOL)paused
 {
     if (paused) {
-        [m_playButton setImage:[NSImage imageNamed:@"play.png"]];
+        [self.playButton setImage:[NSImage imageNamed:@"play.png"]];
     } else {
-        [m_playButton setImage:[NSImage imageNamed:@"pause.png"]];
+        [self.playButton setImage:[NSImage imageNamed:@"pause.png"]];
     }
 }
 
@@ -170,7 +160,7 @@
         [alert runModal];
     }
     
-    [m_playButton setImage:[NSImage imageNamed:@"play.png"]];
+    [self.playButton setImage:[NSImage imageNamed:@"play.png"]];
 }
 
 #pragma mark -
@@ -178,7 +168,7 @@
 
 - (void)outputReady:(id)sender
 {
-    [m_handler startAirplay];
+    [self.handler startAirplay];
 }
 
 @end

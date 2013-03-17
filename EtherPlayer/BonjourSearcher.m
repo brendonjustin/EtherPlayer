@@ -13,32 +13,28 @@
 - (void)handleError:(NSNumber *)error;
 - (void)postNotificationWithServices:(NSArray *)services;
 
-@property (strong, nonatomic) NSNetServiceBrowser   *m_browser;
-@property (strong, nonatomic) NSMutableArray        *m_unresolvedServices;
-@property (strong, nonatomic) NSMutableArray        *m_services;
+@property (strong, nonatomic) NSNetServiceBrowser   *browser;
+@property (strong, nonatomic) NSMutableArray        *unresolvedServices;
+@property (strong, nonatomic) NSMutableArray        *services;
 
 @end
 
 @implementation BonjourSearcher
 
-@synthesize m_services;
-@synthesize m_unresolvedServices;
-@synthesize m_browser;
-
 - (id)init
 {
     if ((self = [super init])) {
-        m_unresolvedServices = [NSMutableArray array];
-        m_services = [NSMutableArray array];
+        self.unresolvedServices = [NSMutableArray array];
+        self.services = [NSMutableArray array];
     }
     
     return self;
 }
 - (void)beginSearching
 {
-    m_browser = [[NSNetServiceBrowser alloc] init];
-    m_browser.delegate = self;
-    [m_browser searchForServicesOfType:@"_airplay._tcp." inDomain:@""];
+    self.browser = [[NSNetServiceBrowser alloc] init];
+    self.browser.delegate = self;
+    [self.browser searchForServicesOfType:@"_airplay._tcp." inDomain:@""];
 }
 
 - (void)postNotificationWithServices:(NSArray *)services;
@@ -81,7 +77,7 @@
     aNetService.delegate = self;
     [aNetService resolveWithTimeout:1000];
     
-    [m_unresolvedServices addObject:aNetService];
+    [self.unresolvedServices addObject:aNetService];
 }
 
 - (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser 
@@ -89,11 +85,11 @@
                moreComing:(BOOL)moreComing
 {
     NSLog(@"didRemoveService");
-    if ([m_unresolvedServices containsObject:aNetService]) {
-        [m_unresolvedServices removeObject:aNetService];
-    } else if ([m_services containsObject:aNetService]) {
-        [m_services removeObject:aNetService];
-        [self postNotificationWithServices:[m_services copy]];
+    if ([self.unresolvedServices containsObject:aNetService]) {
+        [self.unresolvedServices removeObject:aNetService];
+    } else if ([self.services containsObject:aNetService]) {
+        [self.services removeObject:aNetService];
+        [self postNotificationWithServices:[self.services copy]];
     }
     
 }
@@ -110,13 +106,13 @@
 
 - (void)netServiceDidResolveAddress:(NSNetService *)sender
 {
-    [m_services addObject:sender];
+    [self.services addObject:sender];
     
-    if ([m_unresolvedServices containsObject:sender]) {
-        [m_unresolvedServices removeObject:sender];
+    if ([self.unresolvedServices containsObject:sender]) {
+        [self.unresolvedServices removeObject:sender];
     }
     
-    [self postNotificationWithServices:[m_services copy]];
+    [self postNotificationWithServices:[self.services copy]];
 }
 
 @end

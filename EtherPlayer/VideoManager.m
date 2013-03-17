@@ -28,38 +28,21 @@ const BOOL          kOVCCleanTempDir = NO;
 - (void)transcodeMedia:(VLCMedia *)inputMedia;
 - (void)waitForOutputStream;
 
-@property (strong, nonatomic) VLCMedia          *m_inputMedia;
-@property (strong, nonatomic) VLCStreamSession  *m_session;
-@property (strong, nonatomic) NSString          *m_baseFilePath;
-@property (strong, nonatomic) NSString          *m_httpAddress;
-@property (strong, nonatomic) NSString          *m_httpFilePath;
-@property (strong, nonatomic) NSString          *m_outputStreamPath;
-@property (strong, nonatomic) NSString          *m_outputStreamFilename;
-@property (strong, nonatomic) NSString          *m_m3u8Filename;
-@property (strong, nonatomic) NSURL             *m_baseUrl;
-@property (strong, nonatomic) HTTPServer        *m_httpServer;
-@property (nonatomic) NSUInteger                m_sessionRandom;
+@property (strong, nonatomic) VLCMedia          *inputMedia;
+@property (strong, nonatomic) VLCStreamSession  *session;
+@property (strong, nonatomic) NSString          *baseFilePath;
+@property (strong, nonatomic) NSString          *httpAddress;
+@property (strong, nonatomic) NSString          *outputStreamPath;
+@property (strong, nonatomic) NSString          *outputStreamFilename;
+@property (strong, nonatomic) NSString          *m3u8Filename;
+@property (strong, nonatomic) NSURL             *baseUrl;
+@property (strong, nonatomic) HTTPServer        *httpServer;
+@property (nonatomic) NSUInteger                sessionRandom;
+@property (nonatomic) BOOL                      useHLS;
 
 @end
 
 @implementation VideoManager
-
-//  public properties
-@synthesize delegate;
-@synthesize httpFilePath = m_httpFilePath;
-@synthesize useHttpLiveStreaming = m_useHLS;
-
-//  private properties
-@synthesize m_inputMedia;
-@synthesize m_session;
-@synthesize m_baseFilePath;
-@synthesize m_httpAddress;
-@synthesize m_outputStreamPath;
-@synthesize m_outputStreamFilename;
-@synthesize m_m3u8Filename;
-@synthesize m_baseUrl;
-@synthesize m_httpServer;
-@synthesize m_sessionRandom;
 
 //  temporary directory code thanks to a Stack Overflow post
 //  http://stackoverflow.com/questions/374431/how-do-i-get-the-default-temporary-directory-on-mac-os-x
@@ -74,27 +57,27 @@ const BOOL          kOVCCleanTempDir = NO;
         struct ifaddrs  *ifap;
         struct ifaddrs  *ifap0;
         
-        m_httpAddress = nil;
-        m_session = nil;
+        self.httpAddress = nil;
+        self.session = nil;
         
         tempDir = NSTemporaryDirectory();
         if (tempDir == nil)
             tempDir = @"/tmp";
         
         bundleIdentifier = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleIdentifier"];
-        m_baseFilePath = [tempDir stringByAppendingString:bundleIdentifier];
-        m_baseFilePath = [m_baseFilePath stringByAppendingString:@"/"];
-        [[NSFileManager defaultManager] createDirectoryAtPath:m_baseFilePath
+        self.baseFilePath = [tempDir stringByAppendingString:bundleIdentifier];
+        self.baseFilePath = [self.baseFilePath stringByAppendingString:@"/"];
+        [[NSFileManager defaultManager] createDirectoryAtPath:self.baseFilePath
                                   withIntermediateDirectories:NO 
                                                    attributes:nil 
                                                         error:&error];
         
         //  create our http server and set the port arbitrarily
-        m_httpServer = [[HTTPServer alloc] init];
-        m_httpServer.documentRoot = m_baseFilePath;
-        m_httpServer.port = 6004;
+        self.httpServer = [[HTTPServer alloc] init];
+        self.httpServer.documentRoot = self.baseFilePath;
+        self.httpServer.port = 6004;
         
-        if(![m_httpServer start:&error])
+        if(![self.httpServer start:&error])
         {
             NSLog(@"Error starting HTTP Server: %@", error);
         }
@@ -110,14 +93,14 @@ const BOOL          kOVCCleanTempDir = NO;
                     //  look for en0 and hope it is the primary lan interface as on the MBA and iPhone,
                     //  but take anything aside from loopback as a fallback
                     adapterName = [NSString stringWithUTF8String:ifap->ifa_name];
-                    if (m_httpAddress == nil && ![adapterName isEqualToString:@"lo0"]) {
+                    if (self.httpAddress == nil && ![adapterName isEqualToString:@"lo0"]) {
                         //  Get NSString from C String
-                        m_httpAddress = [NSString stringWithUTF8String:inet_ntoa(((struct sockaddr_in *)ifap->ifa_addr)->sin_addr)];
+                        self.httpAddress = [NSString stringWithUTF8String:inet_ntoa(((struct sockaddr_in *)ifap->ifa_addr)->sin_addr)];
                     }
                     
                     if([[NSString stringWithUTF8String:ifap->ifa_name] isEqualToString:@"en0"]) {
                         //  Get NSString from C String
-                        m_httpAddress = [NSString stringWithUTF8String:inet_ntoa(((struct sockaddr_in *)ifap->ifa_addr)->sin_addr)];               
+                        self.httpAddress = [NSString stringWithUTF8String:inet_ntoa(((struct sockaddr_in *)ifap->ifa_addr)->sin_addr)];               
                     }
                 }
                 ifap = ifap->ifa_next;
@@ -126,11 +109,11 @@ const BOOL          kOVCCleanTempDir = NO;
         //  Free memory
         freeifaddrs(ifap0);
         
-        if (m_httpAddress == nil) {
+        if (self.httpAddress == nil) {
             NSLog(@"Error, could not find a non-loopback IPv4 address for myself.");
         } else {
-            m_httpAddress = [@"http://" stringByAppendingFormat:@"%@:%u/",
-                             m_httpAddress, m_httpServer.port];
+            self.httpAddress = [@"http://" stringByAppendingFormat:@"%@:%u/",
+                             self.httpAddress, self.httpServer.port];
         }
         
         //  settings for VLCKit, copied from VLCKit's VLCLibrary.m and slightly modified
@@ -151,30 +134,40 @@ const BOOL          kOVCCleanTempDir = NO;
     return self;
 }
 
+- (void)setUseHttpLiveStreaming:(BOOL)useHttpLiveStreaming
+{
+    self.useHLS = useHttpLiveStreaming;
+}
+
+- (BOOL)useHttpLiveStreaming
+{
+    return self.useHLS;
+}
+
 - (void)transcodeMediaForPath:(NSString *)mediaPath
 {
-    m_sessionRandom = arc4random();
+    self.sessionRandom = arc4random();
 
     if ([mediaPath rangeOfString:@"file://localhost"].location != NSNotFound) {
         mediaPath = [mediaPath stringByReplacingOccurrencesOfString:@"file://localhost" withString:@""];
         mediaPath = [mediaPath stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     }
 
-    if (m_useHLS) {
-        m_outputStreamFilename = [NSString stringWithFormat:@"%lu-#####.%@", m_sessionRandom,
+    if (self.useHLS) {
+        self.outputStreamFilename = [NSString stringWithFormat:@"%lu-#####.%@", self.sessionRandom,
                                   kOVCHLSOutputFiletype];
         
-        m_m3u8Filename = [NSString stringWithFormat:@"%lu.m3u8", m_sessionRandom];
-        m_httpFilePath = [m_httpAddress stringByAppendingString:m_m3u8Filename];
+        self.m3u8Filename = [NSString stringWithFormat:@"%lu.m3u8", self.sessionRandom];
+        self.httpFilePath = [self.httpAddress stringByAppendingString:self.m3u8Filename];
     } else {
-        m_outputStreamFilename = [NSString stringWithFormat:@"%lu.%@", m_sessionRandom,
+        self.outputStreamFilename = [NSString stringWithFormat:@"%lu.%@", self.sessionRandom,
                                   kOVCNormalOutputFiletype];
-        m_httpFilePath = [m_httpAddress stringByAppendingString:m_outputStreamFilename];
+        self.httpFilePath = [self.httpAddress stringByAppendingString:self.outputStreamFilename];
     }
     
-    m_inputMedia = [VLCMedia mediaWithPath:mediaPath];
-    m_inputMedia.delegate = self;
-    [m_inputMedia parse];
+    self.inputMedia = [VLCMedia mediaWithPath:mediaPath];
+    self.inputMedia.delegate = self;
+    [self.inputMedia parse];
 }
 
 //  TODO: intelligently choose bitrates and channels
@@ -200,8 +193,8 @@ const BOOL          kOVCCleanTempDir = NO;
     
     [self stop];
     
-    m_session = [VLCStreamSession streamSession];
-    m_session.media = inputMedia;
+    self.session = [VLCStreamSession streamSession];
+    self.session.media = inputMedia;
     
     //  AAC is 1630826605
     //  MP3 is 1634168941
@@ -211,7 +204,7 @@ const BOOL          kOVCCleanTempDir = NO;
     //  using TS, i.e. we are using HTTP Live Streaming
     audioCodecs = [NSMutableArray arrayWithObjects:@"1630826605", @"1634168941", nil];
 
-    if (m_useHLS) {
+    if (self.useHLS) {
         [audioCodecs addObject:@"540161377"];
     }
     
@@ -270,7 +263,7 @@ const BOOL          kOVCCleanTempDir = NO;
     if (kOVCIncludeSubs && subs != nil) {
         //  VLCKit can't encode subs for MP4, so if we are using HLS then we have
         //  to burn the subs into the video
-        if (m_useHLS) {
+        if (self.useHLS) {
             [transcodingOptions addEntriesFromDictionary:@{ @"subtitleOverlay" : @YES }];
              videoNeedsTranscode = YES;
         } else {
@@ -295,43 +288,43 @@ const BOOL          kOVCCleanTempDir = NO;
         [streamOutputOptions addEntriesFromDictionary:@{ @"transcodingOptions" : transcodingOptions }];
     }
     
-    videoFilesPath = [m_baseFilePath stringByAppendingString:m_outputStreamFilename];
-    videoFilesUrl = [m_httpAddress stringByAppendingString:m_outputStreamFilename];
+    videoFilesPath = [self.baseFilePath stringByAppendingString:self.outputStreamFilename];
+    videoFilesUrl = [self.httpAddress stringByAppendingString:self.outputStreamFilename];
     
     //  use part of an mrl to set our options all at once
-    if (m_useHLS) {
-        m_outputStreamPath = [m_baseFilePath stringByAppendingString:m_m3u8Filename];
+    if (self.useHLS) {
+        self.outputStreamPath = [self.baseFilePath stringByAppendingString:self.m3u8Filename];
 
         access = @"livehttp{seglen=%u,delsegs=false,index=%@,index-url=%@}";
         outputOptions = [NSMutableDictionary dictionaryWithDictionary:
                          @{ @"access" :  [NSString stringWithFormat:access, kOVCSegmentDuration,
-                          m_outputStreamPath, videoFilesUrl],
+                          self.outputStreamPath, videoFilesUrl],
                          @"muxer" : [NSString stringWithFormat:@"%@{use-key-frames}",
                                      kOVCHLSOutputFiletype],
                          @"destination" : videoFilesPath }];
     } else {
-        m_outputStreamPath = videoFilesPath;
+        self.outputStreamPath = videoFilesPath;
 
         access = @"file";
         outputOptions = [NSMutableDictionary dictionaryWithDictionary:
                          @{ @"access" : access,
                          @"muxer" : kOVCNormalOutputFiletype,
-                         @"destination" : m_outputStreamPath }];
+                         @"destination" : self.outputStreamPath }];
     }
     
     [streamOutputOptions addEntriesFromDictionary:@{ @"outputOptions" : outputOptions }];
     
     output = [VLCStreamOutput streamOutputWithOptionDictionary:streamOutputOptions];
     
-    m_session.streamOutput = output;
-    [m_session startStreaming];
+    self.session.streamOutput = output;
+    [self.session startStreaming];
 }
 
 - (void)stop
 {
-    //  if m_session exists, it must be stopped
-    //  if not, this is still OK since m_session was initialized to nil
-    [m_session stopStreaming];
+    //  if self.session exists, it must be stopped
+    //  if not, this is still OK since self.session was initialized to nil
+    [self.session stopStreaming];
 }
 
 //  wait for the output file for this session to be created,
@@ -340,9 +333,9 @@ const BOOL          kOVCCleanTempDir = NO;
 - (void)waitForOutputStream
 {
     BOOL isA = NO;
-    if (isA || [m_session isComplete]) {
-        [m_session stopStreaming];
-        [delegate outputReady:self];
+    if (isA || [self.session isComplete]) {
+        [self.session stopStreaming];
+        [self.delegate outputReady:self];
     } else {
         [NSTimer scheduledTimerWithTimeInterval:2.0
                                          target:self
@@ -354,19 +347,19 @@ const BOOL          kOVCCleanTempDir = NO;
 
 - (double)duration
 {
-    return m_inputMedia.length.intValue / 1000.0f;
+    return self.inputMedia.length.intValue / 1000.0f;
 }
 
 - (void)cleanup
 {
     NSFileManager           *fileManager = [NSFileManager defaultManager];
-    NSDirectoryEnumerator   *directoryEnum = [fileManager enumeratorAtPath:m_baseFilePath];    
+    NSDirectoryEnumerator   *directoryEnum = [fileManager enumeratorAtPath:self.baseFilePath];    
     NSError                 *error = nil;
     NSString                *currentFile = nil;
     BOOL                    success;
     
     while (kOVCCleanTempDir && (currentFile = [directoryEnum nextObject])) {
-        success = [fileManager removeItemAtPath:[m_baseFilePath stringByAppendingPathComponent:currentFile]
+        success = [fileManager removeItemAtPath:[self.baseFilePath stringByAppendingPathComponent:currentFile]
                                           error:&error];
         if (!success && error != nil) {
             NSLog(@"Error deleting temporary file: %@: %@", currentFile, error);
