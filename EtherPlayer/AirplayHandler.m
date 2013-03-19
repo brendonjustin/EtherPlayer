@@ -517,6 +517,7 @@ kAHPropertyRequestPlaybackError = 2;
         //  /reverse request data written
     } else if (tag == kAHRequestTagPlay) {
         //  /play request data written
+        self.airplaying = YES;
     }
 }
 
