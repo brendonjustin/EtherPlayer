@@ -276,7 +276,8 @@ const BOOL          kOVCCleanTempDir = NO;
                                                         @"videoBitrate" : videoBitrate,
                                                         @"width" : width }];
     }
-    
+    // don't transcode audio, because VLCKit crashes when doing so
+    audioNeedsTranscode = NO;
     if (audioNeedsTranscode) {
         [transcodingOptions addEntriesFromDictionary:@{ @"audioCodec" : audioCodec,
                                                         @"audioBitrate" : audioBitrate,
@@ -332,9 +333,12 @@ const BOOL          kOVCCleanTempDir = NO;
 //  been created for the input video
 - (void)waitForOutputStream
 {
-    BOOL isA = NO;
-    if (isA || [self.session isComplete]) {
-        [self.session stopStreaming];
+    BOOL isReady = (self.useHLS && [[NSFileManager defaultManager] fileExistsAtPath:self.outputStreamPath]) || [self.session isComplete];
+    
+    if (isReady) {
+        if ([self.session isComplete]) {
+            [self.session stopStreaming];
+        }
         [self.delegate outputReady:self];
     } else {
         [NSTimer scheduledTimerWithTimeInterval:2.0
