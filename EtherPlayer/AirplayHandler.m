@@ -134,8 +134,6 @@ kAHPropertyRequestPlaybackError = 2;
         }
     }
     
-    self.sessionID = @"09080524-2e51-457e-9bf5-bef9847f34ff";
-    
     //  make a request to /server-info on the target to get some info before
     //  we do anything else
     request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/server-info"
@@ -208,6 +206,14 @@ kAHPropertyRequestPlaybackError = 2;
     CFDataRef           mySerializedRequest;
     
     NSLog(@"/reverse");
+    
+    // generate a UUID for the session
+    CFUUIDRef UUID = CFUUIDCreate(kCFAllocatorDefault);
+    CFStringRef UUIDString = CFUUIDCreateString(kCFAllocatorDefault,UUID);
+    self.sessionID = (__bridge NSString *)UUIDString;
+    
+    CFRelease(UUID);
+    CFRelease(UUIDString);
     
     bodyString = CFSTR("");
     requestMethod = CFSTR("POST");
