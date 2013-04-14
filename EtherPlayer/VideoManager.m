@@ -276,8 +276,7 @@ const BOOL          kOVCCleanTempDir = NO;
                                                         @"videoBitrate" : videoBitrate,
                                                         @"width" : width }];
     }
-    // don't transcode audio, because VLCKit crashes when doing so
-    audioNeedsTranscode = NO;
+    
     if (audioNeedsTranscode) {
         [transcodingOptions addEntriesFromDictionary:@{ @"audioCodec" : audioCodec,
                                                         @"audioBitrate" : audioBitrate,
