@@ -47,12 +47,11 @@
 		5C0A32F215786C9400D3A49F /* BonjourSearcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32F115786C9400D3A49F /* BonjourSearcher.m */; };
 		5C0A32F515786D1000D3A49F /* AirplayHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32F415786D1000D3A49F /* AirplayHandler.m */; };
 		5C0DD8C6157FF566005C8FF8 /* VideoManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0DD8C5157FF566005C8FF8 /* VideoManager.m */; };
-		5C3A9BBC16F63CD800CEF30A /* VLCKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5C3A9BBB16F63CD800CEF30A /* VLCKit.framework */; };
 		5C4D440D15804915007B94F2 /* pause.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C4D440A15804915007B94F2 /* pause.png */; };
 		5C4D440E15804915007B94F2 /* play.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C4D440B15804915007B94F2 /* play.png */; };
 		5C4D440F15804915007B94F2 /* stop.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C4D440C15804915007B94F2 /* stop.png */; };
 		5CBB2C0C158E9301008EF412 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CBB2C0B158E9301008EF412 /* CFNetwork.framework */; };
-		5CFC922316F67F4A002861B6 /* VLCKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5C3A9BBB16F63CD800CEF30A /* VLCKit.framework */; };
+		5CF3ACE4171B2197009CF25F /* VLCKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CF3ACE3171B2197009CF25F /* VLCKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -62,7 +61,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				5CFC922316F67F4A002861B6 /* VLCKit.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -148,11 +146,11 @@
 		5C0A32F415786D1000D3A49F /* AirplayHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AirplayHandler.m; sourceTree = "<group>"; };
 		5C0DD8C4157FF566005C8FF8 /* VideoManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoManager.h; sourceTree = "<group>"; };
 		5C0DD8C5157FF566005C8FF8 /* VideoManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VideoManager.m; sourceTree = "<group>"; };
-		5C3A9BBB16F63CD800CEF30A /* VLCKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = VLCKit.framework; sourceTree = "<group>"; };
 		5C4D440A15804915007B94F2 /* pause.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pause.png; sourceTree = "<group>"; };
 		5C4D440B15804915007B94F2 /* play.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = play.png; sourceTree = "<group>"; };
 		5C4D440C15804915007B94F2 /* stop.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = stop.png; sourceTree = "<group>"; };
 		5CBB2C0B158E9301008EF412 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
+		5CF3ACE3171B2197009CF25F /* VLCKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = VLCKit.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -163,7 +161,7 @@
 				5CBB2C0C158E9301008EF412 /* CFNetwork.framework in Frameworks */,
 				5C0194A8157BC9EB00418213 /* Security.framework in Frameworks */,
 				5C0A32D015786B2600D3A49F /* Cocoa.framework in Frameworks */,
-				5C3A9BBC16F63CD800CEF30A /* VLCKit.framework in Frameworks */,
+				5CF3ACE4171B2197009CF25F /* VLCKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -321,7 +319,7 @@
 		5C0A32CE15786B2600D3A49F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				5C3A9BBB16F63CD800CEF30A /* VLCKit.framework */,
+				5CF3ACE3171B2197009CF25F /* VLCKit.framework */,
 				5CBB2C0B158E9301008EF412 /* CFNetwork.framework */,
 				5C0A32CF15786B2600D3A49F /* Cocoa.framework */,
 				5C0194A7157BC9EB00418213 /* Security.framework */,
