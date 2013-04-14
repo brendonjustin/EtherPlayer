@@ -120,7 +120,7 @@ const BOOL          kOVCCleanTempDir = NO;
         NSMutableArray *defaultParams = [NSMutableArray array];
         [defaultParams addObject:@"--no-color"];                                // Don't use color in output (Xcode doesn't show it)
         [defaultParams addObject:@"--no-video-title-show"];                     // Don't show the title on overlay when starting to play
-        [defaultParams addObject:@"--verbose=2"];                               // Let's not wreck the logs
+        [defaultParams addObject:@"--verbose=4"];                               // Let's not wreck the logs
         [defaultParams addObject:@"--no-sout-keep"];
         [defaultParams addObject:@"--vout=macosx"];                             // Select Mac OS X video output
         [defaultParams addObject:@"--text-renderer=quartztext"];                // our CoreText-based renderer
