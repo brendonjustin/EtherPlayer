@@ -556,6 +556,8 @@ kAHPropertyRequestPlaybackError = 2;
                                             repeats:YES];
         }
         
+        NSLog(@"read data for /reverse reply");
+        
     } else if (tag == kAHRequestTagPlay) {
         //  /play request reply received and read
         range = [replyString rangeOfString:@"HTTP/1.1 200 OK"];
@@ -572,6 +574,8 @@ kAHPropertyRequestPlaybackError = 2;
                                                             userInfo:nil
                                                              repeats:YES];
         }
+        
+        NSLog(@"read data for /play reply");
     }
 }
 
