@@ -337,15 +337,48 @@ const BOOL          kOVCCleanTempDir = NO;
     if (isReady) {
         if ([self.session isComplete]) {
             [self.session stopStreaming];
+            
+            if (!self.useHLS) {
+                [self.delegate outputReady:self];
+                
+                return;
+            } else if (self.useHLS && [[NSFileManager defaultManager] fileExistsAtPath:self.outputStreamPath]) {
+                NSData          *data = nil;
+                NSString        *fileContents = nil;
+                NSString        *findString = @"_";
+                NSString        *replaceString = @":";
+                NSFileHandle    *file = nil;
+                
+                file = [NSFileHandle fileHandleForUpdatingAtPath:self.outputStreamPath];
+                
+                if (file != nil) {
+                    data = [file readDataToEndOfFile];
+                    
+                    fileContents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+                    
+                    //  replace incorrect characters in the playlist file
+                    fileContents = [fileContents stringByReplacingOccurrencesOfString:findString
+                                                                           withString:replaceString];
+                    
+                    [file seekToFileOffset:0];
+                    [file writeData:[fileContents dataUsingEncoding:NSUTF8StringEncoding]];
+                    [file closeFile];
+                } else {
+                    NSLog(@"Error opening file %@ to insert VOD header", self.outputStreamPath);
+                }
+                
+                [self.delegate outputReady:self];
+                
+                return;
+            }
         }
-        [self.delegate outputReady:self];
-    } else {
-        [NSTimer scheduledTimerWithTimeInterval:2.0
-                                         target:self
-                                       selector:@selector(waitForOutputStream)
-                                       userInfo:nil
-                                        repeats:NO];
     }
+    
+    [NSTimer scheduledTimerWithTimeInterval:2.0
+                                     target:self
+                                   selector:@selector(waitForOutputStream)
+                                   userInfo:nil
+                                    repeats:NO];
 }
 
 - (double)duration
