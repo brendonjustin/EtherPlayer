@@ -549,11 +549,6 @@ kAHPropertyRequestPlaybackError = 2;
             //  the first /reverse reply, now we should start playback
             [self playRequest];
             [self.reverseSocket readDataWithTimeout:100.0f tag:kAHRequestTagReverse];
-            [NSTimer scheduledTimerWithTimeInterval:10.0f
-                                             target:self
-                                           selector:@selector(writestuff)
-                                           userInfo:nil
-                                            repeats:YES];
         }
         
         NSLog(@"read data for /reverse reply");
