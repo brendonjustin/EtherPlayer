@@ -418,13 +418,16 @@ kAHPropertyRequestPlaybackError = 2;
 - (void)getPropertyRequest:(NSUInteger)property
 {
     NSMutableURLRequest *request = nil;
+    NSString *reqType = nil;
+    NSString *urlString = @"/getProperty?%@";
     if (property == kAHPropertyRequestPlaybackAccess) {
-        request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/getProperty?playbackAccessLog"
-                                                             relativeToURL:self.baseUrl]];
+        reqType = @"playbackAccessLog";
     } else {
-        request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"/getProperty?playbackErrorLog"
-                                                             relativeToURL:self.baseUrl]];
+        reqType = @"playbackErrorLog";
     }
+    
+    request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:urlString, reqType]
+                                                         relativeToURL:self.baseUrl]];
     
     [self setCommonHeadersForRequest:request];
     [request setValue:@"application/x-apple-binary-plist" forHTTPHeaderField:@"Content-Type"];
@@ -432,19 +435,19 @@ kAHPropertyRequestPlaybackError = 2;
     [NSURLConnection sendAsynchronousRequest:request
                                        queue:self.operationQueue
                            completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-                               //  update our playback status and position after /playback-info
+                               //  get the PLIST from the response and log it
                                NSDictionary            *propertyPlist = nil;
                                NSString                *errDesc = nil;
                                NSPropertyListFormat    format;
-                               
-                               if (!self.airplaying) {
-                                   return;
-                               }
                                
                                propertyPlist = [NSPropertyListSerialization propertyListFromData:data
                                                                                 mutabilityOption:NSPropertyListImmutable
                                                                                           format:&format
                                                                                 errorDescription:&errDesc];
+                               
+                               [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                                   NSLog(@"%@: %@", reqType, propertyPlist);
+                               }];
                            }];
 }
 
