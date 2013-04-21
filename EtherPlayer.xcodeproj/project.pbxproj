@@ -51,8 +51,8 @@
 		5C4D440E15804915007B94F2 /* play.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C4D440B15804915007B94F2 /* play.png */; };
 		5C4D440F15804915007B94F2 /* stop.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C4D440C15804915007B94F2 /* stop.png */; };
 		5CBB2C0C158E9301008EF412 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CBB2C0B158E9301008EF412 /* CFNetwork.framework */; };
-		5CF3ACE4171B2197009CF25F /* VLCKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CF3ACE3171B2197009CF25F /* VLCKit.framework */; };
-		5CFC07C317237F1C0028F63D /* VLCKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5CF3ACE3171B2197009CF25F /* VLCKit.framework */; };
+		5CFC07C517237F6B0028F63D /* VLCKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CFC07C417237F6B0028F63D /* VLCKit.framework */; };
+		5CFC07C617237F6F0028F63D /* VLCKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5CFC07C417237F6B0028F63D /* VLCKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -62,7 +62,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				5CFC07C317237F1C0028F63D /* VLCKit.framework in CopyFiles */,
+				5CFC07C617237F6F0028F63D /* VLCKit.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -152,7 +152,7 @@
 		5C4D440B15804915007B94F2 /* play.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = play.png; sourceTree = "<group>"; };
 		5C4D440C15804915007B94F2 /* stop.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = stop.png; sourceTree = "<group>"; };
 		5CBB2C0B158E9301008EF412 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
-		5CF3ACE3171B2197009CF25F /* VLCKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = VLCKit.framework; sourceTree = "<group>"; };
+		5CFC07C417237F6B0028F63D /* VLCKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = VLCKit.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -163,7 +163,7 @@
 				5CBB2C0C158E9301008EF412 /* CFNetwork.framework in Frameworks */,
 				5C0194A8157BC9EB00418213 /* Security.framework in Frameworks */,
 				5C0A32D015786B2600D3A49F /* Cocoa.framework in Frameworks */,
-				5CF3ACE4171B2197009CF25F /* VLCKit.framework in Frameworks */,
+				5CFC07C517237F6B0028F63D /* VLCKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -321,7 +321,7 @@
 		5C0A32CE15786B2600D3A49F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				5CF3ACE3171B2197009CF25F /* VLCKit.framework */,
+				5CFC07C417237F6B0028F63D /* VLCKit.framework */,
 				5CBB2C0B158E9301008EF412 /* CFNetwork.framework */,
 				5C0A32CF15786B2600D3A49F /* Cocoa.framework */,
 				5C0194A7157BC9EB00418213 /* Security.framework */,
