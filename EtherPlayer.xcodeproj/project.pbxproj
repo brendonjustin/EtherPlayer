@@ -70,8 +70,6 @@
 
 /* Begin PBXFileReference section */
 		5C0194A7157BC9EB00418213 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
-		5C09480816F7FABD008E6582 /* .gitignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
-		5C09480916F7FABD008E6582 /* .hgignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .hgignore; sourceTree = "<group>"; };
 		5C09480C16F7FABD008E6582 /* DDData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDData.h; sourceTree = "<group>"; };
 		5C09480D16F7FABD008E6582 /* DDData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDData.m; sourceTree = "<group>"; };
 		5C09480E16F7FABD008E6582 /* DDNumber.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDNumber.h; sourceTree = "<group>"; };
@@ -173,8 +171,6 @@
 		5C09480716F7FABD008E6582 /* CocoaHTTPServer */ = {
 			isa = PBXGroup;
 			children = (
-				5C09480816F7FABD008E6582 /* .gitignore */,
-				5C09480916F7FABD008E6582 /* .hgignore */,
 				5C09480A16F7FABD008E6582 /* Core */,
 				5C09483216F7FABD008E6582 /* LICENSE.txt */,
 				5C09483316F7FABD008E6582 /* README.markdown */,
