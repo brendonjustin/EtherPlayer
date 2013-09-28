@@ -44,7 +44,7 @@ extern NSString * VLCMediaPlayerStateChanged;
 /**
  * VLCMediaPlayerState describes the state of the media player.
  */
-typedef enum VLCMediaPlayerState
+enum
 {
     VLCMediaPlayerStateStopped,        //< Player has stopped
     VLCMediaPlayerStateOpening,        //< Stream is opening
@@ -53,7 +53,8 @@ typedef enum VLCMediaPlayerState
     VLCMediaPlayerStateError,          //< Player has generated an error
     VLCMediaPlayerStatePlaying,        //< Stream is playing
     VLCMediaPlayerStatePaused          //< Stream is paused
-} VLCMediaPlayerState;
+};
+typedef NSInteger VLCMediaPlayerState;
 
 /**
  * Returns the name of the player state as a string.
@@ -85,24 +86,13 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
 
 // TODO: Should we use medialist_player or our own flavor of media player?
 @interface VLCMediaPlayer : NSObject
-{
-    id delegate;                        //< Object delegate
-    void * instance;                    //  Internal
-    VLCMedia * media;                   //< Current media being played
-    VLCTime * cachedTime;               //< Cached time of the media being played
-    VLCTime * cachedRemainingTime;      //< Cached remaining time of the media being played
-    VLCMediaPlayerState cachedState;    //< Cached state of the media being played
-    float position;                     //< The position of the media being played
-    id drawable;                        //< The drawable associated to this media player
-    VLCAudio *audio;
-    BOOL shouldResumePlaying;           //< resume playing on iOS
-}
 
 #if !TARGET_OS_IPHONE
 /* Initializers */
 - (id)initWithVideoView:(VLCVideoView *)aVideoView;
 - (id)initWithVideoLayer:(VLCVideoLayer *)aVideoLayer;
 #endif
+- (id)initWithOptions:(NSArray *)options;
 
 /* Properties */
 - (void)setDelegate:(id)value;

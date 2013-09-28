@@ -61,13 +61,13 @@ extern NSString * VLCMediaMetaChanged;  //< Notification message for when the me
 @class VLCMediaList;
 @class VLCMedia;
 
-typedef enum VLCMediaState
-{
+enum {
     VLCMediaStateNothingSpecial,        //< Nothing
     VLCMediaStateBuffering,             //< Stream is buffering
     VLCMediaStatePlaying,               //< Stream is playing
     VLCMediaStateError,                 //< Can't be played because an error occurred
-} VLCMediaState;
+};
+typedef NSInteger VLCMediaState;
 
 /**
  * Informal protocol declaration for VLCMedia delegates.  Allows data changes to be
@@ -227,6 +227,28 @@ typedef enum VLCMediaState
 @property (retain, readonly) VLCMediaList * subitems;
 
 /**
+ * get meta property for key
+ * \note for performance reasons, fetching the metaDictionary will be faster!
+ * \see metaDictionary
+ * \see dictionary keys above
+ */
+- (NSString *)metadataForKey:(NSString *)key;
+
+/**
+ * set meta property for key
+ * \param metadata to set as NSString
+ * \param metadata key
+ * \see dictionary keys above
+ */
+- (void)setMetadata:(NSString *)data forKey:(NSString *)key;
+
+/**
+ * Save the previously changed metadata
+ * \return true if saving was successful
+ */
+- (BOOL)saveMetadata;
+
+/**
  * The receiver's meta data as a NSDictionary object.
  */
 @property (retain, readonly) NSDictionary * metaDictionary;
@@ -335,7 +357,6 @@ extern NSString *VLCMediaTracksInformationTypeVideo;
 extern NSString *VLCMediaTracksInformationTypeText;
 extern NSString *VLCMediaTracksInformationTypeUnknown;
 
-
 /**
  * Returns the tracks information.
  *
@@ -380,6 +401,12 @@ extern NSString *VLCMediaTracksInformationTypeUnknown;
  * \see -[VLCMediaDelegate mediaDidFinishParsing:]
  */
 - (void)parse;
+
+/**
+ * Trigger a synchronous parsing of the media
+ * the selector won't return until parsing finished
+ */
+- (void)synchronousParse;
 
 /**
  * Add options to the media, that will be used to determine how
