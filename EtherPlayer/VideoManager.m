@@ -212,6 +212,11 @@ const BOOL          kOVCCleanTempDir = NO;
     
     for (NSDictionary *properties in [inputMedia tracksInformation]) {
         if ([[properties objectForKey:@"type"] isEqualToString:@"video"]) {
+            // If we get a 0 value bitrate, transcode to produce a CBR video.
+            if (!videoNeedsTranscode && [[properties objectForKey:@"bitrate"] compare:@0] == NSOrderedSame) {
+                videoNeedsTranscode = YES;
+            }
+            
             if (width == nil) {
                 width = [properties objectForKey:@"width"];
                 
@@ -270,7 +275,7 @@ const BOOL          kOVCCleanTempDir = NO;
             [transcodingOptions addEntriesFromDictionary:@{ @"subtitleEncoder" : @"dvbsub" }];
         }
     }
-
+    
     if (videoNeedsTranscode) {
         [transcodingOptions addEntriesFromDictionary:@{ @"videoCodec" : videoCodec,
                                                         @"videoBitrate" : videoBitrate,
