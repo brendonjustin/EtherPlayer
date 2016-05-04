@@ -42,7 +42,6 @@
 		5C0A32DA15786B2600D3A49F /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A32D815786B2600D3A49F /* InfoPlist.strings */; };
 		5C0A32DC15786B2600D3A49F /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32DB15786B2600D3A49F /* main.m */; };
 		5C0A32E015786B2600D3A49F /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A32DE15786B2600D3A49F /* Credits.rtf */; };
-		5C0A32E315786B2600D3A49F /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32E215786B2600D3A49F /* AppDelegate.m */; };
 		5C0A32E615786B2700D3A49F /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A32E415786B2700D3A49F /* MainMenu.xib */; };
 		5C0A32F215786C9400D3A49F /* BonjourSearcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32F115786C9400D3A49F /* BonjourSearcher.m */; };
 		5C0A32F515786D1000D3A49F /* AirplayHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32F415786D1000D3A49F /* AirplayHandler.m */; };
@@ -53,6 +52,7 @@
 		5CBB2C0C158E9301008EF412 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CBB2C0B158E9301008EF412 /* CFNetwork.framework */; };
 		5CFC07C517237F6B0028F63D /* VLCKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CFC07C417237F6B0028F63D /* VLCKit.framework */; };
 		5CFC07C617237F6F0028F63D /* VLCKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5CFC07C417237F6B0028F63D /* VLCKit.framework */; };
+		DA74FA571CD9706D009FB1F6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA74FA561CD9706D009FB1F6 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -137,8 +137,6 @@
 		5C0A32DB15786B2600D3A49F /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		5C0A32DD15786B2600D3A49F /* EtherPlayer-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "EtherPlayer-Prefix.pch"; sourceTree = "<group>"; };
 		5C0A32DF15786B2600D3A49F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
-		5C0A32E115786B2600D3A49F /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		5C0A32E215786B2600D3A49F /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		5C0A32E515786B2700D3A49F /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		5C0A32F015786C9400D3A49F /* BonjourSearcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BonjourSearcher.h; sourceTree = "<group>"; };
 		5C0A32F115786C9400D3A49F /* BonjourSearcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BonjourSearcher.m; sourceTree = "<group>"; };
@@ -151,6 +149,8 @@
 		5C4D440C15804915007B94F2 /* stop.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = stop.png; sourceTree = "<group>"; };
 		5CBB2C0B158E9301008EF412 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
 		5CFC07C417237F6B0028F63D /* VLCKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = VLCKit.framework; sourceTree = "<group>"; };
+		DA74FA551CD9706D009FB1F6 /* EtherPlayer-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "EtherPlayer-Bridging-Header.h"; sourceTree = "<group>"; };
+		DA74FA561CD9706D009FB1F6 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -339,8 +339,7 @@
 		5C0A32D515786B2600D3A49F /* EtherPlayer */ = {
 			isa = PBXGroup;
 			children = (
-				5C0A32E115786B2600D3A49F /* AppDelegate.h */,
-				5C0A32E215786B2600D3A49F /* AppDelegate.m */,
+				DA74FA561CD9706D009FB1F6 /* AppDelegate.swift */,
 				5C0A32F315786D1000D3A49F /* AirplayHandler.h */,
 				5C0A32F415786D1000D3A49F /* AirplayHandler.m */,
 				5C0DD8C4157FF566005C8FF8 /* VideoManager.h */,
@@ -348,6 +347,7 @@
 				5C0A32F015786C9400D3A49F /* BonjourSearcher.h */,
 				5C0A32F115786C9400D3A49F /* BonjourSearcher.m */,
 				5C0A32E415786B2700D3A49F /* MainMenu.xib */,
+				DA74FA551CD9706D009FB1F6 /* EtherPlayer-Bridging-Header.h */,
 				5C4D4408158048F0007B94F2 /* Resources */,
 				5C0A32D615786B2600D3A49F /* Supporting Files */,
 			);
@@ -404,6 +404,7 @@
 			isa = PBXProject;
 			attributes = {
 				CLASSPREFIX = "";
+				LastSwiftUpdateCheck = 0730;
 				LastUpgradeCheck = 0440;
 				ORGANIZATIONNAME = "Brendon Justin";
 			};
@@ -452,7 +453,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				5C0A32DC15786B2600D3A49F /* main.m in Sources */,
-				5C0A32E315786B2600D3A49F /* AppDelegate.m in Sources */,
 				5C0A32F215786C9400D3A49F /* BonjourSearcher.m in Sources */,
 				5C0A32F515786D1000D3A49F /* AirplayHandler.m in Sources */,
 				5C0DD8C6157FF566005C8FF8 /* VideoManager.m in Sources */,
@@ -473,6 +473,7 @@
 				5C09485B16F7FABD008E6582 /* HTTPFileResponse.m in Sources */,
 				5C09485C16F7FABD008E6582 /* HTTPRedirectResponse.m in Sources */,
 				5C09485D16F7FABD008E6582 /* WebSocket.m in Sources */,
+				DA74FA571CD9706D009FB1F6 /* AppDelegate.swift in Sources */,
 				5C09486116F7FABD008E6582 /* GCDAsyncSocket.m in Sources */,
 				5C09486316F7FABD008E6582 /* DDAbstractDatabaseLogger.m in Sources */,
 				5C09486416F7FABD008E6582 /* DDASLLogger.m in Sources */,
@@ -535,7 +536,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 			};
@@ -556,7 +557,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -564,6 +565,7 @@
 		5C0A32EA15786B2700D3A49F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -572,7 +574,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "EtherPlayer/EtherPlayer-Prefix.pch";
 				INFOPLIST_FILE = "EtherPlayer/EtherPlayer-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "EtherPlayer/EtherPlayer-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -580,6 +585,7 @@
 		5C0A32EB15786B2700D3A49F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -588,8 +594,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "EtherPlayer/EtherPlayer-Prefix.pch";
 				INFOPLIST_FILE = "EtherPlayer/EtherPlayer-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = "EtherPlayer/EtherPlayer-Bridging-Header.h";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
