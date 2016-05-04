@@ -58,20 +58,19 @@ extension ViewController {
 
 extension ViewController {
     func airplayTargetsNotificationReceived(notification: NSNotification) {
-        var servicesToRemove: [NSNetService] = []
-        guard let services = notification.userInfo?["targets"] as? [NSNetService] else {
+        guard let newServices = notification.userInfo?["targets"] as? [NSNetService] else {
             assertionFailure("Expected array of NSNetService")
             return
         }
         
-        debugPrint("Found services: %@", services as NSArray?)
+        print("Found services: \(newServices)")
         
-        for service in services {
-            guard !self.services.contains(service) else {
+        for service in newServices {
+            guard !services.contains(service) else {
                 continue
             }
             
-            self.services.append(service)
+            services.append(service)
             targetSelector.addItemWithTitle(service.hostName!)
             
             if targetSelector.itemArray.count == 1 {
@@ -80,19 +79,18 @@ extension ViewController {
             }
         }
         
-        for service in self.services {
-            guard !services.contains(service) else {
-                continue
-            }
-            
-            servicesToRemove.append(service)
-            targetSelector.removeItemWithTitle(service.hostName!)
+        let servicesToRemove = Set(services).subtract(Set(newServices))
+        
+        let indices = servicesToRemove.flatMap { service -> Int? in
+            services.indexOf(service)
         }
         
         for service in servicesToRemove {
-            if let idx = services.indexOf(service) {
-                self.services.removeAtIndex(idx)
-            }
+            targetSelector.removeItemWithTitle(service.hostName!)
+        }
+        
+        for index in indices {
+            services.removeAtIndex(index)
         }
     }
 }
