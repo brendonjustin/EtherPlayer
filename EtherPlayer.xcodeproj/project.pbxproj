@@ -40,9 +40,7 @@
 		5C09486A16F7FABD008E6582 /* README.txt in Resources */ = {isa = PBXBuildFile; fileRef = 5C09484A16F7FABD008E6582 /* README.txt */; };
 		5C0A32D015786B2600D3A49F /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5C0A32CF15786B2600D3A49F /* Cocoa.framework */; };
 		5C0A32DA15786B2600D3A49F /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A32D815786B2600D3A49F /* InfoPlist.strings */; };
-		5C0A32DC15786B2600D3A49F /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32DB15786B2600D3A49F /* main.m */; };
 		5C0A32E015786B2600D3A49F /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A32DE15786B2600D3A49F /* Credits.rtf */; };
-		5C0A32E615786B2700D3A49F /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A32E415786B2700D3A49F /* MainMenu.xib */; };
 		5C0A32F215786C9400D3A49F /* BonjourSearcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32F115786C9400D3A49F /* BonjourSearcher.m */; };
 		5C0A32F515786D1000D3A49F /* AirplayHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32F415786D1000D3A49F /* AirplayHandler.m */; };
 		5C0DD8C6157FF566005C8FF8 /* VideoManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0DD8C5157FF566005C8FF8 /* VideoManager.m */; };
@@ -53,6 +51,8 @@
 		5CFC07C517237F6B0028F63D /* VLCKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CFC07C417237F6B0028F63D /* VLCKit.framework */; };
 		5CFC07C617237F6F0028F63D /* VLCKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5CFC07C417237F6B0028F63D /* VLCKit.framework */; };
 		DA74FA571CD9706D009FB1F6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA74FA561CD9706D009FB1F6 /* AppDelegate.swift */; };
+		DAC34FCE1CD97B3400B18830 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAC34FCD1CD97B3400B18830 /* ViewController.swift */; };
+		DAC350071CD97FC500B18830 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DAC350061CD97FC500B18830 /* Main.storyboard */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -134,10 +134,8 @@
 		5C0A32D415786B2600D3A49F /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		5C0A32D715786B2600D3A49F /* EtherPlayer-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "EtherPlayer-Info.plist"; sourceTree = "<group>"; };
 		5C0A32D915786B2600D3A49F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		5C0A32DB15786B2600D3A49F /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		5C0A32DD15786B2600D3A49F /* EtherPlayer-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "EtherPlayer-Prefix.pch"; sourceTree = "<group>"; };
 		5C0A32DF15786B2600D3A49F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
-		5C0A32E515786B2700D3A49F /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		5C0A32F015786C9400D3A49F /* BonjourSearcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BonjourSearcher.h; sourceTree = "<group>"; };
 		5C0A32F115786C9400D3A49F /* BonjourSearcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BonjourSearcher.m; sourceTree = "<group>"; };
 		5C0A32F315786D1000D3A49F /* AirplayHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AirplayHandler.h; sourceTree = "<group>"; };
@@ -151,6 +149,8 @@
 		5CFC07C417237F6B0028F63D /* VLCKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = VLCKit.framework; sourceTree = "<group>"; };
 		DA74FA551CD9706D009FB1F6 /* EtherPlayer-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "EtherPlayer-Bridging-Header.h"; sourceTree = "<group>"; };
 		DA74FA561CD9706D009FB1F6 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		DAC34FCD1CD97B3400B18830 /* ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		DAC350061CD97FC500B18830 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -346,7 +346,8 @@
 				5C0DD8C5157FF566005C8FF8 /* VideoManager.m */,
 				5C0A32F015786C9400D3A49F /* BonjourSearcher.h */,
 				5C0A32F115786C9400D3A49F /* BonjourSearcher.m */,
-				5C0A32E415786B2700D3A49F /* MainMenu.xib */,
+				DAC34FCD1CD97B3400B18830 /* ViewController.swift */,
+				DAC350061CD97FC500B18830 /* Main.storyboard */,
 				DA74FA551CD9706D009FB1F6 /* EtherPlayer-Bridging-Header.h */,
 				5C4D4408158048F0007B94F2 /* Resources */,
 				5C0A32D615786B2600D3A49F /* Supporting Files */,
@@ -359,7 +360,6 @@
 			children = (
 				5C0A32D715786B2600D3A49F /* EtherPlayer-Info.plist */,
 				5C0A32D815786B2600D3A49F /* InfoPlist.strings */,
-				5C0A32DB15786B2600D3A49F /* main.m */,
 				5C0A32DD15786B2600D3A49F /* EtherPlayer-Prefix.pch */,
 				5C0A32DE15786B2600D3A49F /* Credits.rtf */,
 			);
@@ -433,10 +433,10 @@
 			files = (
 				5C0A32DA15786B2600D3A49F /* InfoPlist.strings in Resources */,
 				5C0A32E015786B2600D3A49F /* Credits.rtf in Resources */,
-				5C0A32E615786B2700D3A49F /* MainMenu.xib in Resources */,
 				5C4D440D15804915007B94F2 /* pause.png in Resources */,
 				5C4D440E15804915007B94F2 /* play.png in Resources */,
 				5C4D440F15804915007B94F2 /* stop.png in Resources */,
+				DAC350071CD97FC500B18830 /* Main.storyboard in Resources */,
 				5C09485E16F7FABD008E6582 /* LICENSE.txt in Resources */,
 				5C09485F16F7FABD008E6582 /* README.markdown in Resources */,
 				5C09486016F7FABD008E6582 /* About.txt in Resources */,
@@ -452,7 +452,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5C0A32DC15786B2600D3A49F /* main.m in Sources */,
 				5C0A32F215786C9400D3A49F /* BonjourSearcher.m in Sources */,
 				5C0A32F515786D1000D3A49F /* AirplayHandler.m in Sources */,
 				5C0DD8C6157FF566005C8FF8 /* VideoManager.m in Sources */,
@@ -461,6 +460,7 @@
 				5C09484F16F7FABD008E6582 /* DDRange.m in Sources */,
 				5C09485016F7FABD008E6582 /* HTTPAuthenticationRequest.m in Sources */,
 				5C09485116F7FABD008E6582 /* HTTPConnection.m in Sources */,
+				DAC34FCE1CD97B3400B18830 /* ViewController.swift in Sources */,
 				5C09485216F7FABD008E6582 /* HTTPMessage.m in Sources */,
 				5C09485316F7FABD008E6582 /* HTTPServer.m in Sources */,
 				5C09485416F7FABD008E6582 /* MultipartFormDataParser.m in Sources */,
@@ -502,14 +502,6 @@
 				5C0A32DF15786B2600D3A49F /* en */,
 			);
 			name = Credits.rtf;
-			sourceTree = "<group>";
-		};
-		5C0A32E415786B2700D3A49F /* MainMenu.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				5C0A32E515786B2700D3A49F /* en */,
-			);
-			name = MainMenu.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
