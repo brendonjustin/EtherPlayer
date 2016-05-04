@@ -1,7 +1,7 @@
 /*****************************************************************************
  * VLCKit: VLCExtensions
  *****************************************************************************
- * Copyright (C) 2010-2012 Pierre d'Herbemont and VideoLAN
+ * Copyright (C) 2010-2014 Pierre d'Herbemont and VideoLAN
  *
  * Authors: Pierre d'Herbemont
  *
@@ -22,15 +22,12 @@
 
 #import <Cocoa/Cocoa.h>
 
+@interface VLCExtension : NSObject
 
-@interface VLCExtension : NSObject {
-    struct extension_t *_instance;
-}
+- (instancetype)initWithInstance:(struct extension_t *)instance NS_DESIGNATED_INITIALIZER; // FIXME: Should be internal
+@property (NS_NONATOMIC_IOSONLY, readonly) struct extension_t *instance; // FIXME: Should be internal
 
-- (id)initWithInstance:(struct extension_t *)instance; // FIXME: Should be internal
-- (struct extension_t *)instance; // FIXME: Should be internal
-
-- (NSString *)name;
-- (NSString *)title;
+@property (NS_NONATOMIC_IOSONLY, readonly, copy) NSString *name;
+@property (NS_NONATOMIC_IOSONLY, readonly, copy) NSString *title;
 
 @end

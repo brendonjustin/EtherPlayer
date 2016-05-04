@@ -2,12 +2,12 @@
  * VLCMedia.h: VLCKit.framework VLCMedia header
  *****************************************************************************
  * Copyright (C) 2007 Pierre d'Herbemont
- * Copyright (C) 2013 Felix Paul K√ºhne
+ * Copyright (C) 2013 Felix Paul Kühne
  * Copyright (C) 2007-2013 VLC authors and VideoLAN
  * $Id$
  *
  * Authors: Pierre d'Herbemont <pdherbemont # videolan.org>
- *          Felix Paul K√ºhne <fkuehne # videolan.org>
+ *          Felix Paul Kühne <fkuehne # videolan.org>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -32,48 +32,55 @@
 /**
  * Standard dictionary keys for retreiving meta data.
  */
-extern NSString * VLCMetaInformationTitle;          /* NSString */
-extern NSString * VLCMetaInformationArtist;         /* NSString */
-extern NSString * VLCMetaInformationGenre;          /* NSString */
-extern NSString * VLCMetaInformationCopyright;      /* NSString */
-extern NSString * VLCMetaInformationAlbum;          /* NSString */
-extern NSString * VLCMetaInformationTrackNumber;    /* NSString */
-extern NSString * VLCMetaInformationDescription;    /* NSString */
-extern NSString * VLCMetaInformationRating;         /* NSString */
-extern NSString * VLCMetaInformationDate;           /* NSString */
-extern NSString * VLCMetaInformationSetting;        /* NSString */
-extern NSString * VLCMetaInformationURL;            /* NSString */
-extern NSString * VLCMetaInformationLanguage;       /* NSString */
-extern NSString * VLCMetaInformationNowPlaying;     /* NSString */
-extern NSString * VLCMetaInformationPublisher;      /* NSString */
-extern NSString * VLCMetaInformationEncodedBy;      /* NSString */
-extern NSString * VLCMetaInformationArtworkURL;     /* NSString */
-extern NSString * VLCMetaInformationArtwork;        /* NSImage  */
-extern NSString * VLCMetaInformationTrackID;        /* NSString */
+extern NSString *const VLCMetaInformationTitle;          /* NSString */
+extern NSString *const VLCMetaInformationArtist;         /* NSString */
+extern NSString *const VLCMetaInformationGenre;          /* NSString */
+extern NSString *const VLCMetaInformationCopyright;      /* NSString */
+extern NSString *const VLCMetaInformationAlbum;          /* NSString */
+extern NSString *const VLCMetaInformationTrackNumber;    /* NSString */
+extern NSString *const VLCMetaInformationDescription;    /* NSString */
+extern NSString *const VLCMetaInformationRating;         /* NSString */
+extern NSString *const VLCMetaInformationDate;           /* NSString */
+extern NSString *const VLCMetaInformationSetting;        /* NSString */
+extern NSString *const VLCMetaInformationURL;            /* NSString */
+extern NSString *const VLCMetaInformationLanguage;       /* NSString */
+extern NSString *const VLCMetaInformationNowPlaying;     /* NSString */
+extern NSString *const VLCMetaInformationPublisher;      /* NSString */
+extern NSString *const VLCMetaInformationEncodedBy;      /* NSString */
+extern NSString *const VLCMetaInformationArtworkURL;     /* NSString */
+extern NSString *const VLCMetaInformationArtwork;        /* NSImage  */
+extern NSString *const VLCMetaInformationTrackID;        /* NSString */
+extern NSString *const VLCMetaInformationTrackTotal;     /* NSString */
+extern NSString *const VLCMetaInformationDirector;       /* NSString */
+extern NSString *const VLCMetaInformationSeason;         /* NSString */
+extern NSString *const VLCMetaInformationEpisode;        /* NSString */
+extern NSString *const VLCMetaInformationShowName;       /* NSString */
+extern NSString *const VLCMetaInformationActors;         /* NSString */
+extern NSString *const VLCMetaInformationAlbumArtist;    /* NSString */
+extern NSString *const VLCMetaInformationDiscNumber;     /* NSString */
 
 /* Notification Messages */
 /**
  * Available notification messages.
  */
-extern NSString * VLCMediaMetaChanged;  //< Notification message for when the media's meta data has changed
+extern NSString *const VLCMediaMetaChanged;  //< Notification message for when the media's meta data has changed
 
 // Forward declarations, supresses compiler error messages
 @class VLCMediaList;
 @class VLCMedia;
 
-enum {
+typedef NS_ENUM(NSInteger, VLCMediaState) {
     VLCMediaStateNothingSpecial,        //< Nothing
     VLCMediaStateBuffering,             //< Stream is buffering
     VLCMediaStatePlaying,               //< Stream is playing
     VLCMediaStateError,                 //< Can't be played because an error occurred
 };
-typedef NSInteger VLCMediaState;
 
 /**
  * Informal protocol declaration for VLCMedia delegates.  Allows data changes to be
  * trapped.
  */
-@protocol VLCMediaDelegate
+@protocol VLCMediaDelegate <NSObject>
 // TODO: SubItemAdded/SubItemRemoved implementation.  Not sure if we really want to implement this.
 ///**
 // * Delegate method called whenever a sub item has been added to the specified VLCMedia.
@@ -91,13 +98,14 @@ typedef NSInteger VLCMediaState;
 // */
 // - (void)media:(VLCMedia *)aMedia removedSubItem:(VLCMedia *)childMedia atIndex:(int)index;
 
+@optional
+
 /**
- * Delegate method called whenever the meta has changed for the receiver.
+ * Delegate method called whenever the media's meta data was changed for whatever reason
+ * \note this is called more often than mediaDidFinishParsing, so it may be less efficient
  * \param aMedia The media resource whose meta data has been changed.
- * \param oldValue The old meta data value.
- * \param key The key of the value that was changed.
  */
-- (void)media:(VLCMedia *)aMedia metaValueChangedFrom:(id)oldValue forKey:(NSString *)key;
+- (void)mediaMetaDataDidChange:(VLCMedia *)aMedia;
 
 /**
  * Delegate method called whenever the media was parsed.
@@ -115,19 +123,6 @@ typedef NSInteger VLCMediaState;
  * \see VLCMediaList
  */
 @interface VLCMedia : NSObject
-{
-    void *                p_md;              //< Internal media descriptor instance
-    NSURL *               url;               //< URL (MRL) for this media resource
-    VLCMediaList *        subitems;          //< Sub list of items
-    VLCTime *             length;            //< Cached duration of the media
-    NSMutableDictionary * metaDictionary;    //< Meta data storage
-    id                    delegate;          //< Delegate object
-    BOOL                  isArtFetched;      //< Value used to determine of the artwork has been parsed
-    BOOL                  areOthersMetaFetched; //< Value used to determine of the other meta has been parsed
-    BOOL                  isArtURLFetched;   //< Value used to determine of the other meta has been preparsed
-    VLCMediaState         state;             //< Current state of the media
-    BOOL                  isParsed;
-}
 
 /* Factories */
 /**
@@ -136,7 +131,7 @@ typedef NSInteger VLCMediaState;
  * \return A new VLCMedia object, only if there were no errors.  This object will be automatically released.
  * \see initWithMediaURL
  */
-+ (id)mediaWithURL:(NSURL *)anURL;
++ (instancetype)mediaWithURL:(NSURL *)anURL;
 
 /**
  * Manufactures a new VLCMedia object using the path specified.
@@ -144,7 +139,15 @@ typedef NSInteger VLCMediaState;
  * \return A new VLCMedia object, only if there were no errors.  This object will be automatically released.
  * \see initWithPath
  */
-+ (id)mediaWithPath:(NSString *)aPath;
++ (instancetype)mediaWithPath:(NSString *)aPath;
+
+/**
+ * convienience method to return a user-readable codec name for the given FourCC
+ * \param uint32_t the FourCC to process
+ * \param NSString a VLC track type if known to speed-up the name search
+ * \return a NSString containing the codec name if recognized, else an empty string
+ */
++ (NSString *)codecNameForFourCC:(uint32_t)fourcc trackType:(NSString *)trackType;
 
 /**
  * TODO
@@ -153,7 +156,7 @@ typedef NSInteger VLCMediaState;
  * will be automatically released.
  * \see initAsNodeWithName
  */
-+ (id)mediaAsNodeWithName:(NSString *)aName;
++ (instancetype)mediaAsNodeWithName:(NSString *)aName;
 
 /* Initializers */
 /**
@@ -161,21 +164,36 @@ typedef NSInteger VLCMediaState;
  * \param aPath Path to media to be accessed.
  * \return A new VLCMedia object, only if there were no errors.
  */
-- (id)initWithURL:(NSURL *)anURL;
+- (instancetype)initWithURL:(NSURL *)anURL;
 
 /**
  * Initializes a new VLCMedia object to use the specified path.
  * \param aPath Path to media to be accessed.
  * \return A new VLCMedia object, only if there were no errors.
  */
-- (id)initWithPath:(NSString *)aPath;
+- (instancetype)initWithPath:(NSString *)aPath;
 
 /**
  * TODO
  * \param aName TODO
  * \return A new VLCMedia object, only if there were no errors.
  */
-- (id)initAsNodeWithName:(NSString *)aName;
+- (instancetype)initAsNodeWithName:(NSString *)aName;
+
+typedef NS_ENUM(NSUInteger, VLCMediaType) {
+    VLCMediaTypeUnknown,
+    VLCMediaTypeFile,
+    VLCMediaTypeDirectory,
+    VLCMediaTypeDisc,
+    VLCMediaTypeStream,
+    VLCMediaTypePlaylist,
+};
+
+/**
+ * media type
+ * \return returns the type of a media (VLCMediaType)
+ */
+@property (readonly) VLCMediaType mediaType;
 
 /**
  * Returns an NSComparisonResult value that indicates the lexical ordering of
@@ -192,14 +210,14 @@ typedef NSInteger VLCMediaState;
 /**
  * Receiver's delegate.
  */
-@property (assign) id delegate;
+@property (nonatomic, weak) id<VLCMediaDelegate> delegate;
 
 /**
  * A VLCTime object describing the length of the media resource, only if it is
  * available.  Use lengthWaitUntilDate: to wait for a specified length of time.
  * \see lengthWaitUntilDate
  */
-@property (retain, readonly) VLCTime * length;
+@property (nonatomic, readwrite, strong) VLCTime * length;
 
 /**
  * Returns a VLCTime object describing the length of the media resource,
@@ -214,17 +232,17 @@ typedef NSInteger VLCMediaState;
 /**
  * Determines if the media has already been preparsed.
  */
-@property (readonly) BOOL isParsed;
+@property (nonatomic, readonly) BOOL isParsed;
 
 /**
  * The URL for the receiver's media resource.
  */
-@property (retain, readonly) NSURL * url;
+@property (nonatomic, readonly, strong) NSURL * url;
 
 /**
  * The receiver's sub list.
  */
-@property (retain, readonly) VLCMediaList * subitems;
+@property (nonatomic, readonly, strong) VLCMediaList * subitems;
 
 /**
  * get meta property for key
@@ -246,22 +264,22 @@ typedef NSInteger VLCMediaState;
  * Save the previously changed metadata
  * \return true if saving was successful
  */
-- (BOOL)saveMetadata;
+@property (NS_NONATOMIC_IOSONLY, readonly) BOOL saveMetadata;
 
 /**
  * The receiver's meta data as a NSDictionary object.
  */
-@property (retain, readonly) NSDictionary * metaDictionary;
+@property (nonatomic, readonly, copy) NSDictionary * metaDictionary;
 
 /**
  * The receiver's state, such as Playing, Error, NothingSpecial, Buffering.
  */
-@property (readonly) VLCMediaState state;
+@property (nonatomic, readonly) VLCMediaState state;
 
 /**
  * returns a bool whether is the media is expected to play fluently on this
  * device or not. It always returns YES on a Mac.*/
-- (BOOL)isMediaSizeSuitableForDevice;
+@property (NS_NONATOMIC_IOSONLY, getter=isMediaSizeSuitableForDevice, readonly) BOOL mediaSizeSuitableForDevice;
 
 /**
  * Tracks information NSDictionary Possible Keys
@@ -270,12 +288,12 @@ typedef NSInteger VLCMediaState;
 /**
  * \returns a NSNumber
  */
-extern NSString *VLCMediaTracksInformationCodec;
+extern NSString *const VLCMediaTracksInformationCodec;
 
 /**
  * \returns a NSNumber
  */
-extern NSString *VLCMediaTracksInformationId;
+extern NSString *const VLCMediaTracksInformationId;
 /**
  * \returns a NSString
  * \see VLCMediaTracksInformationTypeAudio
@@ -283,79 +301,79 @@ extern NSString *VLCMediaTracksInformationId;
  * \see VLCMediaTracksInformationTypeText
  * \see VLCMediaTracksInformationTypeUnknown
  */
-extern NSString *VLCMediaTracksInformationType;
+extern NSString *const VLCMediaTracksInformationType;
 
 /**
  * \returns a NSNumber
  */
-extern NSString *VLCMediaTracksInformationCodecProfile;
+extern NSString *const VLCMediaTracksInformationCodecProfile;
 /**
  * \returns a NSNumber
  */
-extern NSString *VLCMediaTracksInformationCodecLevel;
+extern NSString *const VLCMediaTracksInformationCodecLevel;
 
 /**
  * \returns the bitrate as NSNumber
  */
-extern NSString *VLCMediaTracksInformationBitrate;
+extern NSString *const VLCMediaTracksInformationBitrate;
 /**
  * \returns the language as NSString
  */
-extern NSString *VLCMediaTracksInformationLanguage;
+extern NSString *const VLCMediaTracksInformationLanguage;
 /**
  * \returns the description as NSString
  */
-extern NSString *VLCMediaTracksInformationDescription;
+extern NSString *const VLCMediaTracksInformationDescription;
 
 /**
  * \returns the audio channel number as NSNumber
  */
-extern NSString *VLCMediaTracksInformationAudioChannelsNumber;
+extern NSString *const VLCMediaTracksInformationAudioChannelsNumber;
 /**
  * \returns the audio rate as NSNumber
  */
-extern NSString *VLCMediaTracksInformationAudioRate;
+extern NSString *const VLCMediaTracksInformationAudioRate;
 
 /**
  * \returns the height as NSNumber
  */
-extern NSString *VLCMediaTracksInformationVideoHeight;
+extern NSString *const VLCMediaTracksInformationVideoHeight;
 /**
  * \returns the width as NSNumber
  */
-extern NSString *VLCMediaTracksInformationVideoWidth;
+extern NSString *const VLCMediaTracksInformationVideoWidth;
 
 /**
  * \returns the source aspect ratio as NSNumber
  */
-extern NSString *VLCMediaTracksInformationSourceAspectRatio;
+extern NSString *const VLCMediaTracksInformationSourceAspectRatio;
 /**
  * \returns the source aspect ratio denominator as NSNumber
  */
-extern NSString *VLCMediaTracksInformationSourceAspectRatioDenominator;
+extern NSString *const VLCMediaTracksInformationSourceAspectRatioDenominator;
 
 /**
  * \returns the frame rate as NSNumber
  */
-extern NSString *VLCMediaTracksInformationFrameRate;
+extern NSString *const VLCMediaTracksInformationFrameRate;
 /**
  * \returns the frame rate denominator as NSNumber
  */
-extern NSString *VLCMediaTracksInformationFrameRateDenominator;
+extern NSString *const VLCMediaTracksInformationFrameRateDenominator;
 
 /**
  * \returns the text encoding as NSString
  */
-extern NSString *VLCMediaTracksInformationTextEncoding;
+extern NSString *const VLCMediaTracksInformationTextEncoding;
 
 /**
  * Tracks information NSDictionary values for
  * VLCMediaTracksInformationType
  */
-extern NSString *VLCMediaTracksInformationTypeAudio;
-extern NSString *VLCMediaTracksInformationTypeVideo;
-extern NSString *VLCMediaTracksInformationTypeText;
-extern NSString *VLCMediaTracksInformationTypeUnknown;
+extern NSString *const VLCMediaTracksInformationTypeAudio;
+extern NSString *const VLCMediaTracksInformationTypeVideo;
+extern NSString *const VLCMediaTracksInformationTypeText;
+extern NSString *const VLCMediaTracksInformationTypeUnknown;
 
 /**
  * Returns the tracks information.
@@ -389,7 +407,7 @@ extern NSString *VLCMediaTracksInformationTypeUnknown;
  * \see VLCMediaTracksInformationTextEncoding
  */
 
-- (NSArray *)tracksInformation;
+@property (NS_NONATOMIC_IOSONLY, readonly, copy) NSArray *tracksInformation;
 
 /**
  * Start asynchronously to parse the media.
@@ -408,6 +426,27 @@ extern NSString *VLCMediaTracksInformationTypeUnknown;
  */
 - (void)synchronousParse;
 
+
+enum {
+    VLCMediaParseLocal          = 0x00,
+    VLCMediaParseNetwork        = 0x01,
+    VLCMediaFetchLocal          = 0x02,
+    VLCMediaFetchNetwork        = 0x04,
+};
+typedef int VLCMediaParsingOptions;
+
+/**
+ * triggers an asynchronous parse of the media item
+ * using the given options
+ * \param the option mask based on VLCMediaParsingOptions
+ * \see VLCMediaParsingOptions
+ * \return an int. 0 on success, -1 in case of error
+ * \note listen to the "parsed" key value or the mediaDidFinishParsing:
+ * delegate method to be notified about parsing results. Those triggers
+ * will _NOT_ be raised if parsing fails and this method returns an error.
+ */
+- (int)parseWithOptions:(VLCMediaParsingOptions)options;
+
 /**
  * Add options to the media, that will be used to determine how
  * VLCMediaPlayer will read the media. This allow to use VLC advanced
@@ -423,7 +462,7 @@ extern NSString *VLCMediaTracksInformationTypeUnknown;
  * Returns a NSDictionary with NSNumbers for values.
  *
  */
-- (NSDictionary*) stats;
+@property (NS_NONATOMIC_IOSONLY, readonly, copy) NSDictionary *stats;
 
 #pragma mark - individual stats
 
@@ -431,83 +470,83 @@ extern NSString *VLCMediaTracksInformationTypeUnknown;
  * returns the number of bytes read by the current input module
  * \return a NSInteger with the raw number of bytes
  */
-- (NSInteger)numberOfReadBytesOnInput;
+@property (NS_NONATOMIC_IOSONLY, readonly) NSInteger numberOfReadBytesOnInput;
 /**
  * returns the current input bitrate. may be 0 if the buffer is full
  * \return a float of the current input bitrate
  */
-- (float)inputBitrate;
+@property (NS_NONATOMIC_IOSONLY, readonly) float inputBitrate;
 
 /**
  * returns the number of bytes read by the current demux module
  * \return a NSInteger with the raw number of bytes
  */
-- (NSInteger)numberOfReadBytesOnDemux;
+@property (NS_NONATOMIC_IOSONLY, readonly) NSInteger numberOfReadBytesOnDemux;
 /**
  * returns the current demux bitrate. may be 0 if the buffer is empty
  * \return a float of the current demux bitrate
  */
-- (float)demuxBitrate;
+@property (NS_NONATOMIC_IOSONLY, readonly) float demuxBitrate;
 
 /**
  * returns the total number of decoded video blocks in the current media session
  * \return a NSInteger with the total number of decoded blocks
  */
-- (NSInteger)numberOfDecodedVideoBlocks;
+@property (NS_NONATOMIC_IOSONLY, readonly) NSInteger numberOfDecodedVideoBlocks;
 /**
  * returns the total number of decoded audio blocks in the current media session
  * \return a NSInteger with the total number of decoded blocks
  */
-- (NSInteger)numberOfDecodedAudioBlocks;
+@property (NS_NONATOMIC_IOSONLY, readonly) NSInteger numberOfDecodedAudioBlocks;
 
 /**
  * returns the total number of displayed pictures during the current media session
  * \return a NSInteger with the total number of displayed pictures
  */
-- (NSInteger)numberOfDisplayedPictures;
+@property (NS_NONATOMIC_IOSONLY, readonly) NSInteger numberOfDisplayedPictures;
 /**
  * returns the total number of pictures lost during the current media session
  * \return a NSInteger with the total number of lost pictures
  */
-- (NSInteger)numberOfLostPictures;
+@property (NS_NONATOMIC_IOSONLY, readonly) NSInteger numberOfLostPictures;
 
 /**
  * returns the total number of played audio buffers during the current media session
  * \return a NSInteger with the total number of played audio buffers
  */
-- (NSInteger)numberOfPlayedAudioBuffers;
+@property (NS_NONATOMIC_IOSONLY, readonly) NSInteger numberOfPlayedAudioBuffers;
 /**
  * returns the total number of audio buffers lost during the current media session
  * \return a NSInteger with the total number of displayed pictures
  */
-- (NSInteger)numberOfLostAudioBuffers;
+@property (NS_NONATOMIC_IOSONLY, readonly) NSInteger numberOfLostAudioBuffers;
 
 /**
  * returns the total number of packets sent during the current media session
  * \return a NSInteger with the total number of sent packets
  */
-- (NSInteger)numberOfSentPackets;
+@property (NS_NONATOMIC_IOSONLY, readonly) NSInteger numberOfSentPackets;
 /**
  * returns the total number of raw bytes sent during the current media session
  * \return a NSInteger with the total number of sent bytes
  */
-- (NSInteger)numberOfSentBytes;
+@property (NS_NONATOMIC_IOSONLY, readonly) NSInteger numberOfSentBytes;
 /**
  * returns the current bitrate of sent bytes
  * \return a float of the current bitrate of sent bits
  */
-- (float)streamOutputBitrate;
+@property (NS_NONATOMIC_IOSONLY, readonly) float streamOutputBitrate;
 /**
  * returns the total number of corrupted data packets during current sout session
  * \note value is 0 on non-stream-output operations
  * \return a NSInteger with the total number of corrupted data packets
  */
-- (NSInteger)numberOfCorruptedDataPackets;
+@property (NS_NONATOMIC_IOSONLY, readonly) NSInteger numberOfCorruptedDataPackets;
 /**
  * returns the total number of discontinuties during current sout session
  * \note value is 0 on non-stream-output operations
  * \return a NSInteger with the total number of discontinuties
  */
-- (NSInteger)numberOfDiscontinuties;
+@property (NS_NONATOMIC_IOSONLY, readonly) NSInteger numberOfDiscontinuties;
 
 @end

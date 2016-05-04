@@ -22,20 +22,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
  *****************************************************************************/
 
+#import <Cocoa/Cocoa.h>
 #import <QuartzCore/QuartzCore.h>
 
 @interface VLCVideoView : NSView
-{
-    id delegate;
-    NSColor * backColor;
-    BOOL stretchesVideo;
-    id layoutManager;
-    BOOL hasVideo;
-}
 
 /* Properties */
-@property (assign) id delegate;
-@property (copy) NSColor *backColor;
+@property (nonatomic, weak) id delegate;
+@property (nonatomic, copy) NSColor *backColor;
+
 @property BOOL fillScreen;
-@property (readonly) BOOL hasVideo;
+@property (nonatomic, readonly) BOOL hasVideo;
 @end

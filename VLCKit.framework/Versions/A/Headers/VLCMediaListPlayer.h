@@ -2,8 +2,8 @@
  * VLCMediaListPlayer.h: VLCKit.framework VLCMediaListPlayer implementation
  *****************************************************************************
  * Copyright (C) 2009 Pierre d'Herbemont
- * Partial Copyright (C) 2009 Felix Paul Kühne
- * Copyright (C) 2009 VLC authors and VideoLAN
+ * Partial Copyright (C) 2009-2013 Felix Paul Kühne
+ * Copyright (C) 2009-2013 VLC authors and VideoLAN
  * $Id$
  *
  * Authors: Pierre d'Herbemont <pdherbemont # videolan.org>
@@ -30,38 +30,42 @@
  * VLCRepeatMode
  * (don't repeat anything, repeat one, repeat all)
  */
-enum VLCRepeatMode {
+typedef NS_ENUM(NSInteger, VLCRepeatMode) {
     VLCDoNotRepeat,
     VLCRepeatCurrentItem,
     VLCRepeatAllItems
 };
-typedef NSInteger VLCRepeatMode;
 
-@interface VLCMediaListPlayer : NSObject {
-    void *instance;
-    VLCMedia *_rootMedia;
-    VLCMediaPlayer *_mediaPlayer;
-    VLCMediaList *_mediaList;
-    VLCRepeatMode _repeatMode;
-}
+@interface VLCMediaListPlayer : NSObject
 
-@property (readwrite, retain) VLCMediaList *mediaList;
+@property (readwrite) VLCMediaList *mediaList;
 
 /**
  * rootMedia - Use this method to play a media and its subitems.
  * This will erase mediaList.
  * Setting mediaList will erase rootMedia.
  */
-@property (readwrite, retain) VLCMedia *rootMedia;
-@property (readonly, retain) VLCMediaPlayer *mediaPlayer;
+@property (readwrite) VLCMedia *rootMedia;
+@property (readonly) VLCMediaPlayer *mediaPlayer;
 
+- (instancetype)initWithDrawable:(id)drawable;
+- (instancetype)initWithOptions:(NSArray *)options;
+- (instancetype)initWithOptions:(NSArray *)options andDrawable:(id)drawable;
 
 /**
- * Basic play and stop are here. For other method, use the mediaPlayer.
- * This may change.
+ * Basic play, pause and stop are here. For other methods, use the mediaPlayer.
  */
 - (void)play;
+- (void)pause;
 - (void)stop;
+
+/**
+ * previous, next, play item at index
+ * \returns YES on success, NO if there is no such item
+ */
+@property (NS_NONATOMIC_IOSONLY, readonly) BOOL next;
+@property (NS_NONATOMIC_IOSONLY, readonly) BOOL previous;
+- (BOOL)playItemAtIndex:(int)index;
 
 /**
  * Playmode selection (don't repeat anything, repeat one, repeat all)

@@ -2,8 +2,8 @@
  * VLCMediaPlayer.h: VLCKit.framework VLCMediaPlayer header
  *****************************************************************************
  * Copyright (C) 2007-2009 Pierre d'Herbemont
- * Copyright (C) 2007-2009 VLC authors and VideoLAN
- * Copyright (C) 2009-2013 Felix Paul Kühne
+ * Copyright (C) 2007-2015 VLC authors and VideoLAN
+ * Copyright (C) 2009-2015 Felix Paul Kühne
  * $Id$
  *
  * Authors: Pierre d'Herbemont <pdherbemont # videolan.org>
@@ -27,6 +27,7 @@
 #import <Foundation/Foundation.h>
 #if TARGET_OS_IPHONE
 # import <CoreGraphics/CoreGraphics.h>
+# import <UIKit/UIKit.h>
 #endif
 #import "VLCMedia.h"
 #import "VLCTime.h"
@@ -37,14 +38,18 @@
 @class VLCVideoLayer;
 #endif
 
+@class VLCLibrary;
+
 /* Notification Messages */
-extern NSString * VLCMediaPlayerTimeChanged;
-extern NSString * VLCMediaPlayerStateChanged;
+extern NSString *const VLCMediaPlayerTimeChanged;
+extern NSString *const VLCMediaPlayerStateChanged;
+extern NSString *const VLCMediaPlayerTitleChanged;
+extern NSString *const VLCMediaPlayerChapterChanged;
 
 /**
  * VLCMediaPlayerState describes the state of the media player.
  */
-enum
+typedef NS_ENUM(NSInteger, VLCMediaPlayerState)
 {
     VLCMediaPlayerStateStopped,        //< Player has stopped
     VLCMediaPlayerStateOpening,        //< Stream is opening
@@ -54,7 +59,18 @@ enum
     VLCMediaPlayerStatePlaying,        //< Stream is playing
     VLCMediaPlayerStatePaused          //< Stream is paused
 };
-typedef NSInteger VLCMediaPlayerState;
+
+/**
+ * VLCMediaPlaybackNavigationAction describes actions which can be performed to navigate an interactive title
+ */
+typedef NS_ENUM(unsigned, VLCMediaPlaybackNavigationAction)
+{
+    VLCMediaPlaybackNavigationActionActivate = 0,
+    VLCMediaPlaybackNavigationActionUp,
+    VLCMediaPlaybackNavigationActionDown,
+    VLCMediaPlaybackNavigationActionLeft,
+    VLCMediaPlaybackNavigationActionRight
+};
 
 /**
  * Returns the name of the player state as a string.
@@ -68,6 +84,15 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  * to be trapped by delegated objects.
  */
 @protocol VLCMediaPlayerDelegate
+
+@optional
+/**
+ * Sent by the default notification center whenever the player's state has changed.
+ * \details Discussion The value of aNotification is always an VLCMediaPlayerStateChanged notification. You can retrieve
+ * the VLCMediaPlayer object in question by sending object to aNotification.
+ */
+- (void)mediaPlayerStateChanged:(NSNotification *)aNotification;
+
 /**
  * Sent by the default notification center whenever the player's time has changed.
  * \details Discussion The value of aNotification is always an VLCMediaPlayerTimeChanged notification. You can retrieve
@@ -76,37 +101,58 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
 - (void)mediaPlayerTimeChanged:(NSNotification *)aNotification;
 
 /**
- * Sent by the default notification center whenever the player's state has changed.
- * \details Discussion The value of aNotification is always an VLCMediaPlayerStateChanged notification. You can retrieve
+ * Sent by the default notification center whenever the player's title has changed (if any).
+ * \details Discussion The value of aNotification is always an VLCMediaPlayerTitleChanged notification. You can retrieve
+ * the VLCMediaPlayer object in question by sending object to aNotification.
+ * \note this is about a title in the navigation sense, not about metadata
+ */
+- (void)mediaPlayerTitleChanged:(NSNotification *)aNotification;
+
+/**
+ * Sent by the default notification center whenever the player's chapter has changed (if any).
+ * \details Discussion The value of aNotification is always an VLCMediaPlayerChapterChanged notification. You can retrieve
  * the VLCMediaPlayer object in question by sending object to aNotification.
  */
-- (void)mediaPlayerStateChanged:(NSNotification *)aNotification;
+- (void)mediaPlayerChapterChanged:(NSNotification *)aNotification;
+
+#if TARGET_OS_PHONE
+/**
+ * Sent by the default notification center whenever a new snapshot is taken.
+ * \details Discussion The value of aNotification is always an VLCMediaPlayerSnapshotTaken notification. You can retrieve
+ * the VLCMediaPlayer object in question by sending object to aNotification.
+ */
+- (void)mediaPlayerSnapshot:(NSNotification *)aNotification;
+#endif
+
 @end
 
 
 // TODO: Should we use medialist_player or our own flavor of media player?
 @interface VLCMediaPlayer : NSObject
 
+@property (nonatomic, readonly) VLCLibrary *libraryInstance;
+@property (weak, nonatomic) id<VLCMediaPlayerDelegate> delegate;
+
 #if !TARGET_OS_IPHONE
 /* Initializers */
-- (id)initWithVideoView:(VLCVideoView *)aVideoView;
-- (id)initWithVideoLayer:(VLCVideoLayer *)aVideoLayer;
+- (instancetype)initWithVideoView:(VLCVideoView *)aVideoView;
+- (instancetype)initWithVideoLayer:(VLCVideoLayer *)aVideoLayer;
 #endif
-- (id)initWithOptions:(NSArray *)options;
-
-/* Properties */
-- (void)setDelegate:(id)value;
-- (id)delegate;
+- (instancetype)initWithOptions:(NSArray *)options;
+- (instancetype)initWithLibVLCInstance:(void *)playerInstance andLibrary:(VLCLibrary *)library;
 
 /* Video View Options */
 // TODO: Should be it's own object?
+
+#pragma mark -
+#pragma mark video functionality
 
 #if !TARGET_OS_IPHONE
 - (void)setVideoView:(VLCVideoView *)aVideoView;
 - (void)setVideoLayer:(VLCVideoLayer *)aVideoLayer;
 #endif
 
-@property (retain) id drawable; /* The videoView or videoLayer */
+@property (strong) id drawable; /* The videoView or videoLayer */
 
 /**
  * Set/Get current video aspect ratio.
@@ -116,8 +162,7 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  * \return the video aspect ratio or NULL if unspecified
  * (the result must be released with free()).
  */
-- (void)setVideoAspectRatio:(char *)value;
-- (char *)videoAspectRatio;
+@property (NS_NONATOMIC_IOSONLY) char *videoAspectRatio;
 
 /**
  * Set/Get current crop filter geometry.
@@ -125,8 +170,7 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  * \param psz_geometry new crop filter geometry (NULL to unset)
  * \return the crop filter geometry or NULL if unset
  */
-- (void)setVideoCropGeometry:(char *)value;
-- (char *)videoCropGeometry;
+@property (NS_NONATOMIC_IOSONLY) char *videoCropGeometry;
 
 /**
  * Set/Get the current video scaling factor.
@@ -137,7 +181,7 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  *
  * \param relative scale factor as float
  */
-@property (readwrite) float scaleFactor;
+@property (nonatomic) float scaleFactor;
 
 /**
  * Take a snapshot of the current video.
@@ -149,7 +193,7 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  * \param width the snapshot's width
  * \param height the snapshot's height
  */
-- (void)saveVideoSnapshotAt: (NSString *)path withWidth:(NSUInteger)width andHeight:(NSUInteger)height;
+- (void)saveVideoSnapshotAt: (NSString *)path withWidth:(int)width andHeight:(int)height;
 
 /**
  * Enable or disable deinterlace filter
@@ -163,37 +207,37 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  *
  * \param bool value
  */
-@property BOOL adjustFilterEnabled;
+@property (nonatomic) BOOL adjustFilterEnabled;
 /**
  * Set/Get the adjust filter's contrast value
  *
  * \param float value (range: 0-2, default: 1.0)
  */
-@property float contrast;
+@property (nonatomic) float contrast;
 /**
  * Set/Get the adjust filter's brightness value
  *
  * \param float value (range: 0-2, default: 1.0)
  */
-@property float brightness;
+@property (nonatomic)  float brightness;
 /**
  * Set/Get the adjust filter's hue value
  *
- * \param integer value (range: 0-360, default: 0)
+ * \param float value (range: -180-180, default: 0.)
  */
-@property NSInteger hue;
+@property (nonatomic)  float hue;
 /**
  * Set/Get the adjust filter's saturation value
  *
  * \param float value (range: 0-3, default: 1.0)
  */
-@property float saturation;
+@property (nonatomic)  float saturation;
 /**
  * Set/Get the adjust filter's gamma value
  *
  * \param float value (range: 0-10, default: 1.0)
  */
-@property float gamma;
+@property (nonatomic)  float gamma;
 
 /**
  * Get the requested movie play rate.
@@ -204,107 +248,105 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  *
  * \return movie play rate
  */
-@property float rate;
+@property (nonatomic)  float rate;
 
-@property (readonly) VLCAudio * audio;
+@property (nonatomic, readonly, weak) VLCAudio * audio;
 
 /* Video Information */
 /**
  * Get the current video size
  * \return video size as CGSize
  */
-- (CGSize)videoSize;
+@property (NS_NONATOMIC_IOSONLY, readonly) CGSize videoSize;
+
 /**
  * Does the current media have a video output?
  * \note a false return value doesn't mean that the video doesn't have any video
  * \note tracks. Those might just be disabled.
  * \return current video output status
  */
-- (BOOL)hasVideoOut;
+@property (NS_NONATOMIC_IOSONLY, readonly) BOOL hasVideoOut;
+
 /**
  * Frames per second
- * \return current media's frames per second value
+ * \note Deprecated, provided for API compatibility only
+ * \note To retrieve a media's FPS, use VLCMediaTracksInformationFrameRate.
+ * \returns 0
  */
-- (float)framesPerSecond;
+@property (NS_NONATOMIC_IOSONLY, readonly) float framesPerSecond __attribute__((deprecated));
+
+#pragma mark -
+#pragma mark time
 
 /**
  * Sets the current position (or time) of the feed.
  * \param value New time to set the current position to.  If time is [VLCTime nullTime], 0 is assumed.
  */
-- (void)setTime:(VLCTime *)value;
 
 /**
  * Returns the current position (or time) of the feed.
  * \return VLCTIme object with current time.
  */
-- (VLCTime *)time;
+@property (NS_NONATOMIC_IOSONLY, strong) VLCTime *time;
 
-@property (readonly) VLCTime *remainingTime;
+@property (nonatomic, readonly, weak) VLCTime *remainingTime;
 
-/**
- * Frames per second
- * \note this property is deprecated. use (float)fps instead.
- * \return current media's frames per second value
- */
-@property (readonly) NSUInteger fps __attribute__((deprecated));
+#pragma mark -
+#pragma mark ES track handling
 
 /**
  * Return the current video track index
- * Note that the handled values do not match the videoTracks array indexes
- * but refer to videoSubTitlesIndexes.
+ *
  * \return 0 if none is set.
  *
  * Pass -1 to disable.
  */
-@property (readwrite) NSUInteger currentVideoTrackIndex;
+@property (readwrite) int currentVideoTrackIndex;
 
 /**
  * Returns the video track names, usually a language name or a description
  * It includes the "Disabled" fake track at index 0.
  */
-- (NSArray *)videoTrackNames;
+@property (NS_NONATOMIC_IOSONLY, readonly, copy) NSArray *videoTrackNames;
 
 /**
  * Returns the video track IDs
  * those are needed to set the video index
  */
-- (NSArray *)videoTrackIndexes;
+@property (NS_NONATOMIC_IOSONLY, readonly, copy) NSArray *videoTrackIndexes;
 
 /**
- * Return the video tracks
- *
- * It includes the disabled fake track at index 0.
+ * returns the number of video tracks available in the current media
+ * \return number of tracks
  */
-- (NSArray *)videoTracks __attribute__((deprecated));
+@property (NS_NONATOMIC_IOSONLY, readonly) int numberOfVideoTracks;
 
 /**
  * Return the current video subtitle index
- * Note that the handled values do not match the videoSubTitles array indexes
- * but refer to videoSubTitlesIndexes
+ *
  * \return 0 if none is set.
  *
  * Pass -1 to disable.
  */
-@property (readwrite) NSUInteger currentVideoSubTitleIndex;
+@property (readwrite) int currentVideoSubTitleIndex;
 
 /**
  * Returns the video subtitle track names, usually a language name or a description
  * It includes the "Disabled" fake track at index 0.
  */
-- (NSArray *)videoSubTitlesNames;
+@property (NS_NONATOMIC_IOSONLY, readonly, copy) NSArray *videoSubTitlesNames;
 
 /**
  * Returns the video subtitle track IDs
  * those are needed to set the video subtitle index
  */
-- (NSArray *)videoSubTitlesIndexes;
+@property (NS_NONATOMIC_IOSONLY, readonly, copy) NSArray *videoSubTitlesIndexes;
 
 /**
- * Return the video subtitle tracks
- * \note this property is deprecated. use (NSArray *)videoSubtitleNames instead.
- * It includes the disabled fake track at index 0.
+ * returns the number of SPU tracks available in the current media
+ * \return number of tracks
  */
-- (NSArray *)videoSubTitles __attribute__((deprecated));
+@property (NS_NONATOMIC_IOSONLY, readonly) int numberOfSubtitlesTracks;
 
 /**
  * Load and set a specific video subtitle, from a file.
@@ -332,51 +374,85 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  *
  * To disable subtitle pass NSNotFound.
  */
-@property (readwrite) NSUInteger currentChapterIndex;
+@property (readwrite) int currentChapterIndex;
 - (void)previousChapter;
 - (void)nextChapter;
-- (NSArray *)chaptersForTitleIndex:(NSUInteger)titleIndex;
+- (int)numberOfChaptersForTitle:(int)titleIndex;
+- (NSArray *)chaptersForTitleIndex:(int)titleIndex __attribute__((deprecated));
+
+extern NSString *const VLCChapterDescriptionName;
+extern NSString *const VLCChapterDescriptionTimeOffset;
+extern NSString *const VLCChapterDescriptionDuration;
+
+/**
+ * chapter descriptions
+ * an array of all chapters of the given title including information about
+ * chapter name, time offset and duration
+ * \note if no title value is provided, information about the chapters of the current title is returned
+ * \return array describing the titles in details
+ */
+- (NSArray *)chapterDescriptionsOfTitle:(int)titleIndex;
 
 /**
  * Title selection and enumeration
  * \return NSNotFound if none is set.
  */
-@property (readwrite) NSUInteger currentTitleIndex;
-- (NSArray *)titles;
+@property (readwrite) int currentTitleIndex;
+@property (readonly) int numberOfTitles;
+@property (readonly) NSUInteger countOfTitles __attribute__((deprecated));
+@property (NS_NONATOMIC_IOSONLY, readonly, copy) NSArray *titles __attribute__((deprecated));
+
+extern NSString *const VLCTitleDescriptionName;
+extern NSString *const VLCTitleDescriptionDuration;
+extern NSString *const VLCTitleDescriptionIsMenu;
+
+/**
+ * title descriptions
+ * an array of all titles of the current media including information
+ * of name, duration and potential menu state
+ * \return array describing the titles in details
+ */
+@property (NS_NONATOMIC_IOSONLY, readonly, copy) NSArray *titleDescriptions;
+
+/**
+ * the title with the longest duration
+ * \return int matching the title index
+ */
+@property (readonly) int indexOfLongestTitle;
 
 /* Audio Options */
 
 /**
  * Return the current audio track index
- * Note that the handled values do not match the audioTracks array indexes
- * but refer to audioTrackIndexes.
+ *
  * \return 0 if none is set.
  *
  * Pass -1 to disable.
  */
-@property (readwrite) NSUInteger currentAudioTrackIndex;
+@property (readwrite) int currentAudioTrackIndex;
 
 /**
  * Returns the audio track names, usually a language name or a description
  * It includes the "Disabled" fake track at index 0.
  */
-- (NSArray *)audioTrackNames;
+@property (NS_NONATOMIC_IOSONLY, readonly, copy) NSArray *audioTrackNames;
 
 /**
  * Returns the audio track IDs
  * those are needed to set the video index
  */
-- (NSArray *)audioTrackIndexes;
+@property (NS_NONATOMIC_IOSONLY, readonly, copy) NSArray *audioTrackIndexes;
 
 /**
- * Return the audio tracks
- *
- * It includes the "Disable" fake track at index 0.
+ * returns the number of audio tracks available in the current media
+ * \return number of tracks
  */
-- (NSArray *)audioTracks __attribute__((deprecated));
+@property (NS_NONATOMIC_IOSONLY, readonly) int numberOfAudioTracks;
 
-- (void)setAudioChannel:(NSInteger)value;
-- (NSInteger)audioChannel;
+#pragma mark -
+#pragma mark audio functionality
+
+@property (NS_NONATOMIC_IOSONLY) int audioChannel;
 
 /**
  * Get the current audio delay. Positive values means audio is delayed further,
@@ -386,18 +462,73 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  */
 @property (readwrite) NSInteger currentAudioPlaybackDelay;
 
-/* Media Options */
-- (void)setMedia:(VLCMedia *)value;
-- (VLCMedia *)media;
+#pragma mark -
+#pragma mark equalizer
 
-/* Playback Operations */
+/**
+ * Get a list of available equalizer profiles
+ * \Note Current versions do not allow the addition of further profiles
+ *       so you need to handle this in your app.
+ *
+ * \return array of equalizer profiles
+ */
+@property (weak, readonly) NSArray *equalizerProfiles;
+
+/**
+ * Re-set the equalizer to a profile retrieved from the list
+ * \Note This doesn't enable the Equalizer automagically
+ */
+- (void)resetEqualizerFromProfile:(unsigned)profile;
+
+/**
+ * Toggle equalizer state
+ * \param bool value to enable/disable the equalizer
+ * \return current state */
+@property (readwrite) BOOL equalizerEnabled;
+
+/**
+ * Set amplification level
+ * \param The supplied amplification value will be clamped to the -20.0 to +20.0 range.
+ * \note this will create and enabled an Equalizer instance if not present
+ * \return current amplification level */
+@property (readwrite) CGFloat preAmplification;
+
+/**
+ * Number of equalizer bands
+ * \return the number of equalizer bands available in the current release */
+@property (readonly) unsigned numberOfBands;
+
+/**
+ * frequency of equalizer band
+ * \return frequency of the requested equalizer band */
+- (CGFloat)frequencyOfBandAtIndex:(unsigned)index;
+
+/**
+ * set amplification for band
+ * \param amplification value (clamped to the -20.0 to +20.0 range)
+ * \param index of the respective band */
+- (void)setAmplification:(CGFloat)amplification forBand:(unsigned)index;
+
+/**
+ * amplification of band
+ * \param index of the band
+ * \return current amplification value (clamped to the -20.0 to +20.0 range) */
+- (CGFloat)amplificationOfBand:(unsigned)index;
+
+#pragma mark -
+#pragma mark media handling
+
+/* Media Options */
+@property (NS_NONATOMIC_IOSONLY, strong) VLCMedia *media;
+
+#pragma mark -
+#pragma mark playback operations
 /**
  * Plays a media resource using the currently selected media controller (or
  * default controller.  If feed was paused then the feed resumes at the position
  * it was paused in.
- * \return A Boolean determining whether the stream was played or not.
  */
-- (BOOL)play;
+- (void)play;
 
 /**
  * Toggle's the pause state of the feed.
@@ -440,13 +571,13 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  * Jumps shortly backward in current stream if seeking is supported.
  * \param interval to skip, in sec.
  */
-- (void)jumpBackward:(NSInteger)interval;
+- (void)jumpBackward:(int)interval;
 
 /**
  * Jumps shortly forward in current stream if seeking is supported.
  * \param interval to skip, in sec.
  */
-- (void)jumpForward:(NSInteger)interval;
+- (void)jumpForward:(int)interval;
 
 /**
  * Jumps shortly backward in current stream if seeking is supported.
@@ -488,38 +619,54 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  */
 - (void)longJumpForward;
 
-/* Playback Information */
+/**
+ * performs navigation actions on interactive titles
+ */
+- (void)performNavigationAction:(VLCMediaPlaybackNavigationAction)action;
+
+#pragma mark -
+#pragma mark playback information
 /**
  * Playback state flag identifying that the stream is currently playing.
  * \return TRUE if the feed is playing, FALSE if otherwise.
  */
-- (BOOL)isPlaying;
+@property (NS_NONATOMIC_IOSONLY, getter=isPlaying, readonly) BOOL playing;
 
 /**
  * Playback state flag identifying wheather the stream will play.
  * \return TRUE if the feed is ready for playback, FALSE if otherwise.
  */
-- (BOOL)willPlay;
+@property (NS_NONATOMIC_IOSONLY, readonly) BOOL willPlay;
 
 /**
  * Playback's current state.
  * \see VLCMediaState
  */
-- (VLCMediaPlayerState)state;
+@property (NS_NONATOMIC_IOSONLY, readonly) VLCMediaPlayerState state;
 
 /**
  * Returns the receiver's position in the reading.
  * \return movie position as percentage between 0.0 and 1.0.
  */
-- (float)position;
+@property (NS_NONATOMIC_IOSONLY) float position;
 /**
  * Set movie position. This has no effect if playback is not enabled.
  * \param movie position as percentage between 0.0 and 1.0.
  */
-- (void)setPosition:(float)newPosition;
 
-- (BOOL)isSeekable;
+@property (NS_NONATOMIC_IOSONLY, getter=isSeekable, readonly) BOOL seekable;
 
-- (BOOL)canPause;
+@property (NS_NONATOMIC_IOSONLY, readonly) BOOL canPause;
+
+#if TARGET_OS_IPHONE
+@property (NS_NONATOMIC_IOSONLY, readonly, copy) NSArray *snapshots;
+
+/**
+ * Get last snapshot available.
+ * \return an UIImage with the last snapshot available.
+ * \note return value is nil if there is no snapshot
+ */
+@property (NS_NONATOMIC_IOSONLY, readonly) UIImage *lastSnapshot;
+#endif
 
 @end

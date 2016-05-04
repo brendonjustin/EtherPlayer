@@ -52,28 +52,43 @@
  * \param a NSArray with NSString instance containing the options
  * \return the individual library instance
  */
- - (id)initWithOptions:(NSArray*)options;
+ - (instancetype)initWithOptions:(NSArray*)options;
+
+/**
+ * enables/disables debug logging
+ * \param BOOL value to enable/disable
+ * \note we will always log using NSLog
+ * \return debug logging state
+ */
+@property (readwrite, nonatomic) BOOL debugLogging;
+
+/**
+ * gets/sets the debug logging level
+ * \param int set level from 0 (all) to 4 (just error messages)
+ * \return int debug level
+*/
+@property (readwrite, nonatomic) int debugLoggingLevel;
 
 /**
  * Returns the library's version
  * \return The library version example "0.9.0-git Grishenko".
  */
 
-@property (readonly) NSString * version;
+@property (readonly, copy) NSString *version;
 
 /**
  * Returns the compiler used to build the libvlc binary
  * \return The compiler version string.
  */
 
-@property (readonly) NSString * compiler;
+@property (readonly, copy) NSString *compiler;
 
 /**
  * Returns the library's changeset
  * \return The library version example "adfee99".
  */
 
-@property (readonly) NSString * changeset;
+@property (readonly, copy) NSString *changeset;
 
 /**
  * sets the application name and HTTP User Agend

@@ -2,10 +2,12 @@
  * VLCMediaDiscoverer.h: VLCKit.framework VLCMediaDiscoverer header
  *****************************************************************************
  * Copyright (C) 2007 Pierre d'Herbemont
- * Copyright (C) 2007 VLC authors and VideoLAN
+ * Copyright (C) 2015 Felix Paul Kühne
+ * Copyright (C) 2007, 2015 VLC authors and VideoLAN
  * $Id$
  *
  * Authors: Pierre d'Herbemont <pdherbemont # videolan.org>
+ *          Felix Paul Kühne <fkuehne # videolan.org>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -25,46 +27,56 @@
 #import <Foundation/Foundation.h>
 #import "VLCMediaList.h"
 
+@class VLCLibrary;
 @class VLCMediaList;
+@class VLCMediaDiscoverer;
 
 /**
- * TODO: Documentation VLCMediaDiscoverer
+ * VLCMediaDiscoverer
  */
+
 @interface VLCMediaDiscoverer : NSObject
-{
-    NSString * localizedName;       //< TODO: Documentation VLCMediaDiscoverer.localizedName
-    VLCMediaList * discoveredMedia; //< TODO: Documentation VLCMediaDiscoverer.discoveredMedia
-    void * mdis;                    //< TODO: Documentation VLCMediaDiscoverer.mdis
-    BOOL running;                   //< TODO: Documentation VLCMediaDiscoverer.running
-}
+
+@property (nonatomic, readonly) VLCLibrary *libraryInstance;
 
 /**
- * Maintains a list of available media discoverers.  This list is populated as new media
- * discoverers are created.
- * \return A list of available media discoverers.
+ * \return returns an empty array, will be removed in subsequent releases
  */
-+ (NSArray *)availableMediaDiscoverer;
++ (NSArray *)availableMediaDiscoverer __attribute__((deprecated));
 
 /* Initializers */
 /**
  * Initializes new object with specified name.
- * \param aSerchName Name of the service for this VLCMediaDiscoverer object.
+ * \param aServiceName Name of the service for this VLCMediaDiscoverer object.
  * \returns Newly created media discoverer.
+ * \note with VLCKit 3.0 and above, you need to start the discoverer explicitly after creation
  */
-- (id)initWithName:(NSString *)aServiceName;
+- (instancetype)initWithName:(NSString *)aServiceName;
 
 /**
- * TODO: Documentation VLCMediaDiscoverer.discoveredMedia
+ * start media discovery
+ * \returns -1 if start failed, otherwise 0
  */
-@property (readonly) VLCMediaList * discoveredMedia;
+- (int)startDiscoverer;
 
 /**
- * TODO: Documentation VLCMediaDiscoverer.localizedName
+ * stop media discovery
  */
-@property (readonly) NSString * localizedName;
+- (void)stopDiscoverer;
 
 /**
- * TODO: Documentation VLCMediaDiscoverer.isRunning
+ * a read-only property to retrieve the list of discovered media items
+ */
+@property (weak, readonly) VLCMediaList *discoveredMedia;
+
+/**
+ * returns the localized name of the discovery module if available, otherwise in US English
+ */
+@property (readonly, copy) NSString *localizedName;
+
+/**
+ * read-only property to check if the discovery service is active
+ * \return boolean value
  */
 @property (readonly) BOOL isRunning;
 @end

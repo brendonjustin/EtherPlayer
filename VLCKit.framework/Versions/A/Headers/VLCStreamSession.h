@@ -27,19 +27,15 @@
 #import <VLCKit/VLCMedia.h>
 
 
-@interface VLCStreamSession : VLCMediaPlayer {
-    VLCStreamOutput * streamOutput;
-    VLCMedia * originalMedia;
-    NSUInteger reattemptedConnections;
-    BOOL isComplete;
-}
+@interface VLCStreamSession : VLCMediaPlayer
 
-+ (id)streamSession;
++ (instancetype)streamSession;
 
-@property (retain) VLCMedia * media;
-@property (retain) VLCStreamOutput * streamOutput;
-@property (readonly) BOOL isComplete;
+@property (nonatomic, strong) VLCStreamOutput * streamOutput;
+@property (nonatomic, readonly) BOOL isComplete;
+@property (nonatomic, readonly) NSUInteger reattemptedConnections;
 
 - (void)startStreaming;
 - (void)stopStreaming;
+
 @end
