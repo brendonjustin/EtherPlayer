@@ -53,6 +53,8 @@
 		DA74FA571CD9706D009FB1F6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA74FA561CD9706D009FB1F6 /* AppDelegate.swift */; };
 		DAC34FCE1CD97B3400B18830 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAC34FCD1CD97B3400B18830 /* ViewController.swift */; };
 		DAC350071CD97FC500B18830 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DAC350061CD97FC500B18830 /* Main.storyboard */; };
+		DAC3500B1CD98A3300B18830 /* AirplayHandler_Socket.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAC3500A1CD98A3300B18830 /* AirplayHandler_Socket.swift */; };
+		DAC3500F1CD991D500B18830 /* AirplayConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = DAC3500E1CD991D500B18830 /* AirplayConstants.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -151,6 +153,9 @@
 		DA74FA561CD9706D009FB1F6 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		DAC34FCD1CD97B3400B18830 /* ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		DAC350061CD97FC500B18830 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
+		DAC3500A1CD98A3300B18830 /* AirplayHandler_Socket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AirplayHandler_Socket.swift; sourceTree = "<group>"; };
+		DAC3500D1CD991D500B18830 /* AirplayConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AirplayConstants.h; sourceTree = "<group>"; };
+		DAC3500E1CD991D500B18830 /* AirplayConstants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AirplayConstants.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -340,8 +345,11 @@
 			isa = PBXGroup;
 			children = (
 				DA74FA561CD9706D009FB1F6 /* AppDelegate.swift */,
+				DAC3500D1CD991D500B18830 /* AirplayConstants.h */,
+				DAC3500E1CD991D500B18830 /* AirplayConstants.m */,
 				5C0A32F315786D1000D3A49F /* AirplayHandler.h */,
 				5C0A32F415786D1000D3A49F /* AirplayHandler.m */,
+				DAC3500A1CD98A3300B18830 /* AirplayHandler_Socket.swift */,
 				5C0DD8C4157FF566005C8FF8 /* VideoManager.h */,
 				5C0DD8C5157FF566005C8FF8 /* VideoManager.m */,
 				5C0A32F015786C9400D3A49F /* BonjourSearcher.h */,
@@ -480,8 +488,10 @@
 				5C09486516F7FABD008E6582 /* DDFileLogger.m in Sources */,
 				5C09486616F7FABD008E6582 /* DDLog.m in Sources */,
 				5C09486716F7FABD008E6582 /* DDTTYLogger.m in Sources */,
+				DAC3500F1CD991D500B18830 /* AirplayConstants.m in Sources */,
 				5C09486816F7FABD008E6582 /* ContextFilterLogFormatter.m in Sources */,
 				5C09486916F7FABD008E6582 /* DispatchQueueLogFormatter.m in Sources */,
+				DAC3500B1CD98A3300B18830 /* AirplayHandler_Socket.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

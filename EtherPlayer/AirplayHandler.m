@@ -12,56 +12,14 @@
 
 #import "GCDAsyncSocket.h"
 
+#import "EtherPlayer-Swift.h"
+
 #import <CFNetwork/CFHTTPStream.h>
 
 #import <arpa/inet.h>
 #import <ifaddrs.h>
 
-const BOOL kAHEnableDebugOutput = YES;
-const BOOL kAHAssumeReverseTimesOut = YES;
-const NSUInteger    kAHVideo = 0,
-kAHPhoto = 1,
-kAHVideoFairPlay = 2,
-kAHVideoVolumeControl = 3,
-kAHVideoHTTPLiveStreams = 4,
-kAHSlideshow = 5,
-kAHScreen = 7,
-kAHScreenRotate = 8,
-kAHAudio = 9,
-kAHAudioRedundant = 11,
-kAHFPSAPv2pt5_AES_GCM = 12,
-kAHPhotoCaching = 13;
-const NSUInteger    kAHRequestTagReverse = 1,
-kAHRequestTagPlay = 2;
-const NSUInteger    kAHPropertyRequestPlaybackAccess = 1,
-kAHPropertyRequestPlaybackError = 2;
-
-@interface AirplayHandler () <GCDAsyncSocketDelegate>
-
-- (void)setCommonHeadersForRequest:(NSMutableURLRequest *)request;
-- (void)reverseRequest;
-- (void)playRequest;
-- (void)infoRequest;
-- (void)getPropertyRequest:(NSUInteger)property;
-- (void)stopRequest;
-- (void)changePlaybackStatus;
-- (void)stoppedWithError:(NSError *)error;
-
-@property (strong, nonatomic) NSURL                 *baseUrl;
-@property (strong, nonatomic) NSString              *sessionID;
-@property (strong, nonatomic) NSString              *prevInfoRequest;
-@property (strong, nonatomic) NSMutableData         *responseData;
-@property (strong, nonatomic) NSMutableData         *data;
-@property (strong, nonatomic) NSTimer               *infoTimer;
-@property (strong, nonatomic) NSNetService          *targetService;
-@property (strong, nonatomic) NSDictionary          *serverInfo;
-@property (strong, nonatomic) GCDAsyncSocket        *reverseSocket;
-@property (strong, nonatomic) GCDAsyncSocket        *mainSocket;
-@property (strong, nonatomic) NSOperationQueue      *operationQueue;
-@property (nonatomic) BOOL                          airplaying;
-@property (nonatomic) BOOL                          paused;
-@property (nonatomic) double                        playbackPosition;
-@property (nonatomic) uint8_t                       serverCapabilities;
+@interface AirplayHandler ()
 
 @end
 
@@ -504,77 +462,6 @@ kAHPropertyRequestPlaybackError = 2;
     [self.delegate positionUpdated:self.playbackPosition];
     [self.delegate durationUpdated:0];
     [self.delegate airplayStoppedWithError:error];
-}
-
-#pragma mark -
-#pragma mark GCDAsyncSocket methods
-
-- (void)socket:(GCDAsyncSocket *)sock didConnectToHost:(NSString *)host port:(uint16_t)port
-{
-    NSLog(@"socket:didConnectToHost:port: called");
-}
-
-- (void)socket:(GCDAsyncSocket *)sock didWritePartialDataOfLength:(NSUInteger)partialLength
-           tag:(long)tag
-{
-    NSLog(@"socket:didWritePartialDataOfLength:tag: called");
-}
-
-- (void)socket:(GCDAsyncSocket *)sock didWriteDataWithTag:(long)tag
-{
-    if (tag == kAHRequestTagReverse) {
-        //  /reverse request data written
-    } else if (tag == kAHRequestTagPlay) {
-        //  /play request data written
-        self.airplaying = YES;
-    }
-}
-
-- (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag
-{
-    NSString    *replyString = nil;
-    NSRange     range;
-    
-    replyString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-    NSLog(@"socket:didReadData:withTag: data:\r\n%@", replyString);
-    
-    if (tag == kAHRequestTagReverse) {
-        //  /reverse request reply received and read
-        range = [replyString rangeOfString:@"HTTP/1.1 101 Switching Protocols"];
-        
-        if (range.location == NSNotFound) {
-            //  a /reverse reply after we started playback, this should contain
-            //  any playback info that the server wants to send
-            
-            //  TODO: does this ever occur?
-            NSLog(@"later /reverse data");
-        } else {
-            //  the first /reverse reply, now we should start playback
-            [self playRequest];
-            [self.reverseSocket readDataWithTimeout:100.0f tag:kAHRequestTagReverse];
-        }
-        
-        NSLog(@"read data for /reverse reply");
-        
-    } else if (tag == kAHRequestTagPlay) {
-        //  /play request reply received and read
-        range = [replyString rangeOfString:@"HTTP/1.1 200 OK"];
-        
-        if (range.location != NSNotFound) {
-            self.airplaying = YES;
-            self.paused = NO;
-            [self.delegate setPaused:self.paused];
-            [self.delegate durationUpdated:self.videoManager.duration];
-            
-            self.infoTimer = [NSTimer scheduledTimerWithTimeInterval:3.0f
-                                                              target:self
-                                                            selector:@selector(infoRequest)
-                                                            userInfo:nil
-                                                             repeats:YES];
-        }
-        
-        NSLog(@"read data for /play reply");
-    }
 }
 
 - (void)writestuff {

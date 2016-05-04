@@ -52,7 +52,7 @@ extension ViewController {
         let newHostName = targetSelector.selectedItem!.title
         let selectedService: NSNetService = services.filter { $0.hostName == newHostName }.first!
         
-        handler.setTargetService(selectedService)
+        handler.targetService = selectedService
     }
 }
 
