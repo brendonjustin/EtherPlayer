@@ -11,6 +11,7 @@ import Cocoa
 class AirplayHandler: NSObject {
     var delegate: AirplayHandlerDelegate?
     var videoManager: VideoManager!
+    var urlSession: NSURLSession = NSURLSession.sharedSession()
     
     // Initialize these together
     var baseUrl: NSURL?
@@ -110,7 +111,7 @@ class AirplayHandler: NSObject {
         let request = NSMutableURLRequest(URL: url)
         setCommonHeadersForRequest(request)
         
-        NSURLConnection.sendAsynchronousRequest(request, queue: operationQueue) { [weak self] (response, data, error) in
+        let task = urlSession.dataTaskWithRequest(request) { [weak self] (data, response, error) in
             guard let strongSelf = self else {
                 return
             }
@@ -151,6 +152,8 @@ class AirplayHandler: NSObject {
             strongSelf.videoManager.useHttpLiveStreaming = useHLS
             strongSelf.serverCapabilities = features
         }
+        
+        task.resume()
     }
     
 }
@@ -204,9 +207,11 @@ extension AirplayHandler {
         
         setCommonHeadersForRequest(request)
         
-        NSURLConnection.sendAsynchronousRequest(request, queue: operationQueue) { (response, data, error) in
+        let task = urlSession.dataTaskWithRequest(request) { (data, response, error) in
             // empty
         }
+        
+        task.resume()
     }
     
     func stoppedWithError(error: NSError?) {
@@ -305,6 +310,8 @@ private extension AirplayHandler {
         
         let nextRequest: String
         
+        let task: NSURLSessionTask
+        
         if prevInfoRequest == "/playback-info" {
             nextRequest = "/scrub"
             
@@ -316,7 +323,7 @@ private extension AirplayHandler {
             let request = NSMutableURLRequest(URL: url)
             setCommonHeadersForRequest(request)
             
-            NSURLConnection.sendAsynchronousRequest(request, queue: operationQueue, completionHandler: { [weak self] (response, data, error) in
+            task = urlSession.dataTaskWithRequest(request, completionHandler: { [weak self] (data, response, error) in
                 //  update our position in the file after /scrub
                 guard let strongSelf = self else {
                     return
@@ -344,7 +351,7 @@ private extension AirplayHandler {
             let request = NSMutableURLRequest(URL: url)
             setCommonHeadersForRequest(request)
             
-            NSURLConnection.sendAsynchronousRequest(request, queue: operationQueue, completionHandler: { [weak self] (response, data, error) in
+            task = urlSession.dataTaskWithRequest(request, completionHandler: { [weak self] (data, response, error) in
                 //  update our playback status and position after /playback-info
                 
                 guard let strongSelf = self where strongSelf.airplaying else {
@@ -403,6 +410,8 @@ private extension AirplayHandler {
                 }
             })
         }
+        
+        task.resume()
     }
 
     func getPropertyRequest(property: UInt) {
@@ -421,7 +430,7 @@ private extension AirplayHandler {
         setCommonHeadersForRequest(request)
         request.setValue("application/x-apple-binary-plist", forHTTPHeaderField: "Content-Type")
         
-        NSURLConnection.sendAsynchronousRequest(request, queue: operationQueue) { (response, data, error) in
+        let task = urlSession.dataTaskWithRequest(request) { (data, response, error) in
             //  get the PLIST from the response and log it
             guard let data = data else {
                 return
@@ -447,6 +456,8 @@ private extension AirplayHandler {
             
             print("\(requestType): \(propertyPlist)")
         }
+        
+        task.resume()
     }
     
     func stopRequest() {
@@ -455,9 +466,11 @@ private extension AirplayHandler {
         
         setCommonHeadersForRequest(request)
         
-        NSURLConnection.sendAsynchronousRequest(request, queue: operationQueue) { (response, data, error) in
+        let task = urlSession.dataTaskWithRequest(request) { (data, response, error) in
             self.stoppedWithError(nil)
         }
+        
+        task.resume()
     }
 }
 
