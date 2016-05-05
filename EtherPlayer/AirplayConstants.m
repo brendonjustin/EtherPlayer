@@ -11,7 +11,7 @@
 #import <Foundation/Foundation.h>
 
 const BOOL kAHEnableDebugOutput = YES;
-const BOOL kAHAssumeReverseTimesOut = YES;
+const BOOL kAHAssumeReverseTimesOut = NO;
 const NSUInteger    kAHVideo = 0,
                     kAHPhoto = 1,
                     kAHVideoFairPlay = 2,
