@@ -49,6 +49,13 @@
 		5CBB2C0C158E9301008EF412 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CBB2C0B158E9301008EF412 /* CFNetwork.framework */; };
 		5CFC07C517237F6B0028F63D /* VLCKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CFC07C417237F6B0028F63D /* VLCKit.framework */; };
 		5CFC07C617237F6F0028F63D /* VLCKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5CFC07C417237F6B0028F63D /* VLCKit.framework */; };
+		DA0F570C1CDBAFF30045E639 /* ReverseRequester.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0F570B1CDBAFF30045E639 /* ReverseRequester.swift */; };
+		DA0F570E1CDBB02E0045E639 /* AirplayStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0F570D1CDBB02E0045E639 /* AirplayStateMachine.swift */; };
+		DA0F57101CDBB2130045E639 /* StopRequester.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0F570F1CDBB2130045E639 /* StopRequester.swift */; };
+		DA0F57121CDBBCB90045E639 /* PlayingRequester.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0F57111CDBBCB90045E639 /* PlayingRequester.swift */; };
+		DA0F57141CDBD3C10045E639 /* PlaybackInfoRequester.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0F57131CDBD3C10045E639 /* PlaybackInfoRequester.swift */; };
+		DA0F57161CDBD3F10045E639 /* ScrubRequester.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0F57151CDBD3F10045E639 /* ScrubRequester.swift */; };
+		DA0F57181CDBD7510045E639 /* ServerInfoRequester.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0F57171CDBD7510045E639 /* ServerInfoRequester.swift */; };
 		DA74FA571CD9706D009FB1F6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA74FA561CD9706D009FB1F6 /* AppDelegate.swift */; };
 		DAC34FCE1CD97B3400B18830 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAC34FCD1CD97B3400B18830 /* ViewController.swift */; };
 		DAC350071CD97FC500B18830 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DAC350061CD97FC500B18830 /* Main.storyboard */; };
@@ -146,6 +153,13 @@
 		5C4D440C15804915007B94F2 /* stop.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = stop.png; sourceTree = "<group>"; };
 		5CBB2C0B158E9301008EF412 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
 		5CFC07C417237F6B0028F63D /* VLCKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = VLCKit.framework; sourceTree = "<group>"; };
+		DA0F570B1CDBAFF30045E639 /* ReverseRequester.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReverseRequester.swift; sourceTree = "<group>"; };
+		DA0F570D1CDBB02E0045E639 /* AirplayStateMachine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AirplayStateMachine.swift; sourceTree = "<group>"; };
+		DA0F570F1CDBB2130045E639 /* StopRequester.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StopRequester.swift; sourceTree = "<group>"; };
+		DA0F57111CDBBCB90045E639 /* PlayingRequester.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayingRequester.swift; sourceTree = "<group>"; };
+		DA0F57131CDBD3C10045E639 /* PlaybackInfoRequester.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaybackInfoRequester.swift; sourceTree = "<group>"; };
+		DA0F57151CDBD3F10045E639 /* ScrubRequester.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScrubRequester.swift; sourceTree = "<group>"; };
+		DA0F57171CDBD7510045E639 /* ServerInfoRequester.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServerInfoRequester.swift; sourceTree = "<group>"; };
 		DA74FA551CD9706D009FB1F6 /* EtherPlayer-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "EtherPlayer-Bridging-Header.h"; sourceTree = "<group>"; };
 		DA74FA561CD9706D009FB1F6 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		DAC34FCD1CD97B3400B18830 /* ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -341,6 +355,7 @@
 		5C0A32D515786B2600D3A49F /* EtherPlayer */ = {
 			isa = PBXGroup;
 			children = (
+				DA0F570A1CDBAFCC0045E639 /* AirPlay */,
 				DA74FA561CD9706D009FB1F6 /* AppDelegate.swift */,
 				DAC3500D1CD991D500B18830 /* AirplayConstants.h */,
 				DAC3500E1CD991D500B18830 /* AirplayConstants.m */,
@@ -377,6 +392,20 @@
 				5C4D440C15804915007B94F2 /* stop.png */,
 			);
 			name = Resources;
+			sourceTree = "<group>";
+		};
+		DA0F570A1CDBAFCC0045E639 /* AirPlay */ = {
+			isa = PBXGroup;
+			children = (
+				DA0F570D1CDBB02E0045E639 /* AirplayStateMachine.swift */,
+				DA0F57131CDBD3C10045E639 /* PlaybackInfoRequester.swift */,
+				DA0F57111CDBBCB90045E639 /* PlayingRequester.swift */,
+				DA0F570B1CDBAFF30045E639 /* ReverseRequester.swift */,
+				DA0F57151CDBD3F10045E639 /* ScrubRequester.swift */,
+				DA0F57171CDBD7510045E639 /* ServerInfoRequester.swift */,
+				DA0F570F1CDBB2130045E639 /* StopRequester.swift */,
+			);
+			path = AirPlay;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -468,16 +497,23 @@
 				5C09485416F7FABD008E6582 /* MultipartFormDataParser.m in Sources */,
 				5C09485516F7FABD008E6582 /* MultipartMessageHeader.m in Sources */,
 				5C09485616F7FABD008E6582 /* MultipartMessageHeaderField.m in Sources */,
+				DA0F570C1CDBAFF30045E639 /* ReverseRequester.swift in Sources */,
 				5C09485716F7FABD008E6582 /* HTTPAsyncFileResponse.m in Sources */,
 				5C09485816F7FABD008E6582 /* HTTPDataResponse.m in Sources */,
+				DA0F57101CDBB2130045E639 /* StopRequester.swift in Sources */,
 				5C09485916F7FABD008E6582 /* HTTPDynamicFileResponse.m in Sources */,
 				5C09485A16F7FABD008E6582 /* HTTPErrorResponse.m in Sources */,
 				5C09485B16F7FABD008E6582 /* HTTPFileResponse.m in Sources */,
 				5C09485C16F7FABD008E6582 /* HTTPRedirectResponse.m in Sources */,
+				DA0F57161CDBD3F10045E639 /* ScrubRequester.swift in Sources */,
 				5C09485D16F7FABD008E6582 /* WebSocket.m in Sources */,
 				DA74FA571CD9706D009FB1F6 /* AppDelegate.swift in Sources */,
 				5C09486116F7FABD008E6582 /* GCDAsyncSocket.m in Sources */,
+				DA0F57121CDBBCB90045E639 /* PlayingRequester.swift in Sources */,
+				DA0F57141CDBD3C10045E639 /* PlaybackInfoRequester.swift in Sources */,
 				5C09486316F7FABD008E6582 /* DDAbstractDatabaseLogger.m in Sources */,
+				DA0F570E1CDBB02E0045E639 /* AirplayStateMachine.swift in Sources */,
+				DA0F57181CDBD7510045E639 /* ServerInfoRequester.swift in Sources */,
 				5C09486416F7FABD008E6582 /* DDASLLogger.m in Sources */,
 				5C09486516F7FABD008E6582 /* DDFileLogger.m in Sources */,
 				5C09486616F7FABD008E6582 /* DDLog.m in Sources */,
