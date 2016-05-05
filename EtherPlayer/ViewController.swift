@@ -115,7 +115,7 @@ extension ViewController: AirplayHandlerDelegate {
         durationFieldCell.title = "\(Int(duration) / 3600):\((Int(duration) / 60) % 60)\(Int(duration) % 60)"
     }
     
-    func airplayStoppedWithError(error: NSError!) {
+    func airplayStoppedWithError(error: NSError?) {
         if let error = error {
             let alert = NSAlert(error: error)
             alert.runModal()

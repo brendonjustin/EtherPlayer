@@ -3,7 +3,7 @@
 //
 
 #import "AirplayConstants.h"
-#import "AirplayHandler.h"
+#import "AirplayConstants.h"
 #import "VideoManager.h"
 #import "BonjourSearcher.h"
 #import "GCDAsyncSocket.h"
