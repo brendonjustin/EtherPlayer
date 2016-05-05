@@ -32,7 +32,7 @@ class AirplayHandler: NSObject {
 	private var responseData = NSMutableData()
 	private var data = NSMutableData()
 	private var infoTimer: NSTimer?
-    private var serverInfo: NSDictionary = [:]
+    private var serverInfo: [String:AnyObject] = [:]
     private let reverseSocket = GCDAsyncSocket(delegate: nil, delegateQueue: dispatch_get_main_queue())
     private let mainSocket = GCDAsyncSocket(delegate: nil, delegateQueue: dispatch_get_main_queue())
 	private var operationQueue = NSOperationQueue.mainQueue()
@@ -121,10 +121,21 @@ class AirplayHandler: NSObject {
             }
 
             var format = NSPropertyListFormat.BinaryFormat_v1_0
-            var errorDescription: NSString?
             
-            guard let serverInfoAny = NSPropertyListSerialization.propertyListFromData(data, mutabilityOption: .Immutable, format: &format, errorDescription: &errorDescription), serverInfo = serverInfoAny as? NSDictionary else {
-                print("Error parsing /server-info response: \(errorDescription)")
+            let serverInfo: [String:AnyObject]
+            
+            do {
+                let serverInfoAny = try NSPropertyListSerialization.propertyListWithData(data, options: [], format: &format)
+                print("/server-info plist: \(serverInfoAny)")
+                
+                guard let serverInfoDictionary = serverInfoAny as? [String:AnyObject] else {
+                    print("Error parsing /server-info response into a dictionary")
+                    return
+                }
+                
+                serverInfo = serverInfoDictionary
+            } catch {
+                print("Error parsing /server-info response: \(error)")
                 return
             }
             
@@ -253,16 +264,12 @@ private extension AirplayHandler {
         let plist = ["Content-Location" : httpFilePath,
                      "Start-Position" : 0]
         
-        var errorDesc: NSString?
-        
-        let maybeOutData = NSPropertyListSerialization.dataFromPropertyList(plist, format: .BinaryFormat_v1_0, errorDescription: &errorDesc)
-        
-        guard let outData = maybeOutData else {
-            if let errorDescription = errorDesc {
-                print("Error creating /play info plist: \(errorDescription)")
-            } else {
-                print("Unknown error creating /play info plist")
-            }
+        let outData: NSData
+        do {
+            outData = try NSPropertyListSerialization.dataWithPropertyList(plist, format: .BinaryFormat_v1_0, options: .allZeros)
+        } catch {
+            print("Error creating data from property list: \(error)")
+            assertionFailure("Must be able to make plist data for /play request.")
             return
         }
         
@@ -350,14 +357,31 @@ private extension AirplayHandler {
                 }
                 
                 var format: NSPropertyListFormat = .BinaryFormat_v1_0
-                var errorDesc: NSString?
+                let playbackInfo: [String:AnyObject]
                 
-                guard let playbackInfoAny = NSPropertyListSerialization.propertyListFromData(data, mutabilityOption: .Immutable, format: &format, errorDescription: &errorDesc), playbackInfo = playbackInfoAny as? NSDictionary else {
-                    print("Error parsing /playback-info response: \(errorDesc)")
+                do {
+                    let playbackInfoAny = try NSPropertyListSerialization.propertyListWithData(data, options: [], format: &format)
+                    print("/playback-info plist: \(playbackInfoAny)")
+                    
+                    guard let playbackInfoDictionary = playbackInfoAny as? [String:AnyObject] else {
+                        print("Error parsing /playback-info response into a dictionary")
+                        assertionFailure()
+                        return
+                    }
+                    
+                    playbackInfo = playbackInfoDictionary
+                } catch {
+                    print("Error parsing /playback-info response: \(error)")
                     return
                 }
                 
-                if let readyToPlay = playbackInfo["readyToPlay"] as? Bool where !readyToPlay {
+                guard let readyToPlay = playbackInfo["readyToPlay"] as? Bool else {
+                    print("readyToPlay key in plist not found or not corresponding to a bool")
+                    assertionFailure()
+                    return
+                }
+                
+                if !readyToPlay {
                     let userInfo = [NSLocalizedDescriptionKey : "Target AirPlay server not ready.  " +
                         "Check if it is on and idle." ]
                     
@@ -404,12 +428,24 @@ private extension AirplayHandler {
             }
             
             var format: NSPropertyListFormat = .BinaryFormat_v1_0
-            var errorDesc: NSString?
-            let propertyPlist: NSDictionary? = NSPropertyListSerialization.propertyListFromData(data, mutabilityOption: .Immutable, format: &format, errorDescription: &errorDesc) as? NSDictionary
-            
-            NSOperationQueue.mainQueue().addOperationWithBlock {
-                print("\(requestType): \(propertyPlist)")
+            let propertyPlist: [String:AnyObject]
+            do {
+                let propertyPlistAny = try NSPropertyListSerialization.propertyListWithData(data, options: [], format: &format)
+                print("\(urlString) plist: \(propertyPlistAny)")
+                
+                guard let propertyPlistDictionary = propertyPlistAny as? [String:AnyObject] else {
+                    print("Error parsing \(urlString) response into a dictionary")
+                    assertionFailure()
+                    return
+                }
+                
+                propertyPlist = propertyPlistDictionary
+            } catch {
+                print("Error parsing \(urlString) response: \(error)")
+                return
             }
+            
+            print("\(requestType): \(propertyPlist)")
         }
     }
     
