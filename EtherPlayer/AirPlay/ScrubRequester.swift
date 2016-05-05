@@ -11,7 +11,7 @@ import Cocoa
 class ScrubRequester: AirplayRequester {
     let relativeURL = "/scrub"
     
-    var delegate: ScrubRequesterDelegate?
+    weak var delegate: ScrubRequesterDelegate?
     var requestCustomizer: AirplayRequestCustomizer?
     var requestTask: NSURLSessionTask?
     

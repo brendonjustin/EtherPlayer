@@ -11,7 +11,7 @@ import Cocoa
 class ServerInfoRequester: AirplayRequester {
     let relativeURL = "/server-info"
     
-    var delegate: ServerInfoRequesterDelegate?
+    weak var delegate: ServerInfoRequesterDelegate?
     var requestCustomizer: AirplayRequestCustomizer?
     
     private var requestTask: NSURLSessionTask?
@@ -69,7 +69,7 @@ class ServerInfoRequester: AirplayRequester {
     }
 }
 
-protocol ServerInfoRequesterDelegate {
+protocol ServerInfoRequesterDelegate: class {
     func didReceiveServerInfo(serverInfo: AirplayServerInfo)
 }
 

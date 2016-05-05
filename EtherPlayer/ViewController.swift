@@ -107,11 +107,11 @@ extension ViewController: AirplayHandlerDelegate {
         playButton.image = image
     }
     
-    func positionUpdated(position: Float) {
+    func positionUpdated(position: Double) {
         positionFieldCell.title = "\(Int(position) / 3600):\((Int(position) / 60) % 60)\(Int(position) % 60)"
     }
     
-    func durationUpdated(duration: Float) {
+    func durationUpdated(duration: Double) {
         durationFieldCell.title = "\(Int(duration) / 3600):\((Int(duration) / 60) % 60)\(Int(duration) % 60)"
     }
     

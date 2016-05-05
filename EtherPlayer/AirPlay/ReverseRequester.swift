@@ -12,6 +12,8 @@ class ReverseRequester:  AirplayRequester {
     let socket: GCDAsyncSocket
     let targetAddress: NSData
     
+    weak var delegate: ReverseRequesterDelegate?
+    
     init(socket: GCDAsyncSocket, targetAddress: NSData) {
         self.socket = socket
         self.targetAddress = targetAddress
@@ -51,4 +53,8 @@ class ReverseRequester:  AirplayRequester {
     func cancelRequest() {
         // empty
     }
+}
+
+protocol ReverseRequesterDelegate: class {
+    func requester(requester: ReverseRequester, didErrorConnectingToSocket: NSError)
 }

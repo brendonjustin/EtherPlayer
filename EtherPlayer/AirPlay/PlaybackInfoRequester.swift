@@ -11,7 +11,7 @@ import Cocoa
 class PlaybackInfoRequester: AirplayRequester {
     let relativeURL = "/playback-info"
     
-    var delegate: PlaybackInfoRequesterDelegate?
+    weak var delegate: PlaybackInfoRequesterDelegate?
     var requestCustomizer: AirplayRequestCustomizer?
     var requestTask: NSURLSessionTask?
     
@@ -97,7 +97,7 @@ class PlaybackInfoRequester: AirplayRequester {
     }
 }
 
-protocol PlaybackInfoRequesterDelegate {
+protocol PlaybackInfoRequesterDelegate: class {
     func didUpdatePlaybackStatus(paused paused: Bool, playbackPosition: Double)
     func didErrorGettingPlaybackStatus()
 }
