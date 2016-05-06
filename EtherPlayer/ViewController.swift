@@ -128,7 +128,7 @@ extension ViewController: AirplayHandlerDelegate {
 }
 
 extension ViewController: VideoConverterDelegate {
-    func outputReady(videoConverter: VideoConverter) {
-        handler.startAirplay()
+    func videoConverter(videoConverter: VideoConverter, outputReadyWithHTTPAddress httpAddress: String, metadata: VideoConverter.Metadata) {
+        handler.startAirplay(httpAddress, playbackDuration: metadata.duration)
     }
 }

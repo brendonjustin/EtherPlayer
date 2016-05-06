@@ -18,7 +18,7 @@ class AirplayHandler: NSObject {
     
     // Initialize and update these together
     var sessionID: String = NSUUID().UUIDString
-    var baseURL: NSURL?
+    var targetBaseURL: NSURL?
     var targetService: NSNetService? {
         get {
             return internalTargetService
@@ -43,7 +43,10 @@ class AirplayHandler: NSObject {
 	var operationQueue = NSOperationQueue.mainQueue()
 	private var airplaying = false
 	private var paused = true
+    
 	private var playbackPosition: Double = 0
+    private var playbackDuration: Double = 0
+    private var playbackURL: String = ""
     
     /**
      Keep a strong reference to the server info state, since it makes network
@@ -61,12 +64,12 @@ class AirplayHandler: NSObject {
 //        operationQueue.name = "Connection Queue"
     }
     
-    private func createAfterServerInfoStateMachine(baseURL: NSURL) {
+    private func createAfterServerInfoStateMachine(targetBaseURL: NSURL) {
         let playbackInfoRequester = PlaybackInfoRequester()
         playbackInfoRequester.delegate = self
         playbackInfoRequester.requestCustomizer = self
         
-        let playingRequester = PlayingRequester(httpFilePath: videoConverter.httpFilePath!, socket: mainSocket, targetAddress: targetServiceAddress)
+        let playingRequester = PlayingRequester(httpFilePath: playbackURL, socket: mainSocket, targetAddress: targetServiceAddress)
         let reverseRequester = ReverseRequester(socket: reverseSocket, targetAddress: targetServiceAddress)
         
         let scrubRequester = ScrubRequester()
@@ -89,8 +92,8 @@ class AirplayHandler: NSObject {
     }
     
     private func generateState<RequesterType: AirplayRequester>(requester: RequesterType) -> AirplayState<RequesterType> {
-        let baseURL = self.baseURL!
-        return AirplayState(baseURL: baseURL, sessionID: sessionID, requester: requester)
+        let targetBaseURL = self.targetBaseURL!
+        return AirplayState(baseURL: targetBaseURL, sessionID: sessionID, requester: requester)
     }
     
     private func internalSetTargetService(targetService: NSNetService?) {
@@ -147,11 +150,11 @@ class AirplayHandler: NSObject {
                 }
                 
                 successGettingInfo = true
-                baseURL = NSURL(string: address)
+                targetBaseURL = NSURL(string: address)
             }
         }
         
-        guard successGettingInfo, let baseURL = self.baseURL else {
+        guard successGettingInfo, let targetBaseURL = self.targetBaseURL else {
             print("Couldn't get target service info, not trying to AirPlay")
             return
         }
@@ -159,7 +162,7 @@ class AirplayHandler: NSObject {
         let requester = ServerInfoRequester()
         requester.delegate = self
         requester.requestCustomizer = self
-        let serverInfoState = AirplayState(baseURL: baseURL, sessionID: sessionID, requester: requester)
+        let serverInfoState = AirplayState(baseURL: targetBaseURL, sessionID: sessionID, requester: requester)
         serverInfoState.didEnterWithPreviousState(nil)
         self.serverInfoState = serverInfoState
     }
@@ -176,12 +179,14 @@ extension AirplayHandler {
         delegate?.setPaused(paused)
     }
     
-    func startAirplay() {
+    func startAirplay(playbackURL: String, playbackDuration: Double) {
         guard let _ = targetService else {
             return
         }
         
-        createAfterServerInfoStateMachine(baseURL!)
+        self.playbackURL = playbackURL
+        self.playbackDuration = playbackDuration
+        createAfterServerInfoStateMachine(targetBaseURL!)
         sessionID = NSUUID().UUIDString
         stateMachine.enterState(AirplayReverseState.self)
     }
@@ -209,7 +214,7 @@ extension AirplayHandler {
             rateString = "/rate?value=1.00000"
         }
         
-        let url = NSURL(string: rateString, relativeToURL: baseURL)!
+        let url = NSURL(string: rateString, relativeToURL: targetBaseURL)!
         let request = NSMutableURLRequest(URL: url)
         request.HTTPMethod = "POST"
         
@@ -248,7 +253,7 @@ private extension AirplayHandler {
         
         let urlString = "/getProperty?\(requestType)"
         
-        let url = NSURL(string: urlString, relativeToURL: baseURL)!
+        let url = NSURL(string: urlString, relativeToURL: targetBaseURL)!
         let request = NSMutableURLRequest(URL: url)
         
         setCommonHeadersForRequest(request)
@@ -290,7 +295,7 @@ private extension AirplayHandler {
     func writeStuff() {
         let bodyString: CFString = ""
         let requestMethod: CFString = "POST"
-        let myURL = baseURL?.URLByAppendingPathComponent("stuff") as CFURLRef?
+        let myURL = targetBaseURL?.URLByAppendingPathComponent("stuff") as CFURLRef?
         let myRequest = CFHTTPMessageCreateRequest(kCFAllocatorDefault, requestMethod, myURL!, kCFHTTPVersion1_1).takeUnretainedValue()
         let bodyDataExt = CFStringCreateExternalRepresentation(kCFAllocatorDefault, bodyString, CFStringBuiltInEncodings.UTF8.rawValue, 0)
         CFHTTPMessageSetBody(myRequest, bodyDataExt)
@@ -358,7 +363,9 @@ extension AirplayHandler: GCDAsyncSocketDelegate {
                 airplaying = true
                 paused = false
                 delegate?.setPaused(paused)
-                delegate?.durationUpdated(videoConverter.duration!)
+                
+                // TODO: Integrate me more tightly with our state machine?
+                delegate?.durationUpdated(playbackDuration)
                 
                 infoTimer = NSTimer.scheduledTimerWithTimeInterval(3,
                                                                    target: self,

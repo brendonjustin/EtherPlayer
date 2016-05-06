@@ -56,8 +56,9 @@
 		DA0F57161CDBD3F10045E639 /* ScrubRequester.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0F57151CDBD3F10045E639 /* ScrubRequester.swift */; };
 		DA0F57181CDBD7510045E639 /* ServerInfoRequester.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0F57171CDBD7510045E639 /* ServerInfoRequester.swift */; };
 		DA74FA571CD9706D009FB1F6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA74FA561CD9706D009FB1F6 /* AppDelegate.swift */; };
+		DA7F51851CDD326800B0E064 /* VideoConversionStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA7F51841CDD326800B0E064 /* VideoConversionStateMachine.swift */; };
+		DA7F51871CDD374E00B0E064 /* VideoConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA7F51861CDD374E00B0E064 /* VideoConverter.swift */; };
 		DA89133C1CDCDEE800E883EC /* AirplayConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = DA89133B1CDCDEE800E883EC /* AirplayConstants.m */; };
-		DA89133E1CDCE1F700E883EC /* VideoConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA89133D1CDCE1F700E883EC /* VideoConverter.swift */; };
 		DAC34FCE1CD97B3400B18830 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAC34FCD1CD97B3400B18830 /* ViewController.swift */; };
 		DAC350071CD97FC500B18830 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DAC350061CD97FC500B18830 /* Main.storyboard */; };
 		DAC3500B1CD98A3300B18830 /* AirplayHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAC3500A1CD98A3300B18830 /* AirplayHandler.swift */; };
@@ -160,9 +161,10 @@
 		DA0F57171CDBD7510045E639 /* ServerInfoRequester.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServerInfoRequester.swift; sourceTree = "<group>"; };
 		DA74FA551CD9706D009FB1F6 /* EtherPlayer-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "EtherPlayer-Bridging-Header.h"; sourceTree = "<group>"; };
 		DA74FA561CD9706D009FB1F6 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		DA7F51841CDD326800B0E064 /* VideoConversionStateMachine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoConversionStateMachine.swift; sourceTree = "<group>"; };
+		DA7F51861CDD374E00B0E064 /* VideoConverter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoConverter.swift; sourceTree = "<group>"; };
 		DA89133A1CDCDEE800E883EC /* AirplayConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AirplayConstants.h; sourceTree = "<group>"; };
 		DA89133B1CDCDEE800E883EC /* AirplayConstants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AirplayConstants.m; sourceTree = "<group>"; };
-		DA89133D1CDCE1F700E883EC /* VideoConverter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoConverter.swift; sourceTree = "<group>"; };
 		DAC34FCD1CD97B3400B18830 /* ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		DAC350061CD97FC500B18830 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		DAC3500A1CD98A3300B18830 /* AirplayHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AirplayHandler.swift; sourceTree = "<group>"; };
@@ -355,8 +357,8 @@
 			isa = PBXGroup;
 			children = (
 				DA0F570A1CDBAFCC0045E639 /* AirPlay */,
+				DA7F51831CDD322B00B0E064 /* VideoConversion */,
 				DA74FA561CD9706D009FB1F6 /* AppDelegate.swift */,
-				DA89133D1CDCE1F700E883EC /* VideoConverter.swift */,
 				5C0A32F015786C9400D3A49F /* BonjourSearcher.h */,
 				5C0A32F115786C9400D3A49F /* BonjourSearcher.m */,
 				DAC34FCD1CD97B3400B18830 /* ViewController.swift */,
@@ -404,6 +406,15 @@
 				DA0F570F1CDBB2130045E639 /* StopRequester.swift */,
 			);
 			path = AirPlay;
+			sourceTree = "<group>";
+		};
+		DA7F51831CDD322B00B0E064 /* VideoConversion */ = {
+			isa = PBXGroup;
+			children = (
+				DA7F51861CDD374E00B0E064 /* VideoConverter.swift */,
+				DA7F51841CDD326800B0E064 /* VideoConversionStateMachine.swift */,
+			);
+			path = VideoConversion;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -485,6 +496,7 @@
 				5C0A32F215786C9400D3A49F /* BonjourSearcher.m in Sources */,
 				5C09484D16F7FABD008E6582 /* DDData.m in Sources */,
 				5C09484E16F7FABD008E6582 /* DDNumber.m in Sources */,
+				DA7F51851CDD326800B0E064 /* VideoConversionStateMachine.swift in Sources */,
 				5C09484F16F7FABD008E6582 /* DDRange.m in Sources */,
 				5C09485016F7FABD008E6582 /* HTTPAuthenticationRequest.m in Sources */,
 				5C09485116F7FABD008E6582 /* HTTPConnection.m in Sources */,
@@ -509,7 +521,7 @@
 				5C09486116F7FABD008E6582 /* GCDAsyncSocket.m in Sources */,
 				DA0F57121CDBBCB90045E639 /* PlayingRequester.swift in Sources */,
 				DA0F57141CDBD3C10045E639 /* PlaybackInfoRequester.swift in Sources */,
-				DA89133E1CDCE1F700E883EC /* VideoConverter.swift in Sources */,
+				DA7F51871CDD374E00B0E064 /* VideoConverter.swift in Sources */,
 				5C09486316F7FABD008E6582 /* DDAbstractDatabaseLogger.m in Sources */,
 				DA0F570E1CDBB02E0045E639 /* AirplayStateMachine.swift in Sources */,
 				DA0F57181CDBD7510045E639 /* ServerInfoRequester.swift in Sources */,
