@@ -30,7 +30,6 @@ const BOOL          kOVCCleanTempDir = NO;
 
 @property (strong, nonatomic) VLCMedia          *inputMedia;
 @property (strong, nonatomic) VLCStreamSession  *session;
-@property (strong, nonatomic) NSString          *baseFilePath;
 @property (strong, nonatomic) NSString          *httpAddress;
 @property (strong, nonatomic) NSString          *outputStreamPath;
 @property (strong, nonatomic) NSString          *outputStreamFilename;

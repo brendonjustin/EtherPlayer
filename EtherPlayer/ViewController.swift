@@ -54,6 +54,12 @@ extension ViewController {
         
         handler.targetService = selectedService
     }
+    
+    @IBAction func showWorkingDirectory(sender: AnyObject?) {
+        let fileURL = NSURL(fileURLWithPath: manager.baseFilePath)
+
+        NSWorkspace.sharedWorkspace().activateFileViewerSelectingURLs([fileURL])
+    }
 }
 
 extension ViewController {
