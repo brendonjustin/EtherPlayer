@@ -12,7 +12,7 @@ class ViewController: NSViewController {
     
     let handler: AirplayHandler = AirplayHandler()
     let searcher: BonjourSearcher = BonjourSearcher()
-    let manager: VideoManager = VideoManager()
+    let videoConverter: VideoConverter = VideoConverter()
     var services: [NSNetService] = []
     
     @IBOutlet var targetSelector: NSPopUpButton!
@@ -25,16 +25,12 @@ class ViewController: NSViewController {
         
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(airplayTargetsNotificationReceived(_:)), name: "AirplayTargets", object: searcher)
         
-        manager.delegate = self
+        videoConverter.delegate = self
         
         handler.delegate = self
-        handler.videoManager = manager
+        handler.videoConverter = videoConverter
         
         searcher.beginSearching()
-    }
-    
-    deinit {
-        manager.cleanup()
     }
 }
 
@@ -56,7 +52,7 @@ extension ViewController {
     }
     
     @IBAction func showWorkingDirectory(sender: AnyObject?) {
-        let fileURL = NSURL(fileURLWithPath: manager.baseFilePath)
+        let fileURL = NSURL(fileURLWithPath: videoConverter.baseFilePath)
 
         NSWorkspace.sharedWorkspace().activateFileViewerSelectingURLs([fileURL])
     }
@@ -131,8 +127,8 @@ extension ViewController: AirplayHandlerDelegate {
     }
 }
 
-extension ViewController: VideoManagerDelegate {
-    func outputReady(sender: AnyObject!) {
+extension ViewController: VideoConverterDelegate {
+    func outputReady(videoConverter: VideoConverter) {
         handler.startAirplay()
     }
 }

@@ -33,7 +33,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func application(sender: NSApplication, openFile filename: String) -> Bool {
         let controller = NSDocumentController.sharedDocumentController()
         controller.noteNewRecentDocumentURL(NSURL(fileURLWithPath: filename))
-        viewController.manager.transcodeMediaForPath(filename)
+        viewController.videoConverter.convertMedia(filename)
         
         return true
     }

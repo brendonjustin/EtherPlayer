@@ -4,6 +4,10 @@
 
 #import "AirplayConstants.h"
 #import "AirplayConstants.h"
-#import "VideoManager.h"
 #import "BonjourSearcher.h"
 #import "GCDAsyncSocket.h"
+
+#import "HTTPServer.h"
+
+#import <arpa/inet.h>
+#import <ifaddrs.h>

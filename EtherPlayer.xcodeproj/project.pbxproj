@@ -42,7 +42,6 @@
 		5C0A32DA15786B2600D3A49F /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A32D815786B2600D3A49F /* InfoPlist.strings */; };
 		5C0A32E015786B2600D3A49F /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A32DE15786B2600D3A49F /* Credits.rtf */; };
 		5C0A32F215786C9400D3A49F /* BonjourSearcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0A32F115786C9400D3A49F /* BonjourSearcher.m */; };
-		5C0DD8C6157FF566005C8FF8 /* VideoManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C0DD8C5157FF566005C8FF8 /* VideoManager.m */; };
 		5C4D440D15804915007B94F2 /* pause.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C4D440A15804915007B94F2 /* pause.png */; };
 		5C4D440E15804915007B94F2 /* play.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C4D440B15804915007B94F2 /* play.png */; };
 		5C4D440F15804915007B94F2 /* stop.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C4D440C15804915007B94F2 /* stop.png */; };
@@ -58,6 +57,7 @@
 		DA0F57181CDBD7510045E639 /* ServerInfoRequester.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0F57171CDBD7510045E639 /* ServerInfoRequester.swift */; };
 		DA74FA571CD9706D009FB1F6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA74FA561CD9706D009FB1F6 /* AppDelegate.swift */; };
 		DA89133C1CDCDEE800E883EC /* AirplayConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = DA89133B1CDCDEE800E883EC /* AirplayConstants.m */; };
+		DA89133E1CDCE1F700E883EC /* VideoConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA89133D1CDCE1F700E883EC /* VideoConverter.swift */; };
 		DAC34FCE1CD97B3400B18830 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAC34FCD1CD97B3400B18830 /* ViewController.swift */; };
 		DAC350071CD97FC500B18830 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DAC350061CD97FC500B18830 /* Main.storyboard */; };
 		DAC3500B1CD98A3300B18830 /* AirplayHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAC3500A1CD98A3300B18830 /* AirplayHandler.swift */; };
@@ -146,8 +146,6 @@
 		5C0A32DF15786B2600D3A49F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
 		5C0A32F015786C9400D3A49F /* BonjourSearcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BonjourSearcher.h; sourceTree = "<group>"; };
 		5C0A32F115786C9400D3A49F /* BonjourSearcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BonjourSearcher.m; sourceTree = "<group>"; };
-		5C0DD8C4157FF566005C8FF8 /* VideoManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoManager.h; sourceTree = "<group>"; };
-		5C0DD8C5157FF566005C8FF8 /* VideoManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VideoManager.m; sourceTree = "<group>"; };
 		5C4D440A15804915007B94F2 /* pause.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pause.png; sourceTree = "<group>"; };
 		5C4D440B15804915007B94F2 /* play.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = play.png; sourceTree = "<group>"; };
 		5C4D440C15804915007B94F2 /* stop.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = stop.png; sourceTree = "<group>"; };
@@ -164,6 +162,7 @@
 		DA74FA561CD9706D009FB1F6 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		DA89133A1CDCDEE800E883EC /* AirplayConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AirplayConstants.h; sourceTree = "<group>"; };
 		DA89133B1CDCDEE800E883EC /* AirplayConstants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AirplayConstants.m; sourceTree = "<group>"; };
+		DA89133D1CDCE1F700E883EC /* VideoConverter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoConverter.swift; sourceTree = "<group>"; };
 		DAC34FCD1CD97B3400B18830 /* ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		DAC350061CD97FC500B18830 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		DAC3500A1CD98A3300B18830 /* AirplayHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AirplayHandler.swift; sourceTree = "<group>"; };
@@ -357,8 +356,7 @@
 			children = (
 				DA0F570A1CDBAFCC0045E639 /* AirPlay */,
 				DA74FA561CD9706D009FB1F6 /* AppDelegate.swift */,
-				5C0DD8C4157FF566005C8FF8 /* VideoManager.h */,
-				5C0DD8C5157FF566005C8FF8 /* VideoManager.m */,
+				DA89133D1CDCE1F700E883EC /* VideoConverter.swift */,
 				5C0A32F015786C9400D3A49F /* BonjourSearcher.h */,
 				5C0A32F115786C9400D3A49F /* BonjourSearcher.m */,
 				DAC34FCD1CD97B3400B18830 /* ViewController.swift */,
@@ -485,7 +483,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				5C0A32F215786C9400D3A49F /* BonjourSearcher.m in Sources */,
-				5C0DD8C6157FF566005C8FF8 /* VideoManager.m in Sources */,
 				5C09484D16F7FABD008E6582 /* DDData.m in Sources */,
 				5C09484E16F7FABD008E6582 /* DDNumber.m in Sources */,
 				5C09484F16F7FABD008E6582 /* DDRange.m in Sources */,
@@ -512,6 +509,7 @@
 				5C09486116F7FABD008E6582 /* GCDAsyncSocket.m in Sources */,
 				DA0F57121CDBBCB90045E639 /* PlayingRequester.swift in Sources */,
 				DA0F57141CDBD3C10045E639 /* PlaybackInfoRequester.swift in Sources */,
+				DA89133E1CDCE1F700E883EC /* VideoConverter.swift in Sources */,
 				5C09486316F7FABD008E6582 /* DDAbstractDatabaseLogger.m in Sources */,
 				DA0F570E1CDBB02E0045E639 /* AirplayStateMachine.swift in Sources */,
 				DA0F57181CDBD7510045E639 /* ServerInfoRequester.swift in Sources */,

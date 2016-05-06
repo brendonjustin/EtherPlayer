@@ -13,7 +13,7 @@ private typealias ServerInfoState = AirplayState<ServerInfoRequester>
 
 class AirplayHandler: NSObject {
     var delegate: AirplayHandlerDelegate?
-    var videoManager: VideoManager!
+    var videoConverter: VideoConverter!
     var urlSession: NSURLSession = NSURLSession.sharedSession()
     
     // Initialize and update these together
@@ -66,7 +66,7 @@ class AirplayHandler: NSObject {
         playbackInfoRequester.delegate = self
         playbackInfoRequester.requestCustomizer = self
         
-        let playingRequester = PlayingRequester(httpFilePath: videoManager.httpFilePath, socket: mainSocket, targetAddress: targetServiceAddress)
+        let playingRequester = PlayingRequester(httpFilePath: videoConverter.httpFilePath!, socket: mainSocket, targetAddress: targetServiceAddress)
         let reverseRequester = ReverseRequester(socket: reverseSocket, targetAddress: targetServiceAddress)
         
         let scrubRequester = ScrubRequester()
@@ -197,7 +197,7 @@ extension AirplayHandler {
         }
         
         stateMachine.enterState(AirplayStopState.self)
-        videoManager.stop()
+        videoConverter.stop()
     }
     
     func changePlaybackStatus() {
@@ -358,7 +358,7 @@ extension AirplayHandler: GCDAsyncSocketDelegate {
                 airplaying = true
                 paused = false
                 delegate?.setPaused(paused)
-                delegate?.durationUpdated(videoManager.duration)
+                delegate?.durationUpdated(videoConverter.duration!)
                 
                 infoTimer = NSTimer.scheduledTimerWithTimeInterval(3,
                                                                    target: self,
@@ -405,7 +405,7 @@ extension AirplayHandler: ServerInfoRequesterDelegate {
     func didReceiveServerInfo(serverInfo: AirplayServerInfo) {
         let useHLS = serverInfo.supportsHTTPLiveStreaming
         
-        videoManager.useHttpLiveStreaming = useHLS
+        videoConverter.useHTTPLiveStreaming = useHLS
         serverCapabilities = serverInfo
         
         serverInfoState = nil
