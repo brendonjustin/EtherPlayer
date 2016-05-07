@@ -110,11 +110,11 @@ extension ViewController: AirplayHandlerDelegate {
     }
     
     func positionUpdated(position: Double) {
-        positionFieldCell.title = "\(Int(position) / 3600):\((Int(position) / 60) % 60)\(Int(position) % 60)"
+        positionFieldCell.title = String(format: "%02d:%02d:%02d", Int(position) / 3600, (Int(position) / 60) % 60, Int(position) % 60)
     }
     
     func durationUpdated(duration: Double) {
-        durationFieldCell.title = "\(Int(duration) / 3600):\((Int(duration) / 60) % 60)\(Int(duration) % 60)"
+        durationFieldCell.title = String(format: "%02d:%02d:%02d", Int(duration) / 3600, (Int(duration) / 60) % 60, Int(duration) % 60)
     }
     
     func airplayStoppedWithError(error: NSError?) {
