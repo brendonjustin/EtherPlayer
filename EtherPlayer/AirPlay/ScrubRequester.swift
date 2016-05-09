@@ -40,9 +40,13 @@ class ScrubRequester: AirplayRequester {
                 return
             }
             
-            if case let cachedDurationRange = responseString.rangeOfString("position") where cachedDurationRange.location != NSNotFound {
-                let cachedDurationEnd = cachedDurationRange.location + cachedDurationRange.length
-                let playbackPosition = Double(responseString.substringFromIndex(cachedDurationEnd)) ?? 0
+            // Expect a string like "duration: xxx.xxxxx\nposition: yyy.yyyyy\n"
+            if case let positionRange = responseString.rangeOfString("position: ") where positionRange.location != NSNotFound {
+                let playbackPositionStart = positionRange.location + positionRange.length
+                let playbackPositionEndRange = responseString.rangeOfString("\n", options: [.BackwardsSearch])
+                let playbackPositionEnd = playbackPositionEndRange.location
+                let playbackPositionNumberRange = NSRange(location: playbackPositionStart, length: playbackPositionEnd - playbackPositionStart)
+                let playbackPosition = Double(responseString.substringWithRange(playbackPositionNumberRange)) ?? 0
                 strongSelf.delegate?.playbackPositionUpdated(playbackPosition)
             }
             })
